@@ -1,10 +1,10 @@
 Package: epiviz
-Title: What the Package Does (One Line, Title Case)
+Title: Epidemiological Visualisations
 Version: 0.0.0.9000
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
+    person("Harshana", "Liyanage", , "harshanal@gmail.com", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0001-9738-6349"))
+Description: Provides functions for creating epidemiological visualizations.
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
