@@ -2,9 +2,15 @@ Package: epiviz
 Title: Epidemiological Visualisations
 Version: 0.0.0.9000
 Authors@R: 
-    person("Harshana", "Liyanage", , "harshanal@gmail.com", role = c("aut", "cre"),
-           comment = c(ORCID = "0000-0001-9738-6349"))
-Description: Provides functions for creating epidemiological visualizations.
+  c(person("Harshana", "Liyanage", email="harshana.liyanage@ukhsa.gov.uk", role = c("cre"),
+           comment = c(ORCID = "0000-0001-9738-6349")),
+    person("James", "Leatherland", email="james.leatherland@ukhsa.gov.uk", role = c("aut"),
+           comment = c(ORCID = "YOUR-ORCID-ID")),
+    person("Jordan", "Worth", email="jordan.worth@ukhsa.gov.uk", role = c("aut"),
+           comment = c(ORCID = "YOUR-ORCID-ID")),
+    person("Emma", "Parker", emai="emma.k.parker@ukhsa.gov.uk", role = c("aut"),
+           comment = c(ORCID = "YOUR-ORCID-ID")))
+Description: Provides functions for creating epidemiological visualisations.
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
