@@ -1,5 +1,5 @@
 Package: epiviz
-Title: Epidemiological Visualisations
+Title: Epidemiological Data Visualisation
 Version: 0.0.0.9000
 Authors@R: 
   c(person("Harshana", "Liyanage", email="harshana.liyanage@ukhsa.gov.uk", role = c("cre"),
