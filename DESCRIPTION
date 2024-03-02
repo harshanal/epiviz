@@ -24,4 +24,6 @@ Imports:
     classInt,
     dplyr,
     ggplot2,
-    RColorBrewer
+    RColorBrewer,
+    lubridate,
+    plotly
