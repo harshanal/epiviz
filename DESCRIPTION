@@ -2,7 +2,7 @@ Package: epiviz
 Title: data visualisation functions for epidemiological data science products
 Version: 0.0.0.9000
 Authors@R: 
-    c(person(given="Harshana", family="Liyanage", email="harshana.liyanage@ukhsa.gov.uk", role = c("aut","cre")
+    c(person(given="Harshana", family="Liyanage", email="harshana.liyanage@ukhsa.gov.uk", role = c("aut","cre"),
            comment = c(ORCID = "0000-0001-9738-6349")),
      person(given="Alex", family="Bhattacharya", email="alex.bhattacharya@ukhsa.gov.uk", role = c("aut"),
            comment = c(ORCID = "0000-0003-3000-2771")),
