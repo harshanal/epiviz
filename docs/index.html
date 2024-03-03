@@ -67,20 +67,34 @@
 </h1></div>
 <!-- badges: start -->
 
+<p><code>epiviz</code> provides easy-to-use data visualization functions for R data science products. The package includes functions to create a range of static and interactive visualizations. Additionally, the package also provides helper functions that will allow converting line lists to aggregated data frames that are in the form ready to be consumed by the visualization functions.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="ex">devtools::install</span><span class="er">(</span><span class="st">'harshanal/epiviz'</span><span class="kw">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">'harshanal/epiviz'</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="features">Features<a class="anchor" aria-label="anchor" href="#features"></a>
 </h2>
-<p>Following functions are available in the current release of epiviz: * <em>line_chart()</em>: line chart with options to add dual axis, threshold lines, confidence limits as ribbon/error bars * <em>line_chart_plotly</em>: dynamic line chart * <em>col_charts()</em>: column chart with options to add dual axis, threshold lines, confidence limits as ribbon/error bars * <em>epi_map()</em>: epidemiological map with customisable maps adaptable for multiple administrative levels * <em>agesex_pyramid()</em>: age sex pyramid with customisable age bands with the option to add error bars</p>
+<p>Following functions are available in the current release of epiviz:</p>
+<ul>
+<li>
+<code><a href="reference/line_chart.html">line_chart()</a></code>: Line chart with options to add dual axes, threshold lines, confidence limits as ribbons/error bars.</li>
+<li>
+<code><a href="reference/line_chart_plotly.html">line_chart_plotly()</a></code>: Dynamic line chart.</li>
+<li>
+<code>col_charts()</code>: Column chart with options to add dual axes, threshold lines, confidence limits as ribbons/error bars.</li>
+<li>
+<code><a href="reference/epi_map.html">epi_map()</a></code>: Epidemiological map with customizable maps adaptable for multiple administrative levels.</li>
+<li>
+<code><a href="reference/agesex_pyramid.html">agesex_pyramid()</a></code>: Age-sex pyramid with customizable age bands with the option to add error bars.</li>
+</ul>
 </div>
 <div class="section level2">
 <h2 id="package-data">Package data<a class="anchor" aria-label="anchor" href="#package-data"></a>
 </h2>
-<p>epivis includes a dataset consisting of laboratory data.</p>
+<p>epiviz includes a dataset consisting of laboratory data.</p>
 </div>
 </div>
   </div>

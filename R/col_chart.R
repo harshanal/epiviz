@@ -1,35 +1,3 @@
-#' Function to scale/shift secondary y axis labels
-#'
-#' @param x the value to be scaled/shifted
-#' @param scale the value to scale the axis by
-#' @param shift the value to shift the axis by
-#'
-#' @return scaled/shifted y axis values
-#'
-#' @examples
-#' scale_function(2,4,5)
-scale_function <- function(x, scale, shift){
-  return ((x)*scale - shift)
-}
-
-
-
-
-
-#' Function to scale/shift secondary y axis data
-#'
-#' @param x the value to be scaled/shifted
-#' @param scale the value to scale the data by
-#' @param shift the value to shift the data by
-#'
-#' @return scaled/shifted data to plot on secondary y axis
-#'
-#' @examples
-#' inv_scale_function(2,4,5)
-inv_scale_function <- function(x, scale, shift){
-  return ((x + shift)/scale)
-}
-
 #' Column Chart
 #'
 #' @param df the dataframe containing the data to be plotted
@@ -57,7 +25,7 @@ inv_scale_function <- function(x, scale, shift){
 #' @param remove_gridlines enter an argument of any value i.e. 'y' to remove the grid lines
 #' @param percent enter an argument of any value i.e. 'y' to include the % symbol for y axis labels
 #' @param cap_text enter text for a caption to appear below plot
-#' @param no_shift If no shift should be applied to the secondary y-axis 
+#' @param no_shift If no shift should be applied to the secondary y-axis
 #'
 #' @import assertthat
 #'
@@ -156,25 +124,25 @@ col_chart <- function(df,
     scale <- 1
     shift <- 0
   }
-  
+
   if (no_shift == TRUE) {
     shift <- 0
     base$secondary_y_shift <- 0
   }
-  
+
   #### Apply the inv_scale_function to the values that will be plotted on the scaled secondary y axis (if they've been supplied) ####
   if (!is.null(y)) {
    df[[y]] <- inv_scale_function(df[[y]], scale, shift)
   }
-  
+
   if (!is.null(lower)) {
    df[[lower]] <- inv_scale_function(df[[lower]], scale, shift)
   }
-  
+
   if (!is.null(upper)) {
    df[[upper]] <- inv_scale_function(df[[upper]], scale, shift)
    }
-  
+
   if (!is.null(h_line)) {
     hline <- inv_scale_function(hline, scale, shift)
   }
@@ -190,8 +158,8 @@ col_chart <- function(df,
     base <- base + geom_col(data = df, aes(x = .data[[x]], y =  .data[[y]], group = .data[[group_var]], fill = .data[[group_var]]), position = position) #+scale_fill_manual(values = fill)
   }
 
-  
-  
+
+
   # confidence interval; ribbon \ error bar
   if(!(missing(ci)) && missing(group_var)){
 
@@ -209,7 +177,7 @@ col_chart <- function(df,
                   base <- base + ggplot2::geom_ribbon(data = df, aes(x = .data[[x]], ymin = .data[[lower]], ymax = .data[[upper]], group = 1), fill = error_colour, alpha = .5))
 
            )
-    
+
 
   }
 
@@ -226,11 +194,11 @@ col_chart <- function(df,
                     ,
 
                   # Apply ribbon with separate legends for line and ci
-                  base <- base + 
-                          ggplot2::geom_ribbon(data = df, aes(x = .data[[x]], 
-                                                              ymin = .data[[lower]], 
-                                                              ymax = .data[[upper]], 
-                                                              group =.data[[group_var]],  fill = "ci"), alpha = .5)) 
+                  base <- base +
+                          ggplot2::geom_ribbon(data = df, aes(x = .data[[x]],
+                                                              ymin = .data[[lower]],
+                                                              ymax = .data[[upper]],
+                                                              group =.data[[group_var]],  fill = "ci"), alpha = .5))
 
            )}
 
@@ -277,7 +245,7 @@ col_chart <- function(df,
   } else {
   base <- base + ggplot2::labs(y = y_label)
   }
-  
+
   # Apply x label using arguments provided
   if(!(missing(x_label))){
 
