@@ -15,8 +15,12 @@ output:
 
 ## Installation
 
+epivis can be installed from GitHub used the following code.
 ```r
-devtools::install_github('harshanal/epiviz')
+remotes::install_github('harshanal/epiviz')
+
+# To install the development version
+remotes::install_github("harshanal/epiviz@dev")
 ``` 
 
 ## Features
@@ -31,4 +35,8 @@ Following functions are available in the current release of epiviz:
 
 ## Package data
 
-epiviz includes a dataset consisting of laboratory data.
+epiviz includes an anonymised sample dataset from the SGSS laboratory database: `lab_data()`
+
+The Second Generation Surveillance System (SGSS) is a data asset held by the [UK Health Security Agency](https://www.gov.uk/government/publications/securing-our-health-the-uk-health-security-agency/securing-our-health-the-uk-health-security-agency) (formerly Public Health England) which routinely and automatically collects laboratory data from across England.
+
+Laboratories return data on organisms isolated from samples such as the organism species, specimen type, sampling date and antimicrobial susceptibility testing results. These data are routinely used for public health surveillance and epidemiology in England.
