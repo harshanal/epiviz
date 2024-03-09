@@ -3,3 +3,8 @@
 ^epiviz\.Rproj$
 ^\.Rproj\.user$
 ^LICENSE\.md$
+^README\.Rmd$
+^cran-comments\.md$
+^pkgdown$
+^_pkgdown\.yml$
+^\.github$
