@@ -2,12 +2,6 @@
 #'
 #' The chart function has 3 mandatory arguments to plot, with additional arguments as described further below:
 #'
-#'
-#' data frame
-#' x axis variable name
-#' y axis variable name
-#'
-#'
 #' @param df name of the dataframe plotting, and are mandatory.
 #' @param x names of the x axis variable of the plot from the df and are mandatory.
 #' @param y names of the y axis variable of the plot from the df and are mandatory.
@@ -46,8 +40,8 @@
 #' yaxis_label_angle  = 0(default),x_axis_reverse= default(FALSE),y_rangemode = "tozero",
 #' plot_mode = "lines"/"lines+markers",legend_orientation = 'h'/'v',
 #' legend_x =0.5, legend_y = -0.35,show_legend = FALSE,
-#' lower_limit = "lower_error", upper_limit = "upper_error") if df has lower and upper limit
-#' otherwise can omit it.
+#' lower_limit = "lower_error", upper_limit = "upper_error")
+#' # if df has lower and upper limit otherwise can omit it.
 #'
 #'
 #'
@@ -57,12 +51,8 @@
 #' yaxis_label_angle  = 0(default),x_axis_reverse= default(FALSE),y_rangemode = "tozero",
 #' plot_mode = "lines"/"lines+markers",legend_orientation = 'h'/'v',
 #' legend_x =0.5, legend_y = -0.35,show_legend = FALSE,
-#' lower_limit = "lower_error", upper_limit = "upper_error") if df has lower and upper limit
-#' otherwise can omit it.
-
-# -------------------------------------------------------------------------
-
-
+#' lower_limit = "lower_error", upper_limit = "upper_error")
+#' # if df has lower and upper limit #' otherwise can omit it.
 
 line_chart_plotly <- function (df,
                                x,

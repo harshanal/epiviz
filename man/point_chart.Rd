@@ -38,19 +38,26 @@ point_chart(
 \arguments{
 \item{df}{name of data frame for plotting}
 
+\item{base}{base}
+
 \item{x}{name of x axis variable in data frame}
 
 \item{y}{name of y axis variable in data frame}
 
-\item{group_var}{name of group variable to generate multiple lines (if required) in data frame}
+\item{group_var}{name of group variable to generate multiple lines
+(if required) in data frame}
 
-\item{ci}{indicator for using ribbon or error bar geom (if required), enter 'e' for error bar, enter any other value for ribbon}
+\item{y_axis}{y_axis}
+
+\item{ci}{indicator for using ribbon or error bar geom (if required),
+enter 'e' for error bar, enter any other value for ribbon}
 
 \item{lower}{lower value for error \ ribbon geom (mandatory if ci argument passed)}
 
 \item{upper}{upper value for error \ ribbon geom (mandatory if ci argument passed)}
 
-\item{error_colour}{if not plotting by group this is the colour of the error bars or ribbon}
+\item{error_colour}{if not plotting by group this is the colour of the error
+bars or ribbon}
 
 \item{h_line}{will display a horizontal line if valid inter passed
 provided where multiple lines generated each will be of different type}
@@ -59,11 +66,14 @@ provided where multiple lines generated each will be of different type}
 
 \item{x_label}{for provision of an x axis label}
 
-\item{x_label_angle}{to adjust the x axis label by the degrees of the integer provided}
+\item{x_label_angle}{to adjust the x axis label by the degrees of the
+integer provided}
 
-\item{y_label_angle}{to adjust the y axis label by the degrees of the integer provided}
+\item{y_label_angle}{to adjust the y axis label by the degrees of the
+integer provided}
 
-\item{x_labels_reverse}{enter an argument of any value i.e. 'y' to reverse the x labeling order when using categorical data}
+\item{x_labels_reverse}{enter an argument of any value i.e. 'y' to reverse
+the x labeling order when using categorical data}
 
 \item{y_min_limit}{set the limit on the y axis scaling by proving an integer}
 
@@ -71,12 +81,15 @@ provided where multiple lines generated each will be of different type}
 
 \item{x_axis_breaks}{modify the x axis breaks by providing an integer}
 
-\item{legend_pos}{modify the position of the legend (where applicable) with appropriate value i.e. bottom (default position),
+\item{legend_pos}{modify the position of the legend (where applicable) with
+appropriate value i.e. bottom (default position),
 top, right, left}
 
-\item{remove_gridlines}{enter an argument of any value i.e. 'y' to remove the grid lines}
+\item{remove_gridlines}{enter an argument of any value i.e. 'y' to remove
+the grid lines}
 
-\item{percent}{enter an argument of any value i.e. 'y' to include the \% symbol for y axis labels}
+\item{percent}{enter an argument of any value i.e. 'y' to include the \%
+symbol for y axis labels}
 
 \item{cap_text}{enter text for a caption to appear below plot}
 
@@ -86,7 +99,8 @@ top, right, left}
 
 \item{vjust}{the vertical adjustment of the point labels}
 
-\item{shape}{shape of the points to be plotted (only used when not plotting by group)}
+\item{shape}{shape of the points to be plotted (only used when not plotting
+by group)}
 
 \item{no_shift}{If no shift should be applied to the secondary y-axis}
 }
@@ -94,19 +108,17 @@ top, right, left}
 the final plot
 }
 \description{
-The chart function has 3 mandatory arguments to plot, with additional arguments as described further below:
-}
-\details{
-data frame
-x axis variable name
-y axis variable name
+The chart function has 3 mandatory arguments to plot, with additional
+arguments as described further below:
 }
 \examples{
 
-Thie example will plot the points on the secondary y-axis with error bars and labels showing 
-the plotted values that are vertically adjusted from the plotted points
-geom_chart(df = plot_df, x = "age", y = "value", ci = "e", upper = "uppercl", lower = "lowercl", 
-group_var = "ukborn", y_axis = "y2", y_label = "Value", labels = "value", vjust = -3.5)
+# This example will plot the points on the secondary y-axis with error bars and
+# labels showing
+# the plotted values that are vertically adjusted from the plotted points
+geom_chart(df = plot_df, x = "age", y = "value", ci = "e", upper = "uppercl",
+lower = "lowercl", group_var = "ukborn", y_axis = "y2", y_label = "Value",
+labels = "value", vjust = -3.5)
 
 
 }
