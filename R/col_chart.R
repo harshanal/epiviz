@@ -34,11 +34,16 @@
 #'
 #' @examples
 #'
-#'Example: Producing a chart showing Rates on the y-axis and year on the x-axis,
-#' we want to show the rate for each local authority as a separate bar so supply the position = "dodge" argument
-#' col_chart(df = year_la_rates_dummy, x = "year", y = "Rates", y_axis = "y1", group_var = "laname", y_label = "Rates")
+#' library(dplyr)
+#' data <- lab_data |>
+#'  group_by(Organism_Species_Name) |>
+#'  summarise(Count=n())
 #'
-#'
+#' col_chart(data,
+#'           x="Organism_Species_Name",
+#'           y="Count"
+#' )
+
 col_chart <- function(df,
                       base = NULL,
                       x = NULL,
