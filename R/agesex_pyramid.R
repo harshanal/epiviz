@@ -23,7 +23,7 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' # Example 1. Simplest use (defaults):
 #'  agesex_pyramid(data_frame)
 #'

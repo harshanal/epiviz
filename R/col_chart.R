@@ -33,7 +33,7 @@
 #' @export
 #'
 #' @examples
-#'
+#' \donttest{
 #' library(dplyr)
 #' data <- lab_data |>
 #'  group_by(Organism_Species_Name) |>
@@ -43,6 +43,7 @@
 #'           x="Organism_Species_Name",
 #'           y="Count"
 #' )
+#' }
 
 col_chart <- function(df,
                       base = NULL,

@@ -3,10 +3,6 @@
 #' The chart function has 3 mandatory arguments to plot, with additional
 #' arguments as described further below:
 #'
-#' data frame
-#' x axis variable name
-#' y axis variable name
-#'
 #'
 #' @param df name of data frame for plotting
 #' @param base a ggplot instance or NULL if creating a new plot

@@ -40,6 +40,7 @@
 #'
 #' @examples
 #'
+#' \donttest{
 #' # Examples are provided below for using this function that utilise the in-built
 #' # DataVis package dummy data to produce various visualisations, using different
 #' # arguments.
@@ -96,6 +97,7 @@
 #'              border_areaname = NULL,
 #'              legend_pos = "right")
 #'
+#'}
 epi_map <- function(df,
                        value_col = NULL,
                        inc_shp = TRUE,
