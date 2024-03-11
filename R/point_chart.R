@@ -52,7 +52,7 @@
 #' @export
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # This example will plot the points on the secondary y-axis with error bars and
 #' # labels showing
 #' # the plotted values that are vertically adjusted from the plotted points

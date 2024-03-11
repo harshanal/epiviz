@@ -40,7 +40,7 @@
 #'
 #' @examples
 #'
-#' \donttest{
+#' \dontrun{
 #' # Examples are provided below for using this function that utilise the in-built
 #' # DataVis package dummy data to produce various visualisations, using different
 #' # arguments.

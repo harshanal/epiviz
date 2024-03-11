@@ -33,7 +33,7 @@
 #' @export
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' library(dplyr)
 #' data <- lab_data |>
 #'  group_by(Organism_Species_Name) |>

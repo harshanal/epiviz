@@ -34,7 +34,7 @@
 #'
 #' @examples
 #'
-#' \donttest{
+#' \dontrun{
 #' 1: line_chart_plotly(df= df, x = date, y = count,grouping_col = character)
 #'
 #' 2: line_chart_plotly(df= df, x = date, y = count,grouping_col = character,

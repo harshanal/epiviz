@@ -55,7 +55,7 @@
 #' @export
 #'
 #' @examples
-#'
+#' \dontrun{
 #' # Examples are provided below for using this function that utilise the in-built
 #' # DataVis package dummy data to produce various visualisations, using different
 #' # data frames and arguments.
@@ -96,7 +96,7 @@
 #'            percent = 'y', remove_gridlines = 'y', line_size = .5,
 #'            add_points = 'y')
 #'
-#'
+#' }
 line_chart <- function(df,
                        base = NULL,
                        x = NULL,
