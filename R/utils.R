@@ -1,8 +1,8 @@
 #' Function to scale/shift secondary y axis labels
 #'
-#' @param x the value to be scaled/shifted
-#' @param scale the value to scale the axis by
-#' @param shift the value to shift the axis by
+#' x the value to be scaled/shifted
+#' scale the value to scale the axis by
+#' shift the value to shift the axis by
 #'
 #' @return scaled/shifted y axis values
 #'
@@ -26,7 +26,7 @@ scale_function <- function(x, scale, shift){
 #' @return scaled/shifted data to plot on secondary y axis
 #'
 #' @examples
-#' \donotrun{
+#' \dontrun{
 #' inv_scale_function(2,4,5)
 #' }
 inv_scale_function <- function(x, scale, shift){
