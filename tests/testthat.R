@@ -9,4 +9,4 @@
 library(testthat)
 library(epiviz)
 
-test_check("epiviz")
+test_dir("tests/testthat")
