@@ -36,6 +36,7 @@
 #' @import classInt
 #' @import RColorBrewer
 #' @import grDevices
+#' @importFrom stats setNames
 #' @export
 #'
 #' @examples
