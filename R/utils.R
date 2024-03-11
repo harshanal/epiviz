@@ -1,8 +1,8 @@
 #' Function to scale/shift secondary y axis labels
 #'
-#' x the value to be scaled/shifted
-#' scale the value to scale the axis by
-#' shift the value to shift the axis by
+#' @param x the value to be scaled/shifted
+#' @param scale the value to scale the axis by
+#' @param shift the value to shift the axis by
 #'
 #' @return scaled/shifted y axis values
 #'

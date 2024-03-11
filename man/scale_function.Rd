@@ -6,13 +6,18 @@
 \usage{
 scale_function(x, scale, shift)
 }
+\arguments{
+\item{x}{the value to be scaled/shifted}
+
+\item{scale}{the value to scale the axis by}
+
+\item{shift}{the value to shift the axis by}
+}
 \value{
 scaled/shifted y axis values
 }
 \description{
-x the value to be scaled/shifted
-scale the value to scale the axis by
-shift the value to shift the axis by
+Function to scale/shift secondary y axis labels
 }
 \examples{
 \dontrun{
