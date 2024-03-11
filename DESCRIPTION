@@ -18,8 +18,7 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
 LazyData: true
 Suggests: 
-    testthat (>= 3.0.0),
-    sf
+    testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Imports: 
     assertthat,
@@ -27,4 +26,5 @@ Imports:
     dplyr,
     ggplot2,
     RColorBrewer,
-    plotly
+    plotly,
+    sf
