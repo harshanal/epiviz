@@ -73,6 +73,7 @@ described further below:
 }
 \examples{
 
+\dontrun{
 # Examples are provided below for using this function that utilise the in-built
 # DataVis package dummy data to produce various visualisations, using different
 # arguments.
@@ -129,4 +130,5 @@ epi_map(df = map,
              border_areaname = NULL,
              legend_pos = "right")
 
+}
 }

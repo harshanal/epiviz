@@ -46,9 +46,7 @@
 #' lower_limit = "lower_error", upper_limit = "upper_error")
 #' # if df has lower and upper limit otherwise can omit it.
 #'
-#'
-#'
-#' @examples 3: line_chart_plotly(df= df, x = year(as.factor), y = rate,grouping_col = character,
+#' 3: line_chart_plotly(df= df, x = year(as.factor), y = rate,grouping_col = character,
 #' hover_text = "%{x} year, %{y} rate<br>",
 #' y_label = "count/rate", x_label = "date",xaxis_label_angle  = -45/90/45,
 #' yaxis_label_angle  = 0(default),x_axis_reverse= default(FALSE),y_rangemode = "tozero",

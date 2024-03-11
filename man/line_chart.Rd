@@ -114,13 +114,8 @@ the final plot
 The chart function has 3 mandatory arguments to plot, with additional
 arguments as described further below:
 }
-\details{
-data frame
-x axis variable name
-y axis variable name
-}
 \examples{
-
+\dontrun{
 # Examples are provided below for using this function that utilise the in-built
 # DataVis package dummy data to produce various visualisations, using different
 # data frames and arguments.
@@ -161,5 +156,5 @@ line_chart(df = la, x = "year", y = "Counts", group_var = "laname",
            percent = 'y', remove_gridlines = 'y', line_size = .5,
            add_points = 'y')
 
-
+}
 }

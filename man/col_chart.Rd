@@ -93,7 +93,7 @@ a ggplot instance
 Column Chart
 }
 \examples{
-
+\dontrun{
 library(dplyr)
 data <- lab_data |>
  group_by(Organism_Species_Name) |>
@@ -103,4 +103,5 @@ col_chart(data,
           x="Organism_Species_Name",
           y="Count"
 )
+}
 }
