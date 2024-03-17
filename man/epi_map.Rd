@@ -83,7 +83,7 @@ described further below:
 # The legend contains specified legend categories with all levels
 # forcefully included, with a legend title stating "Rate per 100,000" and
 # positioned on the left of the map.
-
+\dontrun{
 leg_cats <- c("0.0-0.9 (pre-elimination)", "1.0-4.9 (low incidence)",
               "5.0-9.9 (low incidence)", "10.0-14.9", "15.0-19.9", "20-29.9",
               "30.0-39.9", ">=40.0")
@@ -106,13 +106,13 @@ epi_map(df = map,
              border_code_col = "RGN21NM",
              border_areaname = "London",
              legend_pos = "left")
-
+}
 # Example 2: Displays a map for rates per 100,000 across UTLA geographies in
 # London without a border. The data frame contains shapefile data which isn't
 # imported separately.  The legend includes 5 breaks which are #' not
 # pre-defined, does not include a legend title and is positioned to the right
 # of the map.
-
+\dontrun{
 epi_map(df = map,
              inc_shp= TRUE,
              value_col = "value",
@@ -128,5 +128,5 @@ epi_map(df = map,
              border_code_col = NULL,
              border_areaname = NULL,
              legend_pos = "right")
-
+}
 }

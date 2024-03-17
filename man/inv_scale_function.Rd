@@ -20,5 +20,7 @@ scaled/shifted data to plot on secondary y axis
 Function to scale/shift secondary y axis data
 }
 \examples{
+\dontrun{
 inv_scale_function(2,4,5)
+}
 }

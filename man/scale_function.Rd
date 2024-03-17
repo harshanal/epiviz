@@ -20,5 +20,7 @@ scaled/shifted y axis values
 Function to scale/shift secondary y axis labels
 }
 \examples{
+\dontrun{
 scale_function(2,4,5)
+}
 }

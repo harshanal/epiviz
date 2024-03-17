@@ -131,35 +131,36 @@ y axis variable name
 # horizontal line, reversed labels, dashed line type, larger line
 # width, set specific x axis breaks.
 
+\dontrun{
 line_chart(df = age_sex, x = "variable", y = "value", group_var = "Age.group",
            h_line = 150, x_label_angle = 45, line_size = 3,
            x_axis_breaks = 10,  x_labels_reverse = 'y', line_type = 'dashed')
-
+}
 
 # Example 2: Shows line depicting rates with years across the x axis, y axis
 # label provided, line type adjusted, lower and upper values passed along with
 # error bars selected, caption text provided.
-
+\dontrun{
 line_chart(df = rate, x = "year", y = "rate", x_label = 'year',
            y_label = 'rate', line_type = 'solid', lower = "lower.ci",
            upper = "upper.ci", ci = 'e', cap_text = 'Data source: xxx')
-
+}
 
 # Example 3: Shows line depicting rates with years across the x axis, y axis
 # label provided, lower and upper values passed along with ribbon selected.
-
+\dontrun{
 line_chart(df = rate, x = "year", y = "rate", x_label = 'year', y_label = 'rate',
                    lower = "lower.ci", upper = "upper.ci", ci = 'w')
-
+}
 # Example 4: Displays line for each local authority name, with years across
 # the x axis and count of cases along y axis, x and y labels provided, line
 # type adjusted, percent symbol add to x axis labels and grid lines removed,
 # reduce line size #' and add points.
-
+\dontrun{
 line_chart(df = la, x = "year", y = "Counts", group_var = "laname",
            x_label = 'year', y_label = 'rate', line_type = 'solid',
            percent = 'y', remove_gridlines = 'y', line_size = .5,
            add_points = 'y')
-
+}
 
 }

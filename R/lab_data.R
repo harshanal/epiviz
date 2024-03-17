@@ -27,4 +27,4 @@
 #'
 #' @keywords datasets
 #'
-data(lab_data, package = "epiviz")
+"lab_data"
