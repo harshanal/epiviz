@@ -37,6 +37,8 @@
 #' @import RColorBrewer
 #' @import grDevices
 #' @importFrom stats setNames
+#' @importFrom sf st_read
+#' @importFrom sf  st_as_sf
 #' @export
 #'
 #' @examples
