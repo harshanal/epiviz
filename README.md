@@ -2,6 +2,7 @@
 
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+[![R-CMD-check](https://github.com/harshanal/epiviz/actions/workflows/R-CMD-check.yaml/badge.svg?branch=main)](https://github.com/harshanal/epiviz/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 `epiviz` provides easy-to-use data visualisation functions for R data science products. The package includes functions to create a range of static and interactive visualisations. Additionally, the package also provides helper functions that will allow converting line lists to aggregated data frames that are in the form ready to be consumed by the visualisation functions.
