@@ -44,9 +44,9 @@ Age Sex Pyramid
 \dontrun{
 # Example 1. Simplest use (defaults):
  agesex_pyramid(data_frame)
-
+}
 # Example 2. Usage with parameters
-
+\dontrun{
 agesex_pyramid(data_frame,
                colours= c("#440154", "#fde725"),
                x_breaks = 20,

@@ -26,16 +26,16 @@
 #' \dontrun{
 #' # Example 1. Simplest use (defaults):
 #'  agesex_pyramid(data_frame)
-#'
+#' }
 #' # Example 2. Usage with parameters
-#'
+#' \dontrun{
 #' agesex_pyramid(data_frame,
 #'                colours= c("#440154", "#fde725"),
 #'                x_breaks = 20,
 #'                y_title = "Proportion of People Percentage (%)",
 #'                text_size = 15,
 #'                conf_limits = FALSE)
-#'}
+#' }
 agesex_pyramid <- function(df,
                            colours = c("#440154", "#fde725"),
                            x_breaks = 20,

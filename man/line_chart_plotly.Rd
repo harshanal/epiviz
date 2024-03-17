@@ -83,9 +83,11 @@ a plotly plot object
 The chart function has 3 mandatory arguments to plot, with additional arguments as described further below:
 }
 \examples{
-1: line_chart_plotly(df= df, x = date, y = count,grouping_col = character)
-
-2: line_chart_plotly(df= df, x = date, y = count,grouping_col = character,
+\dontrun{
+line_chart_plotly(df= df, x = date, y = count,grouping_col = character)
+}
+\dontrun{
+line_chart_plotly(df= df, x = date, y = count,grouping_col = character,
 hover_text = hover_template(paste("\%{x|\%Y-\%m-\%d}","<br>count:\%{y}<extra></extra>")),
 y_label = "count/rate", x_label = "date",xaxis_label_angle  = -45/90/45,
 yaxis_label_angle  = 0(default),x_axis_reverse= default(FALSE),y_rangemode = "tozero",
@@ -93,10 +95,11 @@ plot_mode = "lines"/"lines+markers",legend_orientation = 'h'/'v',
 legend_x =0.5, legend_y = -0.35,show_legend = FALSE,
 lower_limit = "lower_error", upper_limit = "upper_error")
 # if df has lower and upper limit otherwise can omit it.
+}
 
 
-
-3: line_chart_plotly(df= df, x = year(as.factor), y = rate,grouping_col = character,
+\dontrun{
+line_chart_plotly(df= df, x = year(as.factor), y = rate,grouping_col = character,
 hover_text = "\%{x} year, \%{y} rate<br>",
 y_label = "count/rate", x_label = "date",xaxis_label_angle  = -45/90/45,
 yaxis_label_angle  = 0(default),x_axis_reverse= default(FALSE),y_rangemode = "tozero",
@@ -104,4 +107,5 @@ plot_mode = "lines"/"lines+markers",legend_orientation = 'h'/'v',
 legend_x =0.5, legend_y = -0.35,show_legend = FALSE,
 lower_limit = "lower_error", upper_limit = "upper_error")
 # if df has lower and upper limit #' otherwise can omit it.
+}
 }

@@ -7,7 +7,9 @@
 #' @return scaled/shifted y axis values
 #'
 #' @examples
+#' \dontrun{
 #' scale_function(2,4,5)
+#' }
 scale_function <- function(x, scale, shift){
   return ((x)*scale - shift)
 }
@@ -24,7 +26,9 @@ scale_function <- function(x, scale, shift){
 #' @return scaled/shifted data to plot on secondary y axis
 #'
 #' @examples
+#' \dontrun{
 #' inv_scale_function(2,4,5)
+#' }
 inv_scale_function <- function(x, scale, shift){
   return ((x + shift)/scale)
 }

@@ -56,10 +56,11 @@
 #' # This example will plot the points on the secondary y-axis with error bars and
 #' # labels showing
 #' # the plotted values that are vertically adjusted from the plotted points
-#' geom_chart(df = plot_df, x = "age", y = "value", ci = "e", upper = "uppercl",
+#' \dontrun{
+#' point_chart(df = plot_df, x = "age", y = "value", ci = "e", upper = "uppercl",
 #' lower = "lowercl", group_var = "ukborn", y_axis = "y2", y_label = "Value",
 #' labels = "value", vjust = -3.5)
-#'
+#' }
 #'
 point_chart <- function(df,
                         base = NULL,
