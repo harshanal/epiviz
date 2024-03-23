@@ -82,7 +82,7 @@ agesex_pyramid <- function(df,
     } +
     # set axis options
     scale_y_continuous(labels = abs,
-                       limits = max(df$value) * c(-1,1),
+                       limits = c(min(df$value), max(df$value)),
                        expand = expansion(mult = 0.15),
                        n.breaks = x_breaks) +
     scale_x_discrete(expand = expansion(add = c(1, 1)), drop = FALSE) +
