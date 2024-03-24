@@ -1,7 +1,7 @@
-#' Age Sex Pyramid
+#' Age Sex Pyramid using grouped data
 #'
 #' @param df Data frame which has the following columns with names given below
-#'              age: char type>> age group can be given as ranges (e.g. "0-4","5-18", "19-64", "65+")
+#'              age_group: char type>> age group can be given as ranges (e.g. "0-4","5-18", "19-64", "65+")
 #'              sex: char type>> must be coded as "Female" and "Male"
 #'              value: num type>> numerical value used for pyramid (can be proportion or cases)
 #'              Optional (set conf_limits parameter to TRUE if error bars are required):
@@ -24,57 +24,55 @@
 #'
 #' @examples
 #' \dontrun{
-#' # Example 1. Simplest use (defaults):
-#'  agesex_pyramid(data_frame)
+#' data <- data.frame(
+#'  age_group = rep(c("0-4", "5-18", "19-64", "65+"), each = 2),
+#'  sex = rep(c("Female", "Male"), times = 4),
+#'  value = c(110, 90, 80, 70, 60, 50, 40, 30)
+#' )
+#'
+#' agesex_pyramid_grouped(data, x_breaks=10)
 #' }
-#' # Example 2. Usage with parameters
-#' \dontrun{
-#' agesex_pyramid(data_frame,
-#'                colours= c("#440154", "#fde725"),
-#'                x_breaks = 20,
-#'                y_title = "Proportion of People Percentage (%)",
-#'                text_size = 15,
-#'                conf_limits = FALSE)
-#' }
-agesex_pyramid <- function(df,
-                           colours = c("#440154", "#fde725"),
-                           x_breaks = 20,
-                           y_title = "Proportion of People Percentage (%)",
-                           text_size = 12,
-                           conf_limits = FALSE)
+agesex_pyramid_grouped <- function(df,
+                                   colours = c("#440154", "#fde725"),
+                                   x_breaks = 20,
+                                   y_title = "Proportion of People Percentage (%)",
+                                   text_size = 12,
+                                   conf_limits = FALSE)
 {
   ##### Data wrangling before plotting the chart
 
+
   # Convert Female value to negative to flip columns
-  df <- df %>%
-    dplyr::mutate(value = ifelse(sex == "Female",-value, value)) %>%
+  df <- df |>
+    dplyr::mutate(value = ifelse(sex == "Female",-value, value)) |>
 
     #order age bands
     # Remove "<" and "+" from agebands, then take strings starting with one or more digits and arrange them
-    arrange(as.integer(sub("^(\\d+).*", "\\1", sub("[<+]", "", age)))) %>%
-    mutate(age = factor(age, levels = unique(age)))
+    arrange(as.integer(sub("^(\\d+).*", "\\1", sub("[<+]", "", age_group)))) |>
+    mutate(age_group = factor(age_group, levels = unique(df$age_group)[length(unique(df$age_group)):1])) |>
+    na.omit()
+
 
   # Convert Female confidence limits to negative to flip columns
   if (conf_limits) {
-    df <- df %>%
-      dplyr::mutate(lowercl = ifelse(sex == "Female",-lowercl, lowercl)) %>%
+    df <- df |>
+      dplyr::mutate(lowercl = ifelse(sex == "Female",-lowercl, lowercl))  |>
       dplyr::mutate(uppercl = ifelse(sex == "Female",-uppercl, uppercl))
   }
 
-
   ##### Plotting the chart
   plot <-
-    df %>%
+    df |>
     ggplot() +
     # Switch X and Y axis of graph
     coord_flip() +
     # base column chart
-    geom_col(aes(x = age, fill = sex, y = value), colour = "black") +
+    geom_col(aes(x = age_group, fill = sex, y = value), colour = "black") +
     {
       # add confidence limits
       if (conf_limits == TRUE)
         geom_errorbar(
-          aes(x = age, ymin = lowercl, ymax = uppercl),
+          aes(x = age_group, ymin = lowercl, ymax = uppercl),
           colour = "black",
           width = 0.5,
           linewidth = 0.75
@@ -82,7 +80,7 @@ agesex_pyramid <- function(df,
     } +
     # set axis options
     scale_y_continuous(labels = abs,
-                       limits = max(df$value) * c(-1,1),
+                       limits = c(min(df$value), max(df$value)),
                        expand = expansion(mult = 0.15),
                        n.breaks = x_breaks) +
     scale_x_discrete(expand = expansion(add = c(1, 1)), drop = FALSE) +
