@@ -18,7 +18,7 @@
 #'   \item{lab_code}{Laboratory codes (Factor with unique levels).}
 #'   \item{local_authority_name}{Name of the local authority.}
 #'   \item{local_authority_code}{Code of the local authority.}
-#'   \item{regions}{Name of UKHSA regions.}
+#'   \item{region}{Name of UKHSA regions.}
 #' }
 #'
 #' @examples
