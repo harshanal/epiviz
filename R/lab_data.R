@@ -13,7 +13,7 @@
 #' \describe{
 #'   \item{date_of_birth}{Date of birth of the patients.}
 #'   \item{sex}{Gender of the patients (Factor with levels: "Female", "Male").}
-#'   \item{organism_species_Name}{Organism species name (Factor with levels: "KLEBSIELLA PNEUMONIAE").}
+#'   \item{organism_species_name}{Organism species name (Factor with levels: "KLEBSIELLA PNEUMONIAE").}
 #'   \item{specimen_date}{Date of specimen collection.}
 #'   \item{lab_code}{Laboratory codes (Factor with unique levels).}
 #'   \item{local_authority_name}{Name of the local authority.}
