@@ -11,14 +11,14 @@
 #'
 #' @format A data frame with the following columns:
 #' \describe{
-#'   \item{Date_Of_Birth}{Date of birth of the patients.}
-#'   \item{Sex}{Gender of the patients (Factor with levels: "Female", "Male").}
-#'   \item{Organism_Species_Name}{Organism species name (Factor with levels: "KLEBSIELLA PNEUMONIAE").}
-#'   \item{Specimen_Date}{Date of specimen collection.}
-#'   \item{Lab_Code}{Laboratory codes (Factor with unique levels).}
-#'   \item{Local_Authority_Name}{Name of the local authority.}
-#'   \item{Local_Authority_Code}{Code of the local authority.}
-#'   \item{Regions}{Name of UKHSA regions.}
+#'   \item{date_of_birth}{Date of birth of the patients.}
+#'   \item{sex}{Gender of the patients (Factor with levels: "Female", "Male").}
+#'   \item{organism_species_Name}{Organism species name (Factor with levels: "KLEBSIELLA PNEUMONIAE").}
+#'   \item{specimen_date}{Date of specimen collection.}
+#'   \item{lab_code}{Laboratory codes (Factor with unique levels).}
+#'   \item{local_authority_name}{Name of the local authority.}
+#'   \item{local_authority_code}{Code of the local authority.}
+#'   \item{regions}{Name of UKHSA regions.}
 #' }
 #'
 #' @examples
