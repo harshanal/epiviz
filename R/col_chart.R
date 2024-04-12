@@ -36,11 +36,11 @@
 #' \dontrun{
 #' library(dplyr)
 #' data <- lab_data |>
-#'  group_by(Organism_Species_Name) |>
+#'  group_by(organism_species_name) |>
 #'  summarise(Count=n())
 #'
 #' col_chart(data,
-#'           x="Organism_Species_Name",
+#'           x="organism_species_name",
 #'           y="Count"
 #' )
 #' }
