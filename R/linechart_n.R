@@ -7,25 +7,70 @@ linechart_n <-  function(dynamic = FALSE,
                          x,
                          y,
                          group_var,
-                         line_colour,
+                         line_colour = c("blue"),
                          line_type = "solid",
                          width = 1,
                          title = NULL,
                          x_label = NULL,
-                         x_label_angle = NULL,
+                         x_label_angle = NULL, #rotation counterclockwise
                          y_label = NULL,
-                         y_label_angle = NULL,
+                         y_label_angle = NULL, #rotation counterclockwise
                          y_percent = FALSE,
                          st_theme = NULL,
-                         add_points=FALSE,
-                         show_gridlines=FALSE,
-                         show_axislines=TRUE,
+                         add_points = FALSE,
+                         show_gridlines = FALSE,
+                         show_axislines = TRUE,
                          legend_title = NULL,
-                         hline=NULL,
-                         hline_colour="blue",
-                         hline_label=NULL) {
+                         legend_position = NULL,
+                         #  “left”,“top”, “right”, “bottom”, “none”.
+                         hline = NULL,
+                         hline_colour = "red",
+                         hline_label = NULL) {
   valid_line_types <-
     c("solid", "dotted", "dashed", "longdash", "dotdash")
+
+  # default RColorBrewer color pallette
+
+  if(!missing(group_var)){
+    # creating base graph with groups
+    groupvar_levels <- nlevels(df[[group_var]])
+
+    # check if correct number of colours provided for line_colour
+    if (length(line_colour) != groupvar_levels) {
+      if (groupvar_levels < 10) {
+        # checking if max levels is less than
+        # what the default palette offers)
+
+        warning(
+          paste0(
+            "Incorrect number of colours provided for the line_color parameter.",
+            groupvar_levels,
+            " expected but only ",
+            length(line_colour),
+            " given. Using a default colour palette."
+          ),
+          call. = FALSE
+        )
+
+        print(paste0("debug: groupvar_levels:", groupvar_levels))
+
+        line_colour = RColorBrewer::brewer.pal(groupvar_levels, name =
+                                                 "Set1")
+
+        print(line_colour) ##debug
+
+
+      } else{
+        stop(
+          "The dataset has more levels than what the default colour palette supports.
+               Please specify a list ",
+          groupvar_levels,
+          " line colours."
+        )
+      }
+
+    }
+  }
 
   # Check for any missing mandatory arguments
   missing_args <- c()
@@ -76,14 +121,57 @@ linechart_n <-  function(dynamic = FALSE,
       base <- base + ggplot2::theme_classic()
     }
 
-    base <-
-      base + ggplot2::geom_line(
-        data = df,
-        aes(x = .data[[x]], y = .data[[y]]),
-        linetype = line_type,
-        colour = line_colour,
-        linewidth = width
-      )
+    if (missing(group_var)) {
+      # creating base graph without groups
+      base <-
+        base + ggplot2::geom_line(
+          data = df,
+          aes(x = .data[[x]], y = .data[[y]]),
+          linetype = line_type,
+          colour = line_colour,
+          linewidth = width
+        )
+    } else{
+
+       # creating base graph with groups
+      base <-
+        base + ggplot2::geom_line(
+          data = df,
+          aes(
+            x = .data[[x]],
+            y = .data[[y]],
+            group = .data[[group_var]],
+            colour = .data[[group_var]]
+          ),
+          linewidth = width,
+          linetype = line_type
+        ) +
+        scale_colour_manual(values = line_colour)
+
+
+      # Legend parameters
+
+      if (!missing(legend_title)) {
+        base <-  base + labs(color = legend_title)
+      }
+
+      if (!missing(legend_position)) {
+        base <-  base + theme(legend.position = legend_position)
+      }
+
+      # base <-
+      #   base + ggplot2::geom_line(
+      #     data = df,
+      #     aes(
+      #       x = .data[[x]],
+      #       y = .data[[y]],
+      #       group = .data[[group_var]],
+      #       colour = .data[[group_var]]
+      #     )
+      #   ) +
+      #   scale_colour_manual(values = line_colour)
+    }
+
 
     ##### Titles and labels
 
@@ -105,41 +193,47 @@ linechart_n <-  function(dynamic = FALSE,
     }
 
     # Rotate axis text if angle is given
-    if(!missing(x_label_angle)){
-      base <- base + ggplot2::theme(
-        axis.text.x = element_text(angle  = x_label_angle, vjust = 0.5)
-      )
+    if (!missing(x_label_angle)) {
+      base <- base + ggplot2::theme(axis.text.x = element_text(angle  = x_label_angle, vjust = 0.5))
     }
 
-    if(!missing(y_label_angle)){
-      base <- base + ggplot2::theme(
-        axis.text.y = element_text(angle  = y_label_angle, vjust = 0.5)
-      )
+    if (!missing(y_label_angle)) {
+      base <- base + ggplot2::theme(axis.text.y = element_text(angle  = y_label_angle, vjust = 0.5))
     }
 
 
     ####### Grid lines and axis
 
     #remove major and minor grid lines
-    if(!show_gridlines){
-        base <- base + ggplot2::theme(panel.grid.major.y = element_blank(),
-                                      panel.grid.major.x = element_blank(),
-                                      panel.grid.minor.y = element_blank(),
-                                      panel.grid.minor.x = element_blank())
+    if (!show_gridlines) {
+      base <- base + ggplot2::theme(
+        panel.grid.major.y = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.minor.x = element_blank()
+      )
     }
 
 
     # shows axis lines
-    if(show_axislines){
+    if (show_axislines) {
       base <- base + theme(
-        axis.line.x = element_line(colour="black", linewidth = 1),
-        axis.line.y = element_line(colour="black", linewidth = 1)
+        axis.line.x = element_line(colour = "black", linewidth = 1),
+        axis.line.y = element_line(colour = "black", linewidth = 1)
+      )
+    }else{
+      base <- base + theme(
+        axis.line.x = element_blank(),
+        axis.line.y = element_blank()
       )
     }
 
     # adds horizontal line at the y value specified for hline
-    if(!missing(hline)){
-      base <- base + geom_hline(yintercept=hline, colour=hline_colour, linewidth=1.5)
+    if (!missing(hline)) {
+      base <-
+        base + geom_hline(yintercept = hline,
+                          colour = hline_colour,
+                          linewidth = 1.5)
     }
 
     # adds a label specified at the start of the horizontal line
@@ -156,8 +250,9 @@ linechart_n <-  function(dynamic = FALSE,
     }
 
     # adds percent sign to the y axis values - doesnt change the value
-    if(y_percent){
-      base <- base +  scale_y_continuous(labels = scales::percent_format(scale=1))
+    if (y_percent) {
+      base <-
+        base +  scale_y_continuous(labels = scales::percent_format(scale = 1))
     }
 
 
@@ -180,21 +275,11 @@ linechart_n <-  function(dynamic = FALSE,
     # }
 
 
-    # Change legend title
-    #if(!missing(legend_title)){
-      # base <- base +
-      #   labs(fill = legend_title)
-
-    #}
-
-
-
 
   } else{
-
     # produce plotly graph if 'dynamic' is set to TRUE
 
-    # resolve line chart style
+    # resolve line style
     if (!(line_type %in% valid_line_types)) {
       stop(
         "Invalid line type. Please provide one of the following line types:
@@ -228,29 +313,65 @@ linechart_n <-  function(dynamic = FALSE,
       line_attributes$color <- line_colour
     }
 
-    if(add_points){
+    if (add_points) {
       plt_mode = 'lines+markers'
-    }else{
+    } else{
       plt_mode = 'lines'
     }
 
-    # create plotly base plot
-    base <- df |>
-      plot_ly(
-        x = ~ .data[[x]],
-        y = ~ .data[[y]],
-        type = 'scatter',
-        mode = plt_mode,
-        line = line_attributes
-      ) |>
-      layout(xaxis = list(title = x),
-             yaxis = list(title = y))
+
+    if (missing(group_var)) {
+      # create plotly base plot without groups
+      base <- df |>
+        plot_ly(
+          x = ~ .data[[x]],
+          y = ~ .data[[y]],
+          type = 'scatter',
+          mode = plt_mode,
+          line = line_attributes
+        ) |>
+        layout(xaxis = list(title = x),
+               yaxis = list(title = y))
+
+    } else{
+      # create plotly base plot groups
+
+      unique_names <- unique(df[[group_var]])
+
+      base <- df |>
+        group_by({
+          {
+            group_var
+          }
+        })  |>
+        plot_ly(
+          x = ~ .data[[x]],
+          y = ~ .data[[y]],
+          type = "scatter",
+          color = ~ .data[[{
+            {
+              group_var
+            }
+          }]],
+          mode = "lines",
+          mode = plt_mode,
+          colors = line_colour,
+          line = line_attributes
+        )
+
+
+      base <- base |>
+        layout(xaxis = list(title = x),
+               yaxis = list(title = y))
+
+    }
+
 
     ##### Titles and labels
 
     # add title
     if (!missing(title)) {
-      base <- base |> layout(title = title)
+      base <- base |> layout(title = list(text=title))
     }
 
     # add x axis label
@@ -263,6 +384,19 @@ linechart_n <-  function(dynamic = FALSE,
       base <- base |> layout(yaxis = list(title = y_label))
     }
 
+    # change x axis angle
+    if (!missing(x_label_angle)){
+      # angle negated as this function following ggplot rotation direction
+      base <- base |>  layout(xaxis = list(tickangle = -x_label_angle))
+    }
+
+    # change y axis angle
+    if (!missing(y_label_angle)){
+      # angle negated as this function following ggplot rotation direction
+      base <- base |>  layout(yaxis = list(tickangle = -y_label_angle))
+    }
+
+
     ####### Grid lines and axis
 
     if (!show_gridlines) {
@@ -270,46 +404,94 @@ linechart_n <-  function(dynamic = FALSE,
                              yaxis = list(showgrid = F))
     }
 
-    if(show_axislines){
-      base <- base |> layout(xaxis = list(showline = TRUE),
-                             yaxis = list(showline = TRUE,
-                             zeroline = FALSE))
+    if (show_axislines) {
+      base <- base |> layout(
+        xaxis = list(showline = TRUE),
+        yaxis = list(showline = TRUE,
+                     zeroline = FALSE)
+      )
     }
 
-    if(!missing(hline)) {
+    if (!missing(hline)) {
       base <- base |>
         layout(shapes = list(
-                              type = "line",
-                              x0 = 0,
-                              x1 = 1,
-                              xref = "paper",
-                              y0 = hline,
-                              y1 = hline,
-                              line = list(color = hline_colour)
-                            )
-       )
+          type = "line",
+          x0 = 0,
+          x1 = 1,
+          xref = "paper",
+          y0 = hline,
+          y1 = hline,
+          line = list(color = hline_colour)
+        ))
     }
 
-    if(!missing(hline_label)){
+    if (!missing(hline_label)) {
       base <- base %>% add_annotations(
         text = hline_label,
         x = min(df[[x]]),
-        y = hline - ((max(df[[x]])-min(df[[y]]))*0.5),
+        y = hline - ((max(df[[x]]) - min(df[[y]])) * 0.5),
         showarrow = FALSE
       )
     }
 
-    if(y_percent){
+    if (y_percent) {
       # Apply percentage formatting to y-axis labels (inline)
       base <- base |>  layout(yaxis = list(ticksuffix  = "%"))
 
     }
 
+    ## Legend settings
 
+    if (!missing(legend_position)) {
 
+      legend_orientation <-
+        if (legend_position %in% c("top", "bottom"))
+          "h"
+      else
+          "v"
+
+      # confiure legend settings
+      legend_settings <- switch(
+        legend_position,
+        "left" = list(
+          x = -0.2,
+          y = 0.5,
+          xanchor = "right",
+          yanchor = "middle",
+          orientation = legend_orientation
+        ),
+        "top" = list(
+          x = 0.5,
+          y = 0.97,
+          xanchor = "center",
+          yanchor = "bottom",
+          orientation = legend_orientation
+        ),
+        "right" = list(
+          x = 1.1,
+          y = 0.5,
+          xanchor = "left",
+          yanchor = "middle",
+          orientation = legend_orientation
+        ),
+        "bottom" = list(
+          x = 0.5,
+          y = -0.1,
+          xanchor = "center",
+          yanchor = "top",
+          orientation = legend_orientation
+        )
+
+      )  # Move legend outside of the plot area)
+
+      if(legend_position!="none"){
+        base <- base |> layout(legend = legend_settings)
+      }else{
+        base <- base |> layout(showlegend = F)
+      }
+    }
 
   }
-
 
   # return either ggplot or base plot
   return(base)
@@ -344,18 +526,20 @@ linechart_n(
   group_var = "group",
   line_colour = "blue",
   line_type = "dashed",
-  width = 1,
+  width = 1.2,
   st_theme = theme_minimal(),
-  title = "yahoo title 3",
+  title = "epiviz example title",
   x_label = "epiviz x",
   y_label = "epiviz y",
-  y_percent = FALSE,
-  show_gridlines = FALSE,
-  hline=150,
+  y_percent = TRUE,
+  show_gridlines = TRUE,
+  show_axislines = TRUE,
+  hline = 150,
   hline_colour = "purple",
-  hline_label="SOME VALUE=150",
-  add_points =FALSE,
+  hline_label = "SOME VALUE=150",
+  add_points = FALSE,
   x_label_angle = 45,
   y_label_angle = 90,
-  legend_title = "legend title test"
+  legend_title = "legend title test",
+  legend_position = "left"
 )
