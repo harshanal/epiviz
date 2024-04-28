@@ -301,7 +301,7 @@ linechart <-  function(dynamic = FALSE,
           base + ggplot2::geom_point(data = df, aes(
             x = .data[[x]], y = .data[[y]], colour = .data[[group_var]], size=1
           )) +
-          guides(size = FALSE) # hides size of point from legend
+          guides(size = 'none') # hides size of point from legend
 
       }else{
 
