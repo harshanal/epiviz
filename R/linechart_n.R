@@ -6,6 +6,10 @@ linechart_n <-  function(dynamic = FALSE,
                          df,
                          x,
                          y,
+                         ci = NULL,
+                         lower = NULL,
+                         upper = NULL,
+                         error_colour = c("#f2c75c"),
                          group_var,
                          line_colour = c("blue"),
                          line_type = "solid",
@@ -159,17 +163,6 @@ linechart_n <-  function(dynamic = FALSE,
         base <-  base + theme(legend.position = legend_position)
       }
 
-      # base <-
-      #   base + ggplot2::geom_line(
-      #     data = df,
-      #     aes(
-      #       x = .data[[x]],
-      #       y = .data[[y]],
-      #       group = .data[[group_var]],
-      #       colour = .data[[group_var]]
-      #     )
-      #   ) +
-      #   scale_colour_manual(values = line_colour)
     }
 
 
@@ -256,23 +249,116 @@ linechart_n <-  function(dynamic = FALSE,
     }
 
 
-    #### Points in lines
+    ### Points in lines
 
-    ## To fix: add_point condition not working
+    # if add points included then add geom
+    if(add_points) {
+       if(!missing(group_var)){
+        base <-
+          base + ggplot2::geom_point(data = df, aes(
+            x = .data[[x]], y = .data[[y]], colour = .data[[group_var]], size=1
+          )) +
+        guides(size = FALSE) # hides size of point from legend
 
-    # # if add points included then add geom
-    # if(!add_points) {
-    #    if(!missing(group_var)){
-    #     base <-
-    #       base + ggplot2::geom_point(data = df, aes(
-    #         x = .data[[x]], y = .data[[y]], colour = .data[[group_var]]
-    #       ))
-    #     }else{
-    #
-    #     base <-
-    #       base + ggplot2::geom_point(data = df, aes(x = .data[[x]], y = .data[[y]]))
-    #     }
-    # }
+        }else{
+
+        base <-
+          base + ggplot2::geom_point(data = df, aes(x = .data[[x]], y = .data[[y]], size=1
+          )) +
+          guides(size = FALSE) # hides size of point from legend
+        }
+    }
+
+
+    #### confidence interval; ribbon \ error bar
+    if (!(missing(ci)) && missing(group_var)) {
+      # continue if  arguments for ci and bounds are provided
+      ifelse(
+        !(missing(lower)) && !(missing(upper)),
+
+        # continue if type geom required is error else ribbon
+        ifelse(
+          ci == 'e',
+
+          # Apply error bar with same legend and colour for line and ci
+          base <-
+            base + ggplot2::geom_errorbar(
+              data = df,
+              aes(
+                x = .data[[x]],
+                ymin = .data[[lower]],
+                ymax = .data[[upper]]
+              ),
+              colour = error_colour,
+              linewidth = 1
+            )
+          ,
+
+          # Apply ribbon with same legend and colour for line and ci
+          base <-
+            base + ggplot2::geom_ribbon(
+              data = df,
+              aes(
+                x = .data[[x]],
+                ymin = .data[[lower]],
+                ymax = .data[[upper]],
+                group = 1
+              ),
+              fill = error_colour,
+              alpha = .5
+            )
+        )
+
+      )
+
+
+    }
+
+    if (!(missing(ci)) && !missing(group_var)) {
+      # continue if  arguments for ci and bounds are provided
+      ifelse(
+        !(missing(lower)) && !(missing(upper)),
+
+        # continue if type geom required is error else ribbon
+        ifelse(
+          ci == 'e',
+
+          # Apply error bar with  same legend and colour for line and ci
+          base <-
+            base + ggplot2::geom_errorbar(
+              data = df,
+              aes(
+                x = .data[[x]],
+                ymin = .data[[lower]],
+                ymax = .data[[upper]],
+                group = .data[[group_var]],
+                colour = .data[[group_var]]
+              ),
+
+            ) +
+            ggplot2::scale_colour_manual(values = line_colour)
+          ,
+
+          # Apply ribbon with  same legend and colour for line and ci
+          base <-
+            base + ggplot2::geom_ribbon(
+              data = df,
+              aes(
+                x = .data[[x]],
+                ymin = .data[[lower]],
+                ymax = .data[[upper]],
+                group =
+                  .data[[group_var]],
+                fill = .data[[group_var]]
+              ),
+              alpha = .5
+            ) +
+            ggplot2::scale_fill_manual(values = line_colour)
+        )
+
+      )
+    }
+
 
 
 
@@ -304,7 +390,7 @@ linechart_n <-  function(dynamic = FALSE,
 
     # Add line modifiers
     if (!missing(width)) {
-      line_attributes$width <- width
+      line_attributes$width <- width * 2
     }
     if (!missing(line_type)) {
       line_attributes$dash <- plotly_line_style
@@ -313,7 +399,7 @@ linechart_n <-  function(dynamic = FALSE,
       line_attributes$color <- line_colour
     }
 
-    if (add_points) {
+    if (add_points==TRUE) {
       plt_mode = 'lines+markers'
     } else{
       plt_mode = 'lines'
@@ -353,7 +439,6 @@ linechart_n <-  function(dynamic = FALSE,
               group_var
             }
           }]],
-          mode = "lines",
           mode = plt_mode,
           colors = line_colour,
           line = line_attributes
@@ -429,8 +514,10 @@ linechart_n <-  function(dynamic = FALSE,
       base <- base %>% add_annotations(
         text = hline_label,
         x = min(df[[x]]),
-        y = hline - ((max(df[[x]]) - min(df[[y]])) * 0.5),
-        showarrow = FALSE
+        y = hline,
+        showarrow = FALSE,
+        bgcolor = "white",
+        font = list(weight="bold")
       )
     }
 
@@ -450,7 +537,7 @@ linechart_n <-  function(dynamic = FALSE,
       else
           "v"
 
-      # confiure legend settings
+      # configure legend settings
       legend_settings <- switch(
         legend_position,
         "left" = list(
@@ -476,7 +563,7 @@ linechart_n <-  function(dynamic = FALSE,
         ),
         "bottom" = list(
           x = 0.5,
-          y = -0.1,
+          y = -0.2,
           xanchor = "center",
           yanchor = "top",
           orientation = legend_orientation
@@ -498,48 +585,117 @@ linechart_n <-  function(dynamic = FALSE,
 }
 
 
-
-
-
-
-
 ############
 # test code
 ############
+#
+# mtcars1 <- mtcars
+#
+# mtcars1$group <-
+#   cut(
+#     mtcars$cyl,
+#     breaks = c(0, 4, 6, 8),
+#     labels = c("4 cylinders", "6 cylinders", "8 cylinders")
+#   )
+#
+# library(ggplot2)
+#
+# linechart_n(
+#   dynamic = FALSE,
+#   df = mtcars1,
+#   x = "mpg",
+#   y = "hp",
+#   group_var = "group",
+#   line_colour = "blue",
+#   line_type = "dashed",
+#   width = 1.2,
+#   st_theme = theme_minimal(),
+#   title = "epiviz example title",
+#   x_label = "epiviz x",
+#   y_label = "epiviz y",
+#   y_percent = TRUE,
+#   show_gridlines = TRUE,
+#   show_axislines = TRUE,
+#   hline = 150,
+#   hline_colour = "purple",
+#   hline_label = "SOME VALUE=150",
+#   add_points = FALSE,
+#   x_label_angle = 45,
+#   y_label_angle = 90,
+#   legend_title = "legend title test",
+#   legend_position = "left"
+# )
 
-mtcars1 <- mtcars
+library(dplyr)
 
-mtcars1$group <-
-  cut(
-    mtcars$cyl,
-    breaks = c(0, 4, 6, 8),
-    labels = c("4 cylinders", "6 cylinders", "8 cylinders")
-  )
+data <- epiviz::lab_data
+head(data)
 
-library(ggplot2)
+data_processed <- data %>%
+  group_by(specimen_date, organism_species_name) %>%
+  summarize(count = n()) %>%
+  ungroup()
+
+data_processed_monthly <- data_processed %>%
+  filter(lubridate::year(specimen_date) == 2023) |>
+  mutate(month = format(specimen_date, "%Y-%m")) %>%
+  group_by(month, organism_species_name) %>%
+  summarise(total_count = sum(count)) |>
+  ungroup()
+head(data_processed_monthly)
+
+library(broom)
+
+# Function to add confidence intervals to the dataset
+add_confidence_intervals <- function(data, group_var, value_var, conf_level = 0.95) {
+  data %>%
+    group_by({{ group_var }}) %>%
+    summarise(mean = mean({{ value_var }}),
+              se = sd({{ value_var }}) / sqrt(n()), # Standard error
+              ci_lower = mean - qt((1 - conf_level) / 2, n() - 1) * se, # Lower confidence limit
+              ci_upper = mean + qt((1 - conf_level) / 2, n() - 1) * se) # Upper confidence limit
+}
+
+# Apply the function to add confidence intervals to your dataset
+data_with_intervals <- add_confidence_intervals(data_processed_monthly,
+                                                organism_species_name,
+                                                total_count)
+
+# Merge the confidence intervals back to the original dataset
+data_processed_with_intervals <- left_join(data_processed_monthly,
+                                           data_with_intervals,
+                                           by = "organism_species_name")
+
+# View the dataset with confidence intervals
+print(data_processed_with_intervals)
+
 
 linechart_n(
   dynamic = FALSE,
-  df = mtcars1,
-  x = "mpg",
-  y = "hp",
-  group_var = "group",
+  df = data_processed_with_intervals,
+  x = "month",
+  y = "total_count",
+  group_var = "organism_species_name",
+  # ci='e',
+  # lower = "ci_lower",
+  # upper = "ci_upper",
   line_colour = "blue",
-  line_type = "dashed",
-  width = 1.2,
+  width = 1,
   st_theme = theme_minimal(),
-  title = "epiviz example title",
-  x_label = "epiviz x",
-  y_label = "epiviz y",
-  y_percent = TRUE,
-  show_gridlines = TRUE,
+  title = "Organism trends (2023)",
+  x_label = "Time",
+  y_label = "Organism count",
+  y_percent = FALSE,
+  show_gridlines = FALSE,
   show_axislines = TRUE,
   hline = 150,
   hline_colour = "purple",
-  hline_label = "SOME VALUE=150",
-  add_points = FALSE,
+  hline_label = "Threshold=150",
+  add_points = TRUE,
   x_label_angle = 45,
-  y_label_angle = 90,
-  legend_title = "legend title test",
-  legend_position = "left"
+  y_label_angle = 0,
+  legend_title = "Organism",
+  legend_position = "bottom"
 )
+
+
