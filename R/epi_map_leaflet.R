@@ -17,7 +17,7 @@
 #' @param area_labels boolean parameter to add static area labels to the map areas
 #' @param area_labels_topn display static area labels for only map areas with the top n values
 #' @param legend_title string to supply the legend title
-#' @param labels list to supply label which appears in the hover over labels. Labels can include HTML
+#' @param labels the name of the string variable in the data frame which appears in the hover over labels. Labels can include HTML
 #' @param zoom_loc a data frame that supplies values for latitude, longitude and zoom which will set the view of the chart. Variable names should be LAT, LONG, zoom.
 
 #'
@@ -127,6 +127,18 @@ epi_map_leaflet <- function (df,
   }
 
 
+  # Select colour palette
+
+  pal <- colorNumeric(
+    palette = "YlOrRd",
+    domain = df$Value
+  )
+  #pal <- setNames(pal, NULL)
+  ##d add option to select colour palette
+
+
+
+  ### LEAFLET START
 
   # Add title controls
 
@@ -145,10 +157,7 @@ epi_map_leaflet <- function (df,
     color:rgba(0,124,145,1.00);
   }
   "))
-  ##d had to add 'htmltools::' before 'tags' and 'HTML' to get it to work
-  ##d had to change 'position: fixed' to 'position: absolute' else the title would remain fixed in place whilst scrolling
-  ##d changed to 'text-align: left;' and added 'width: max-content;' so that title wasn't squashed into narrow div box
-  #note: add 'border: 1px solid black;' to identify box
+  # border: 1px solid black;
 
 
   # Add footer controls
@@ -159,9 +168,6 @@ epi_map_leaflet <- function (df,
     color:rgba(0,124,145,1.00);
   }
   "))
-  ##d previous footer appears beneath html widget in Shiny, but is invisible in
-  #   markdown and directly outputted widgets, amended the above CSS to print
-  #   footer within map box.
 
 
   # Title text
@@ -169,7 +175,6 @@ epi_map_leaflet <- function (df,
   title <- htmltools::tags$div(
     tag.map.title, htmltools::HTML(gsub("/n","<br>",map_title))  # sub R linebreak for html linebreak
   )
-  ##d had to add 'htmltools::' before 'tags' and 'HTML' to get it to work
 
 
   # Footer text
@@ -177,22 +182,10 @@ epi_map_leaflet <- function (df,
   footer <- htmltools::tags$div(
     tag.map.footer, htmltools::HTML(gsub("/n","<br>",map_footer))   # sub R linebreak for html linebreak
   )
-  ##d had to add 'htmltools::' before 'tags' and 'HTML' to get it to work
 
 
 
-  # Select colour palette
-
-  pal <- colorNumeric(
-    palette = "YlOrRd",
-    domain = df$Value
-  )
-  ##d add option to select colour palette?
-
-
-
-
-  # Add labels if this isn't supplied
+  # Define list of labels for leaflet, add if not supplied
 
   if(is.null(labels)) {
 
@@ -200,6 +193,14 @@ epi_map_leaflet <- function (df,
       mutate(labs = paste0(Area, ": ",  Value))
 
     labels <- as.list(labels$labs)
+
+  } else {
+
+    labels <- df %>%
+      mutate(labs = gsub("/n","<br>",get({{labels}})))   # sub R linebreak for html linebreak
+
+    labels <- as.list(labels$labs)
+
   }
 
 
@@ -235,14 +236,11 @@ epi_map_leaflet <- function (df,
     addLegend_decreasing(pal = pal,
                          values = ~df$Value,
                          opacity = 0.5,
-                         title = gsub("/n","<br>",legend_title),  # sub R linebreak for html linebreak that will work in leaflet
+                         title = gsub("/n","<br>",legend_title),  # sub R linebreak for html linebreak
                          position = "topright",
-                         #group = "rate_per_100000",
-                         #className = "info legend Count",
                          decreasing = TRUE)
     ##d optional legend?
-    ##d 'group' and 'class' don't seem to have any effect?
-    ##d replaced fixed title with dynamic title
+
 
 
   ## add static labels for top n Areas
@@ -275,7 +273,10 @@ epi_map_leaflet <- function (df,
               zoom = zoom_loc$zoom)
   }
 
-} #epi_map_leaflet end
+  ### LEAFLET END
+
+} ### epi_map_leaflet end
+
 
 
 
