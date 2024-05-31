@@ -2,6 +2,7 @@
 #'
 #' @description A function to produce interactive leaflet rate maps
 #'
+#' @param dynamic Logical indicating whether to produce a dynamic (leaflet) output. Default is \code{FALSE}, which will return a static ggplot output.
 #' @param df data frame used for plotting including SF geometry
 #' @param value_col the name of the variable in the data frame to split the chart by and fill in the areas on the map
 #' @param data_areacode name of areacode variable in dataframe
@@ -13,13 +14,36 @@
 #' @param shp_areacode name of areacode variable in shapefile
 #' (Mandatory if shp_filepath argument passed).
 #' @param fill_palette name of RColorBrewer palette to use in map fill
+#' @param fill_opacity numeric value between 0 and 1 to determine fill color opacity.
+#' @param lookup vector of categories to include in the legend.
+#' @param break_intervals numeric vector of interval points for the legend
+#' (Mandatory if lookup argument passed).
+#' @param force_cat boolean parameter to determine whether all arguments passed
+#' in the lookup argument are used, even if there are no values present in the data.
+#' @param n_breaks number of break intervals. This argument is an alternative
+#' to supplying defined breaks in lookup argument and will provide a number of
+#' evenly distributed breaks as specified. Note if lookup argument is passed
+#' this will be ignored.
+#' @param labels the name of the string variable in the data frame which appears in the hover over labels. Labels can include HTML
 #' @param map_title string to supply the chart title
+#' @param map_title_size font size of map title
+#' @param map_title_colour string to determine map title colour
 #' @param map_footer string to supply the chart subtitle
+#' @param map_footer_size font size of map footer
+#' @param map_footer_colour string to determine map title colour
 #' @param area_labels boolean parameter to add static area labels to the map areas
 #' @param area_labels_topn display static area labels for only map areas with the top n values
 #' @param legend_title string to supply the legend title
-#' @param labels the name of the string variable in the data frame which appears in the hover over labels. Labels can include HTML
+#' @param legend_pos string containing legend position for a static map.
+#' @param legend_pos_dynamic string containing legend position for a dynamic map, c("topright", "bottomright", "bottomleft", "topleft")
 #' @param zoom_loc a data frame that supplies values for latitude, longitude and zoom which will set the view of the chart. Variable names should be LAT, LONG, zoom.
+#' @param border_shape_filepath filepath for the shapefile if an outer border is
+#'  required for the map. This should be a higher geography e.g.
+#' if creating an UTLA map- a regional shapefile can be used.
+#' @param border_code_col name of areacode variable in the border shapefile.
+#' Required if a specific area within the border shapefile is required.
+#' @param border_areaname string containing the name of area required for border
+#' shapefile (required if border_code_col argument passed).
 
 #'
 #' @import classInt
@@ -38,17 +62,23 @@ epi_map_leaflet <- function (dynamic = FALSE,
                              shp_filepath = NULL,
                              shp_areacode = NULL,
                              fill_palette = "Blues",
+                             fill_opacity = 1.0,
                              lookup = NULL,
                              break_intervals = NULL,
                              force_cat = TRUE,
                              n_breaks = NULL,
-                             legend_title = "",
-                             legend_pos = "right",
+                             labels = NULL,
                              map_title = "",
+                             map_title_size = 13,
+                             map_title_colour = "#007C91",
                              map_footer = "",
+                             map_footer_size = 12,
+                             map_footer_colour = "#007C91",
                              area_labels = FALSE,
                              area_labels_topn = NULL,
-                             labels = NULL,
+                             legend_title = "",
+                             legend_pos = "right",
+                             legend_pos_dynamic = "topright",
                              zoom_loc = NULL,
                              border_shape_filepath = NULL,
                              border_code_col = NULL,
@@ -243,6 +273,35 @@ epi_map_leaflet <- function (dynamic = FALSE,
 
 
 
+  # Define border if provided
+
+  if (!is.null(border_shape_filepath)) {
+    # Read in shapefile
+    border_sf <- st_read(border_shape_filepath)
+
+    # Filter for specific area for border in shapefile
+    if (!is.null(border_code_col)) {
+      # Check if e have area to filter to- if not print message
+      if (is.null(border_areaname)) {
+        print("border_areaname is missing so all shapefile data will be included")
+
+      }
+
+      # # sf dataframes act different so pull index to filter selected column
+      # index <-
+      #   as.numeric(grep(border_code_col, colnames(border_sf)))
+
+      # Filter area
+      border_sf <- border_sf %>%
+        #filter(.[[index]] == border_areaname)
+        filter(get({{border_code_col}}) == border_areaname)
+
+    }
+
+  }
+
+
+
   ### produce plot
 
   if (!dynamic) {
@@ -258,42 +317,41 @@ epi_map_leaflet <- function (dynamic = FALSE,
 
     # Create map
     map <- ggplot() +
-      geom_sf(data = data_sf, aes(fill = value_cat)) +
+      geom_sf(data = data_sf,
+              alpha = fill_opacity,
+              aes(fill = value_cat)) +
       # Set colours
       scale_fill_manual(
-        values = pal$fill_colour,
+        values = alpha(pal$fill_colour, fill_opacity),
         limits = pal$value_cat,
-        #values = pal,
-        #limits = names(pal),
         # Drop or keep all category levels for legend based on selection
         drop = drop_cat ,
         # Add legend title
         name = legend_title
-      )
+      ) +
+      # Set title
+      ggtitle(map_title) +
+      # Set footer
+      labs(caption = map_footer)
 
 
+    # Add static area labels
+    if(area_labels == TRUE) {
+
+      map <- map +
+        geom_text(data = data_sf,
+                  size = 8/.pt,
+                  aes(x = labels_static_long,
+                      y = labels_static_lat,
+                      label = labels_static,
+                      fontface = 'italic')
+        )
+    }
+
+
+    # Add border if provided
 
     if (!is.null(border_shape_filepath)) {
-      # Read in shapefile
-      border_sf <- st_read(border_shape_filepath)
-
-      # Filter for specific area for border in shapefile
-      if (!is.null(border_code_col)) {
-        # Check if e have area to filter to- if not print message
-        if (is.null(border_areaname)) {
-          print("border_areaname is missing so all shapefile data will be included")
-
-        }
-
-        # sf dataframes act different so pull index to filter selected column
-        index <-
-          as.numeric(grep(border_code_col, colnames(border_sf)))
-
-        # Filter area
-        border_sf <- border_sf %>%
-          filter(.[[index]] == border_areaname)
-
-      }
 
       # Add border overlay
       map <- map +
@@ -304,8 +362,8 @@ epi_map_leaflet <- function (dynamic = FALSE,
           colour = "black"
         )
 
-
     }
+
 
     # Add formatting
     map <- map +
@@ -325,16 +383,28 @@ epi_map_leaflet <- function (dynamic = FALSE,
         legend.text = element_text(size = 10, family = "Arial"),
         legend.title = element_text(
           face = "bold",
-          size = 12,
+          size = 10,
           family = "Arial"
         ),
         # Change legend position
-        legend.position = legend_pos
+        legend.position = legend_pos,
+        # Set title formatting
+        plot.title = element_text(
+          face = "bold",
+          size = map_title_size,
+          family = "Ariel",
+          colour = map_title_colour),
+        # Set footer formatting
+        plot.caption = element_text(
+          hjust = 0,
+          size = map_footer_size,
+          colour = map_footer_colour)
       )
 
     return(map)
 
     ### GGPLOT END
+
 
   } else {
     # produce leaflet object if 'dynamic' is set to TRUE
@@ -343,32 +413,37 @@ epi_map_leaflet <- function (dynamic = FALSE,
 
   # Add title controls
 
-  tag.map.title <- htmltools::tags$style(htmltools::HTML("
-  .leaflet-control.map-title {
-    transform: translate(11%,-15%);
-    position: absolute !important;
-    width: max-content;
-    text-align: left;
-    padding-left: 10px;
-    padding-right: 10px;
-    opacity: 1;
-    font-weight: bold;
-    font-size: 13px;
-    font-family: Helvetica;
-    color:rgba(0,124,145,1.00);
-  }
-  "))
-  # border: 1px solid black;
+  tag.map.title <- htmltools::tags$style(htmltools::HTML(
+    paste0(
+    "
+    .leaflet-control.map-title {
+      transform: translate(11%,-15%);
+      position: absolute !important;
+      width: max-content;
+      text-align: left;
+      padding-left: 10px;
+      padding-right: 10px;
+      opacity: 1;
+      font-weight: bold;
+      font-size:", map_title_size, "px;
+      font-family: Helvetica;
+      color:", map_title_colour,";
+    }
+    ")))
+    # border: 1px solid black;
 
 
   # Add footer controls
 
-  tag.map.footer <- htmltools::tags$style(htmltools::HTML("
+  tag.map.footer <- htmltools::tags$style(htmltools::HTML(
+  paste0(
+  "
   .leaflet-control.map-footer {
     font-family: Helvetica;
-    color:rgba(0,124,145,1.00);
+    font-size:", map_footer_size, "px;
+    color:", map_footer_colour,";
   }
-  "))
+  ")))
 
 
   # Title text
@@ -420,7 +495,7 @@ epi_map_leaflet <- function (dynamic = FALSE,
                 smoothFactor = 0.3,
                 #fillOpacity = 0.7,
                 #fillColor = ~pal(Value),
-                fillOpacity = 1.0,
+                fillOpacity = fill_opacity,
                 fillColor = ~fill_colour,
                 label = lapply(labels, htmltools::HTML)
     ) %>%
@@ -439,9 +514,9 @@ epi_map_leaflet <- function (dynamic = FALSE,
     addLegend(colors = pal$fill_colour,
               labels = pal$value_cat,
               values = ~df$Value,
-              opacity = 1.0,
+              opacity = fill_opacity,
               title = gsub("\n","<br>",legend_title),  # sub R linebreak for html linebreak
-              position = "topright")
+              position = legend_pos_dynamic)
   ##d optional legend?
 
   # addLegend_decreasing(colors = pal$fill_colour,
@@ -485,6 +560,27 @@ epi_map_leaflet <- function (dynamic = FALSE,
       setView(lat = zoom_loc$LAT,
               lng = zoom_loc$LONG,
               zoom = zoom_loc$zoom)
+  }
+
+
+  # Add border if provided
+
+  if (!is.null(border_shape_filepath)) {
+
+    # Add border overlay
+    map <- map %>%
+      addPolygons(data = border_sf,
+                  color = "black",
+                  weight = 0.2,
+                  smoothFactor = 0.5,
+                  opacity = 1.0,
+                  fillOpacity = 0.5,
+                  fillColor = "#ffffff00",
+                  # highlightOptions = highlightOptions(color = "white",
+                  #                                     weight = 2,
+                  #                                     bringToFront = TRUE)
+                  )
+
   }
 
   return(map)
