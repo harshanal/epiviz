@@ -115,24 +115,25 @@ epi_map_leaflet <- function (dynamic = FALSE,
   # Read in data based on whether the df and shapefiles are already merged
   if(inc_shp == TRUE) {
 
-    # Read in shapefile
-    df <- st_as_sf(df)
+    # Read in shapefile, assign 'Area' variable
+    df <- st_as_sf(df) %>%
+      mutate(Area = get({{data_areacode}}))
 
   } else {
 
     # Read in shapefile
     area_sf <- st_read(shp_filepath)
 
-    # Merge data and shapefile
-    df <- merge(df, area_sf, by.x = data_areacode, by.y = shp_areacode)
+    # Merge data and shapefile, assign 'Area' variable
+    df <- merge(area_sf, df, by.x = shp_areacode, by.y = data_areacode) %>%
+      mutate(Area = get({{shp_areacode}}))
 
   }
 
 
-  # Assign the value column to the dataframe
+  # Assign 'Value' column to the dataframe
   df <- df %>%
-    mutate(Value = get({{value_col}}),
-           Area = get({{data_areacode}}))
+    mutate(Value = get({{value_col}}))
 
 
   # DEPRECIATED IN FAVOUR OF CENTROID COORDS BELOW
@@ -190,15 +191,15 @@ epi_map_leaflet <- function (dynamic = FALSE,
 
     # get quantile breaks. Add .00001 offset to catch the lowest value
     breaks_qt <-
-      classIntervals(c(min(unlist(
-        df$Value
-      )) - .00001, unlist(df$Value)), n = n_breaks
-      , style = "quantile")
+      classIntervals(c(min(unlist(df$Value)),# - .00001,
+                       unlist(df$Value)),
+                     n = n_breaks, style = "quantile")
     #Re-format labels- remove ( and [  brackets and change , to -
     data_sf <- df %>%
-      mutate(value_cat = cut(unlist(Value), breaks_qt$brks)) %>%
+      # mutate(value_cat = cut(unlist(Value), breaks_qt$brks, dig.lab=10)) %>%  # dig.lab=10 to eliminate scientific notation in legend
+      mutate(value_cat = cut(unlist(Value), n_breaks, dig.lab=10)) %>%
       mutate(value_cat = gsub("\\(|\\]", "", unlist(value_cat))) %>%
-      mutate(value_cat = gsub("\\,", "-", unlist(value_cat)))
+      mutate(value_cat = gsub("\\,", " - ", unlist(value_cat)))
 
     # Force force_cat  to be  FALSE
     force_cat <- FALSE
@@ -252,7 +253,7 @@ epi_map_leaflet <- function (dynamic = FALSE,
     # Count number of intervals for palette
     n_pal <- as.numeric(length(unique(data_sf$value_cat)))
 
-    # Designate RColorBrewer palatte for map
+    # Designate RColorBrewer palette for map
     pal <- RColorBrewer::brewer.pal(n = n_pal, name = fill_palette)
 
     # Create df of colours + categories for legend
@@ -268,8 +269,13 @@ epi_map_leaflet <- function (dynamic = FALSE,
 
   }
 
-  # merge fill-colors back into df
+  # merge fill-colors back into df for leaflet
   df <- merge(data_sf, pal, by = "value_cat")
+
+  # %>%
+  #   mutate(value_cat_f = factor(value_cat, levels = pal$value_cat))  # convert to factor
+
+
 
 
 
@@ -319,13 +325,15 @@ epi_map_leaflet <- function (dynamic = FALSE,
     map <- ggplot() +
       geom_sf(data = data_sf,
               alpha = fill_opacity,
-              aes(fill = value_cat)) +
+              key_glyph = "rect", # remove border around legend keys
+              aes(fill = value_cat),
+              show.legend = TRUE) +  # ensure unused legend keys are coloured in: https://github.com/tidyverse/ggplot2/issues/5728
       # Set colours
       scale_fill_manual(
         values = alpha(pal$fill_colour, fill_opacity),
         limits = pal$value_cat,
         # Drop or keep all category levels for legend based on selection
-        drop = drop_cat ,
+        drop = drop_cat,
         # Add legend title
         name = legend_title
       ) +
@@ -349,7 +357,7 @@ epi_map_leaflet <- function (dynamic = FALSE,
     }
 
 
-    # Add border if provided
+    # Add map border if provided
 
     if (!is.null(border_shape_filepath)) {
 
@@ -490,14 +498,17 @@ epi_map_leaflet <- function (dynamic = FALSE,
     ## add polygons
 
     addPolygons(stroke = TRUE,
-                color = "white",
-                weight = "1",
+                color = "black",
+                weight = "0.5",
                 smoothFactor = 0.3,
                 #fillOpacity = 0.7,
                 #fillColor = ~pal(Value),
                 fillOpacity = fill_opacity,
                 fillColor = ~fill_colour,
-                label = lapply(labels, htmltools::HTML)
+                label = lapply(labels, htmltools::HTML),
+                highlightOptions = highlightOptions(color = "white",
+                                                    weight = 2,
+                                                    bringToFront = TRUE)
     ) %>%
 
 
@@ -571,14 +582,11 @@ epi_map_leaflet <- function (dynamic = FALSE,
     map <- map %>%
       addPolygons(data = border_sf,
                   color = "black",
-                  weight = 0.2,
+                  weight = 0.3,
                   smoothFactor = 0.5,
                   opacity = 1.0,
                   fillOpacity = 0.5,
                   fillColor = "#ffffff00",
-                  # highlightOptions = highlightOptions(color = "white",
-                  #                                     weight = 2,
-                  #                                     bringToFront = TRUE)
                   )
 
   }
