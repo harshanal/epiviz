@@ -24,14 +24,19 @@
 #' to supplying defined breaks in lookup argument and will provide a number of
 #' evenly distributed breaks as specified. Note if lookup argument is passed
 #' this will be ignored.
-#' @param labels the name of the string variable in the data frame which appears in the hover over labels. Labels can include HTML
+#' @param labels name of the string variable in the data frame which will be applied
+#' to each map area. If dynamic = FALSE these labels will be positioned in the centre
+#' of each map area. If dynamic = TRUE then these labels will appear as hover-over labels.
+#' If dynamic = TRUE, labels can include HTML.
 #' @param map_title string to supply the chart title
 #' @param map_title_size font size of map title
 #' @param map_title_colour string to determine map title colour
 #' @param map_footer string to supply the chart subtitle
 #' @param map_footer_size font size of map footer
 #' @param map_footer_colour string to determine map title colour
-#' @param area_labels boolean parameter to add static area labels to the map areas
+#' @param area_labels boolean parameter to add static area labels to the map areas.
+#' If dynamic = FALSE and a labels parameter has alredy been provided, then area_labels
+#' will be ignored.
 #' @param area_labels_topn display static area labels for only map areas with the top n values
 #' @param legend_title string to supply the legend title
 #' @param legend_pos string containing legend position for a static map.
@@ -131,21 +136,10 @@ epi_map_leaflet <- function (dynamic = FALSE,
   }
 
 
-  # Assign 'Value' column to the dataframe
+  # Assign 'Value' column to dataframe
   df <- df %>%
     mutate(Value = get({{value_col}}))
 
-
-  # DEPRECIATED IN FAVOUR OF CENTROID COORDS BELOW
-  # # lat and long column naming conventions can differ between shp files, force rename
-  # df <- df %>%
-  #   rename_with(
-  #     ~ case_when(
-  #       . == "lat" ~ "LAT",
-  #       . == "latitude" ~ "LAT",
-  #       . == "long" ~ "LONG",
-  #       . == "longitude" ~ "LONG",
-  #       TRUE ~ .))
 
 
   # Define static area labels
@@ -189,12 +183,13 @@ epi_map_leaflet <- function (dynamic = FALSE,
 
     }
 
-    # get quantile breaks. Add .00001 offset to catch the lowest value
-    breaks_qt <-
-      classIntervals(c(min(unlist(df$Value)),# - .00001,
-                       unlist(df$Value)),
-                     n = n_breaks, style = "quantile")
-    #Re-format labels- remove ( and [  brackets and change , to -
+    # # get quantile breaks. Add .00001 offset to catch the lowest value
+    # breaks_qt <-
+    #   classIntervals(c(min(unlist(df$Value)),# - .00001,
+    #                    unlist(df$Value)),
+    #                  n = n_breaks, style = "quantile")
+
+    # Re-format labels; remove ( and [  brackets and change ',' to ' - '
     data_sf <- df %>%
       # mutate(value_cat = cut(unlist(Value), breaks_qt$brks, dig.lab=10)) %>%  # dig.lab=10 to eliminate scientific notation in legend
       mutate(value_cat = cut(unlist(Value), n_breaks, dig.lab=10)) %>%
@@ -269,12 +264,8 @@ epi_map_leaflet <- function (dynamic = FALSE,
 
   }
 
-  # merge fill-colors back into df for leaflet
+  # merge fill-colors back into df for use in leaflet
   df <- merge(data_sf, pal, by = "value_cat")
-
-  # %>%
-  #   mutate(value_cat_f = factor(value_cat, levels = pal$value_cat))  # convert to factor
-
 
 
 
@@ -291,16 +282,13 @@ epi_map_leaflet <- function (dynamic = FALSE,
       if (is.null(border_areaname)) {
         print("border_areaname is missing so all shapefile data will be included")
 
-      }
-
-      # # sf dataframes act different so pull index to filter selected column
-      # index <-
-      #   as.numeric(grep(border_code_col, colnames(border_sf)))
+      } else {
 
       # Filter area
       border_sf <- border_sf %>%
-        #filter(.[[index]] == border_areaname)
         filter(get({{border_code_col}}) == border_areaname)
+
+      }
 
     }
 
@@ -343,16 +331,32 @@ epi_map_leaflet <- function (dynamic = FALSE,
       labs(caption = map_footer)
 
 
-    # Add static area labels
-    if(area_labels == TRUE) {
+    # Add user defined labels
+    if(!is.null(labels)) {
 
       map <- map +
-        geom_text(data = data_sf,
-                  size = 8/.pt,
-                  aes(x = labels_static_long,
-                      y = labels_static_lat,
-                      label = labels_static,
-                      fontface = 'italic')
+        geom_text(
+          data = data_sf,
+          size = 8/.pt,
+          aes(x = labels_static_long,
+              y = labels_static_lat,
+              label = get({{labels}}))
+              #label = stringr::str_wrap(get({{labels}}),12))
+        )
+    }
+
+
+    # Add area labels; overidden if other labels are defined
+    if(area_labels == TRUE & is.null(labels)) {
+
+      map <- map +
+        geom_text(
+          data = data_sf,
+          size = 8/.pt,
+          aes(x = labels_static_long,
+              y = labels_static_lat,
+              label = labels_static,
+              fontface = 'italic')
         )
     }
 
@@ -425,7 +429,7 @@ epi_map_leaflet <- function (dynamic = FALSE,
     paste0(
     "
     .leaflet-control.map-title {
-      transform: translate(11%,-15%);
+      transform: translate(30px,-0px);
       position: absolute !important;
       width: max-content;
       text-align: left;
@@ -439,6 +443,7 @@ epi_map_leaflet <- function (dynamic = FALSE,
     }
     ")))
     # border: 1px solid black;
+    # transform: translate(14%,-15%);
 
 
   # Add footer controls
@@ -469,7 +474,7 @@ epi_map_leaflet <- function (dynamic = FALSE,
 
 
 
-  # Define list of labels for leaflet, add if not supplied
+  # Define list of labels for leaflet hover, add if not supplied
 
   if(is.null(labels)) {
 
@@ -486,7 +491,6 @@ epi_map_leaflet <- function (dynamic = FALSE,
     labels <- as.list(labels$labs)
 
   }
-
 
 
 
@@ -530,26 +534,14 @@ epi_map_leaflet <- function (dynamic = FALSE,
               position = legend_pos_dynamic)
   ##d optional legend?
 
-  # addLegend_decreasing(colors = pal$fill_colour,
-  #                      labels = pal$value_cat,
-  #                      #colors = pal,
-  #                      #labels = names(pal),
-  #                      #pal = pal,
-  #                      values = ~df$Value,
-  #                      opacity = 1.0,
-  #                      #opacity = 0.5,
-  #                      title = gsub("\n","<br>",legend_title),  # sub R linebreak for html linebreak
-  #                      position = "topright",
-  #                      decreasing = TRUE)
-
 
   ## add static labels for top n Areas
 
   if(area_labels == TRUE) {
 
     map <- map %>%
-      addLabelOnlyMarkers(lng = ~labels_static_long, #~LONG,
-                          lat = ~labels_static_lat,  #~LAT,
+      addLabelOnlyMarkers(lng = ~labels_static_long,
+                          lat = ~labels_static_lat,
                           label = ~labels_static,
                           labelOptions = labelOptions(noHide = TRUE,
                                                       direction = 'center',
@@ -602,108 +594,4 @@ epi_map_leaflet <- function (dynamic = FALSE,
 
 
 
-
-# # credit: https://github.com/rstudio/leaflet/issues/256#issuecomment-440290201
-# addLegend_decreasing <- function (map, position = c("topright", "bottomright", "bottomleft","topleft"),
-#                                   pal, values, na.label = "NA", bins = 7, colors,
-#                                   opacity = 0.5, labels = NULL, labFormat = labelFormat(),
-#                                   title = NULL, className = "info legend", layerId = NULL,
-#                                   group = NULL, data = getMapData(map), decreasing = FALSE) {
-#
-#   position <- match.arg(position)
-#   type <- "unknown"
-#   na.color <- NULL
-#   extra <- NULL
-#   if (!missing(pal)) {
-#     if (!missing(colors))
-#       stop("You must provide either 'pal' or 'colors' (not both)")
-#     if (missing(title) && inherits(values, "formula"))
-#       title <- deparse(values[[2]])
-#     values <- evalFormula(values, data)
-#     type <- attr(pal, "colorType", exact = TRUE)
-#     args <- attr(pal, "colorArgs", exact = TRUE)
-#     na.color <- args$na.color
-#     if (!is.null(na.color) && col2rgb(na.color, alpha = TRUE)[[4]] ==
-#         0) {
-#       na.color <- NULL
-#     }
-#     if (type != "numeric" && !missing(bins))
-#       warning("'bins' is ignored because the palette type is not numeric")
-#     if (type == "numeric") {
-#       cuts <- if (length(bins) == 1)
-#         pretty(values, bins)
-#       else bins
-#       if (length(bins) > 2)
-#         if (!all(abs(diff(bins, differences = 2)) <=
-#                  sqrt(.Machine$double.eps)))
-#           stop("The vector of breaks 'bins' must be equally spaced")
-#       n <- length(cuts)
-#       r <- range(values, na.rm = TRUE)
-#       cuts <- cuts[cuts >= r[1] & cuts <= r[2]]
-#       n <- length(cuts)
-#       p <- (cuts - r[1])/(r[2] - r[1])
-#       extra <- list(p_1 = p[1], p_n = p[n])
-#       p <- c("", paste0(100 * p, "%"), "")
-#       if (decreasing == TRUE){
-#         colors <- pal(rev(c(r[1], cuts, r[2])))
-#         labels <- rev(labFormat(type = "numeric", cuts))
-#       }else{
-#         colors <- pal(c(r[1], cuts, r[2]))
-#         labels <- rev(labFormat(type = "numeric", cuts))
-#       }
-#       colors <- paste(colors, p, sep = " ", collapse = ", ")
-#     }
-#     else if (type == "bin") {
-#       cuts <- args$bins
-#       n <- length(cuts)
-#       mids <- (cuts[-1] + cuts[-n])/2
-#       if (decreasing == TRUE){
-#         colors <- pal(rev(mids))
-#         labels <- rev(labFormat(type = "bin", cuts))
-#       }else{
-#         colors <- pal(mids)
-#         labels <- labFormat(type = "bin", cuts)
-#       }
-#     }
-#     else if (type == "quantile") {
-#       p <- args$probs
-#       n <- length(p)
-#       cuts <- quantile(values, probs = p, na.rm = TRUE)
-#       mids <- quantile(values, probs = (p[-1] + p[-n])/2, na.rm = TRUE)
-#       if (decreasing == TRUE){
-#         colors <- pal(rev(mids))
-#         labels <- rev(labFormat(type = "quantile", cuts, p))
-#       }else{
-#         colors <- pal(mids)
-#         labels <- labFormat(type = "quantile", cuts, p)
-#       }
-#     }
-#     else if (type == "factor") {
-#       v <- sort(unique(na.omit(values)))
-#       colors <- pal(v)
-#       labels <- labFormat(type = "factor", v)
-#       if (decreasing == TRUE){
-#         colors <- pal(rev(v))
-#         labels <- rev(labFormat(type = "factor", v))
-#       }else{
-#         colors <- pal(v)
-#         labels <- labFormat(type = "factor", v)
-#       }
-#     }
-#     else stop("Palette function not supported")
-#     if (!any(is.na(values)))
-#       na.color <- NULL
-#   }
-#   else {
-#     if (length(colors) != length(labels))
-#       stop("'colors' and 'labels' must be of the same length")
-#   }
-#   legend <- list(colors = I(unname(colors)), labels = I(unname(labels)),
-#                  na_color = na.color, na_label = na.label, opacity = opacity,
-#                  position = position, type = type, title = title, extra = extra,
-#                  layerId = layerId, className = className, group = group)
-#   invokeMethod(map, data, "addLegend", legend)
-#
-# }
-#
 
