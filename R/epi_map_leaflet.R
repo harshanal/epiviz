@@ -39,9 +39,8 @@
 #' will be ignored.
 #' @param area_labels_topn display static area labels for only map areas with the top n values
 #' @param legend_title string to supply the legend title
-#' @param legend_pos string containing legend position for a static map.
-#' @param legend_pos_dynamic string containing legend position for a dynamic map, c("topright", "bottomright", "bottomleft", "topleft")
-#' @param zoom_loc a data frame that supplies values for latitude, longitude and zoom which will set the view of the chart. Variable names should be LAT, LONG, zoom.
+#' @param legend_pos string containing legend position for a static map. string containing legend position for a dynamic map, c("topright", "bottomright", "bottomleft", "topleft")
+#' @param map_zoom a data frame that supplies values for latitude, longitude and zoom which will set the view of the chart. Variable names should be LAT, LONG, zoom.
 #' @param border_shape_filepath filepath for the shapefile if an outer border is
 #'  required for the map. This should be a higher geography e.g.
 #' if creating an UTLA map- a regional shapefile can be used.
@@ -82,9 +81,8 @@ epi_map_leaflet <- function (dynamic = FALSE,
                              area_labels = FALSE,
                              area_labels_topn = NULL,
                              legend_title = "",
-                             legend_pos = "right",
-                             legend_pos_dynamic = "topright",
-                             zoom_loc = NULL,
+                             legend_pos = "topright",
+                             map_zoom = NULL,
                              border_shape_filepath = NULL,
                              border_code_col = NULL,
                              border_areaname = NULL) {
@@ -348,7 +346,7 @@ epi_map_leaflet <- function (dynamic = FALSE,
     }
 
 
-    # Add area labels; overidden if other labels are defined
+    # Add area name labels; overidden if other area labels are defined
     if(area_labels == TRUE & is.null(labels)) {
 
       map <- map +
@@ -381,6 +379,25 @@ epi_map_leaflet <- function (dynamic = FALSE,
     }
 
 
+    # Zoom in if map_zoom is specified
+
+    if (!is.null(map_zoom)) {
+
+      # Define new co-ordinate bounding box from zoom parameters
+      # credit: https://www.r-bloggers.com/2019/04/zooming-in-on-maps-with-sf-and-ggplot2/
+      lon_span <- 360 / 2^map_zoom$zoom
+      lat_span <- 180 / 2^map_zoom$zoom
+
+      lon_bounds <- c(map_zoom$LONG - lon_span / 2, map_zoom$LONG + lon_span / 2)
+      lat_bounds <- c(map_zoom$LAT - lat_span / 2, map_zoom$LAT + lat_span / 2)
+
+      # Apply zoomed co-rdinate limits
+      map <- map +
+        coord_sf(xlim = lon_bounds, ylim = lat_bounds)
+
+    }
+
+
     # Add formatting
     map <- map +
       # # # Remove axis text
@@ -403,7 +420,7 @@ epi_map_leaflet <- function (dynamic = FALSE,
           family = "Arial"
         ),
         # Change legend position
-        legend.position = legend_pos,
+        #legend.position = legend_pos,
         # Set title formatting
         plot.title = element_text(
           face = "bold",
@@ -416,6 +433,37 @@ epi_map_leaflet <- function (dynamic = FALSE,
           size = map_footer_size,
           colour = map_footer_colour)
       )
+
+
+    # Position legend if legend_pos matches leaflet-only inputs
+    if (legend_pos == "bottomright") {
+      map <- map +
+        theme(
+          legend.position='right',
+          legend.justification='bottom'
+        )
+    } else if (legend_pos == "topright") {
+      map <- map +
+        theme(
+          legend.position='right',
+          legend.justification='top'
+        )
+    } else if (legend_pos == "bottomleft") {
+      map <- map +
+        theme(
+          legend.position='left',
+          legend.justification='bottom'
+        )
+    } else if (legend_pos == "topleft") {
+      map <- map +
+        theme(
+          legend.position='left',
+          legend.justification='top'
+        )
+    } else {
+      map <- map +
+        theme(legend.position = legend_pos)
+    }
 
     return(map)
 
@@ -535,7 +583,7 @@ epi_map_leaflet <- function (dynamic = FALSE,
               values = ~df$Value,
               opacity = fill_opacity,
               title = gsub("\n","<br>",legend_title),  # sub R linebreak for html linebreak
-              position = legend_pos_dynamic)
+              position = legend_pos)
   ##d optional legend?
 
 
@@ -561,12 +609,12 @@ epi_map_leaflet <- function (dynamic = FALSE,
 
   ## set default position and zoom
 
-  if(!is.null(zoom_loc)){
+  if(!is.null(map_zoom)){
 
     map <- map %>%
-      setView(lat = zoom_loc$LAT,
-              lng = zoom_loc$LONG,
-              zoom = zoom_loc$zoom)
+      setView(lat = map_zoom$LAT,
+              lng = map_zoom$LONG,
+              zoom = map_zoom$zoom)
   }
 
 
