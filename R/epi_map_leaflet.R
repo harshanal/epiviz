@@ -15,14 +15,14 @@
 #' (Mandatory if shp_filepath argument passed).
 #' @param fill_palette name of RColorBrewer palette to use in map fill
 #' @param fill_opacity numeric value between 0 and 1 to determine fill color opacity.
-#' @param lookup vector of categories to include in the legend.
 #' @param break_intervals numeric vector of interval points for the legend
-#' (Mandatory if lookup argument passed).
+#' (Mandatory if break_labels argument passed).
+#' @param break_labels vector of categories to include in the legend.
 #' @param force_cat boolean parameter to determine whether all arguments passed
-#' in the lookup argument are used, even if there are no values present in the data.
+#' in the break_labels argument are used, even if there are no values present in the data.
 #' @param n_breaks number of break intervals. This argument is an alternative
-#' to supplying defined breaks in lookup argument and will provide a number of
-#' evenly distributed breaks as specified. Note if lookup argument is passed
+#' to supplying defined breaks in break_labels argument and will provide a number of
+#' evenly distributed breaks as specified. Note if break_labels argument is passed
 #' this will be ignored.
 #' @param labels name of the string variable in the data frame which will be applied
 #' to each map area. If dynamic = FALSE these labels will be positioned in the centre
@@ -68,8 +68,8 @@ epi_map_leaflet <- function (dynamic = FALSE,
                              shp_areacode = NULL,
                              fill_palette = "Blues",
                              fill_opacity = 1.0,
-                             lookup = NULL,
                              break_intervals = NULL,
+                             break_labels = NULL,
                              force_cat = TRUE,
                              n_breaks = NULL,
                              labels = NULL,
@@ -92,6 +92,7 @@ epi_map_leaflet <- function (dynamic = FALSE,
 
   #solves warnings regarding font family not found
   windowsFonts("Arial" = windowsFont("Arial"))
+  windowsFonts(Arial = windowsFont("Arial"))
 
 
   # Check for any missing mandatory arguments
@@ -141,28 +142,27 @@ epi_map_leaflet <- function (dynamic = FALSE,
     mutate(Value = get({{value_col}}))
 
 
+  # define area centroid long & lat for label positions
+  df <- df %>%
+    mutate(centroid_long = sf::st_coordinates(sf::st_centroid(df$geometry))[,1],
+           centroid_lat = sf::st_coordinates(sf::st_centroid(df$geometry))[,2])
+
 
   # Define static area labels
   if(area_labels == TRUE) {
 
-    # define geometry centroid long & lat as position of each label
-    # Note:- Existing long & lat fields in shp files often denote regional capitals rather
-    #        than the true centre of an area, so force definition here.
-    df <- df %>%
-      mutate(labels_static_long = sf::st_coordinates(sf::st_centroid(df$geometry))[,1],
-             labels_static_lat = sf::st_coordinates(sf::st_centroid(df$geometry))[,2])
+    # Rank data to only show top n labels
+    if (!is.null(area_labels_topn)) {
 
-    if (is.null(area_labels_topn)) {
-
-      df <- df %>% mutate(labels_static = Area)
-
-    } else {
-
-      # Rank data to only show top n labels
       df <- df %>%
         mutate(ranks = rank(desc(Value)),
                labels_static = case_when(ranks <= area_labels_topn ~ Area,
                                          TRUE ~ ""))
+
+    } else {
+
+      df <- df %>% mutate(labels_static = Area)
+
     }
 
   }
@@ -176,7 +176,7 @@ epi_map_leaflet <- function (dynamic = FALSE,
       # )
 
   # Set breaks and break labels depending on whether they are predefined
-  if (is.null(lookup)) {
+  if (is.null(break_labels)) {
     # Set default of n_breaks to 5 if this is missing
     if (is.null(n_breaks)) {
       n_breaks <- 5
@@ -201,11 +201,11 @@ epi_map_leaflet <- function (dynamic = FALSE,
 
   } else {
     # count number of interval groups
-    interval_grp <- c(1:length(lookup))
+    interval_grp <- c(1:length(break_labels))
 
-    # Create lookup of break interbals and labels
+    # Create break_labels of break interbals and labels
     breaks_qt <-
-      data.frame(interval = interval_grp , value_cat = lookup)
+      data.frame(interval = interval_grp , value_cat = break_labels)
 
     # Assign values to intervals- then join labels
     data_sf <- df %>%
@@ -231,13 +231,13 @@ epi_map_leaflet <- function (dynamic = FALSE,
 
   if (force_cat == TRUE) {
     # Count number of intervals for palette
-    n_pal <- as.numeric(length(lookup))
+    n_pal <- as.numeric(length(break_labels))
 
     # Designate RColorBrewer palatte for map
     pal <- RColorBrewer::brewer.pal(n = n_pal, name = fill_palette)
 
     # Create df of colours + categories for legend
-    pal <- data.frame(value_cat = lookup,
+    pal <- data.frame(value_cat = break_labels,
                       fill_colour = pal)
 
     # To use in drop category argument for map
@@ -338,8 +338,10 @@ epi_map_leaflet <- function (dynamic = FALSE,
         geom_text(
           data = data_sf,
           size = 8/.pt,
-          aes(x = labels_static_long,
-              y = labels_static_lat,
+          #family = 'Ariel',
+          aes(x = centroid_long,
+              y = centroid_lat,
+              family = 'Ariel',
               label = get({{labels}}))
               #label = stringr::str_wrap(get({{labels}}),12))
         )
@@ -353,9 +355,11 @@ epi_map_leaflet <- function (dynamic = FALSE,
         geom_text(
           data = data_sf,
           size = 8/.pt,
-          aes(x = labels_static_long,
-              y = labels_static_lat,
+          #family = 'Ariel',
+          aes(x = centroid_long,
+              y = centroid_lat,
               label = labels_static,
+              family = 'Ariel',
               fontface = 'italic')
         )
     }
@@ -540,8 +544,8 @@ epi_map_leaflet <- function (dynamic = FALSE,
   if(area_labels == TRUE) {
 
     map <- map %>%
-      addLabelOnlyMarkers(lng = ~labels_static_long,
-                          lat = ~labels_static_lat,
+      addLabelOnlyMarkers(lng = ~centroid_long,
+                          lat = ~centroid_lat,
                           label = ~labels_static,
                           labelOptions = labelOptions(noHide = TRUE,
                                                       direction = 'center',
@@ -572,14 +576,10 @@ epi_map_leaflet <- function (dynamic = FALSE,
 
     # Add border overlay
     map <- map %>%
-      addPolygons(data = border_sf,
+      addPolylines(data = border_sf,
                   color = "black",
                   weight = 0.3,
-                  smoothFactor = 0.5,
-                  opacity = 1.0,
-                  fillOpacity = 0.5,
-                  fillColor = "#ffffff00",
-                  )
+      )
 
   }
 
