@@ -93,34 +93,87 @@ epi_map_leaflet <- function (dynamic = FALSE,
   windowsFonts(Arial = windowsFont("Arial"))
 
 
-  # Check for any missing mandatory arguments
+  # Checks and warnings
 
   # Check df is a df class
-  if(!is.data.frame(df)== TRUE) stop("A data frame argument is required")
+  if(!is.data.frame(df) == TRUE) stop("Argument df is not a data frame object")
 
   # Check if df is missing
   if (missing(df)) stop("A data frame argument is required")
 
   # Check if value_col argument is missing
-  if ((is.null(value_col)) | missing(value_col)) stop("Please inlcude argument data frame variable for value_col, ie value_col = variable_name")
+  if ((is.null(value_col)) | missing(value_col))
+    stop("Please include a data frame variable for value_col, i.e. value_col = \"variable_name\"")
+
+  # Check if value_col argument is missing
+  if ((is.null(value_col)) | missing(value_col))
+    stop("Please include a data frame variable for value_col, i.e. data_areacode = \"variable_name\"")
 
   # Check if data_areacode argument is missing
-  if ((is.null(data_areacode)) | missing(data_areacode)) stop("Please inlcude argument data frame variable for data_areacode, ie data_areacode = variable_name")
+  if ((is.null(data_areacode)) | missing(data_areacode))
+    stop("Please include a data frame variable for data_areacode, i.e. data_areacode = \"variable_name\"")
 
   # Check if value_col column name is in df
-  if ( !value_col %in% colnames(df)) stop("Please inlcude correct name for argument data frame variable for value_col, ie value_col = variable_name")
+  if (!value_col %in% colnames(df))
+    stop("value_col not found within df. Please include a data frame variable for value_col, i.e. data_areacode = \"variable_name\"")
 
   # Check if data_areacode column name is in df
-  if ( !data_areacode %in% colnames(df)) stop("Please inlcude correct name for argument data frame variable for data_areacode, ie area_col = variable_name")
+  if (!data_areacode %in% colnames(df))
+    stop("data_areacode not found within df. Please include a data frame variable for data_areacode, i.e. data_areacode = \"variable_name\"")
+
+  # Check if inc_shp = FALSE but no shp_filepath provided
+  if (inc_shp == FALSE & is.null(shp_filepath))
+    stop("A shp_filepath arguement must be provided when inc_shp = FALSE")
+
+  # Check that if break_intervals has been passed then break_labels has also been passed
+  if (!is.null(break_intervals) & is.null(break_labels))
+    stop("If break_intervals is provided then break_labels must also be provided")
+  if (is.null(break_intervals) & !is.null(break_labels))
+    stop("If break_labels is provided then break_intervals must also be provided")
+
+  # Check that break_labels and break_intervals are the same length
+  if (!is.null(break_intervals)) {
+    if (length(break_labels) != length(break_intervals)) {
+      stop("break_labels and break_intervals must be vectors of equal length")
+    }
+  }
+
+  # Check if dynamic = TRUE but legend_pos not a leaflet permissable value
+  if (dynamic == TRUE & !(legend_pos %in% c("topright", "bottomright", "bottomleft", "topleft")))
+    stop("When dynamic = TRUE, legend_pos must equal \"topright\", \"bottomright\", \"bottomleft\", or \"topleft\"")
+
+  # Check that map_zoom df contains the 'LAT', 'LONG', and 'zoom' variables
+  if (!is.null(map_zoom) & !all(c("LONG","LAT","zoom") %in% names(map_zoom)))
+    stop("map_zoom must be a single-row df containing variables of 'LAT', 'LONG', and 'zoom',
+         e.g. data.frame(LONG = -2.547855, LAT = 53.00366, zoom = 6)")
+
+  # Check that map_zoom df contains only a single row
+  if (!is.null(map_zoom)) {
+    if(nrow(map_zoom) != 1)
+      stop("map_zoom must be a single-row df containing variables of 'LAT', 'LONG', and 'zoom',
+           e.g. data.frame(LONG = -2.547855, LAT = 53.00366, zoom = 6)")
+  }
+
+  # Check that if border_shape_filepath has been provided that border_code_col has also been provided
+  if (!is.null(border_shape_filepath) & is.null(border_code_col))
+    stop("border_code_col must be provided when border_shape_filepath is provided")
+
+  # Warn that n_breaks will be ignored if break_intervals is set
+  if (!is.null(break_intervals) & !is.null(n_breaks))
+    warning("n_breaks will be ignored if break_intervals is set")
+
+  # Warn that area_labels will not be used for static map if labels are provided
+  if ((dynamic == FALSE) & (area_labels == TRUE) & !is.null(labels))
+    warning("area_labels will not be used if labels are provided when dynamic = FALSE")
 
 
 
 
-  # Read in data based on whether the df and shapefiles are already merged
+  # Read in data based on whether the df and shapefile are already merged
   if(inc_shp == TRUE) {
 
     # Read in shapefile, assign 'Area' variable
-    df <- st_as_sf(df) %>%
+    df <- st_as_sf(df) |>
       mutate(Area = get({{data_areacode}}))
 
   } else {
@@ -129,19 +182,19 @@ epi_map_leaflet <- function (dynamic = FALSE,
     area_sf <- st_read(shp_filepath)
 
     # Merge data and shapefile, assign 'Area' variable
-    df <- merge(area_sf, df, by.x = shp_areacode, by.y = data_areacode) %>%
+    df <- merge(area_sf, df, by.x = shp_areacode, by.y = data_areacode) |>
       mutate(Area = get({{shp_areacode}}))
 
   }
 
 
   # Assign 'Value' column to dataframe
-  df <- df %>%
+  df <- df |>
     mutate(Value = get({{value_col}}))
 
 
   # define area centroid long & lat for label positions
-  df <- df %>%
+  df <- df |>
     mutate(centroid_long = sf::st_coordinates(sf::st_centroid(df$geometry))[,1],
            centroid_lat = sf::st_coordinates(sf::st_centroid(df$geometry))[,2])
 
@@ -152,14 +205,14 @@ epi_map_leaflet <- function (dynamic = FALSE,
     # Rank data to only show top n labels
     if (!is.null(area_labels_topn)) {
 
-      df <- df %>%
+      df <- df |>
         mutate(ranks = rank(desc(Value)),
                labels_static = case_when(ranks <= area_labels_topn ~ Area,
                                          TRUE ~ ""))
 
     } else {
 
-      df <- df %>% mutate(labels_static = Area)
+      df <- df |> mutate(labels_static = Area)
 
     }
 
@@ -174,7 +227,7 @@ epi_map_leaflet <- function (dynamic = FALSE,
       # )
 
   # Set breaks and break labels depending on whether they are predefined
-  if (is.null(break_labels)) {
+  if (is.null(break_intervals)) {
     # Set default of n_breaks to 5 if this is missing
     if (is.null(n_breaks)) {
       n_breaks <- 5
@@ -188,37 +241,37 @@ epi_map_leaflet <- function (dynamic = FALSE,
     #                  n = n_breaks, style = "quantile")
 
     # Re-format labels; remove ( and [  brackets and change ',' to ' - '
-    data_sf <- df %>%
-      # mutate(value_cat = cut(unlist(Value), breaks_qt$brks, dig.lab=10)) %>%  # dig.lab=10 to eliminate scientific notation in legend
-      mutate(value_cat = cut(unlist(Value), n_breaks, dig.lab=10)) %>%
-      mutate(value_cat = gsub("\\(|\\]", "", unlist(value_cat))) %>%
+    data_sf <- df |>
+      # mutate(value_cat = cut(unlist(Value), breaks_qt$brks, dig.lab=10)) |>  # dig.lab=10 to eliminate scientific notation in legend
+      mutate(value_cat = cut(unlist(Value), n_breaks, dig.lab=10)) |>
+      mutate(value_cat = gsub("\\(|\\]", "", unlist(value_cat))) |>
       mutate(value_cat = gsub("\\,", " - ", unlist(value_cat)))
 
-    # Force force_cat  to be  FALSE
+    # Force force_cat to be FALSE
     force_cat <- FALSE
 
   } else {
     # count number of interval groups
-    interval_grp <- c(1:length(break_labels))
+    interval_grp <- c(1:length(break_intervals))
 
-    # Create break_labels of break interbals and labels
+    # Create breaks of break intervals and labels
     breaks_qt <-
       data.frame(interval = interval_grp , value_cat = break_labels)
 
     # Assign values to intervals- then join labels
-    data_sf <- df %>%
-      mutate(interval = findInterval(unlist(Value), break_intervals)) %>%
+    data_sf <- df |>
+      mutate(interval = findInterval(unlist(Value), break_intervals)) |>
       left_join(breaks_qt, by = "interval")
 
     # Create order based on which categories are included
     order <-
       data.frame(interval = data_sf$interval,
-                 value_cat = data_sf$value_cat) %>%
-      arrange(interval) %>%
+                 value_cat = data_sf$value_cat) |>
+      arrange(interval) |>
       distinct()
 
     # Re-order factor to correct order
-    data_sf <- data_sf %>%
+    data_sf <- data_sf |>
       mutate(
         value_cat = factor(value_cat, order$value_cat),
         interval = as.factor(interval)
@@ -229,7 +282,7 @@ epi_map_leaflet <- function (dynamic = FALSE,
 
   if (force_cat == TRUE) {
     # Count number of intervals for palette
-    n_pal <- as.numeric(length(break_labels))
+    n_pal <- as.numeric(length(break_intervals))
 
     # Designate RColorBrewer palatte for map
     pal <- RColorBrewer::brewer.pal(n = n_pal, name = fill_palette)
@@ -243,19 +296,30 @@ epi_map_leaflet <- function (dynamic = FALSE,
 
 
   } else {
+
     # Count number of intervals for palette
-    n_pal <- as.numeric(length(unique(data_sf$value_cat)))
+    if(!is.null(n_breaks)) {
+      n_pal <- n_breaks
+    } else {
+      n_pal <- as.numeric(length(unique(data_sf$value_cat)))
+    }
 
     # Designate RColorBrewer palette for map
     pal <- RColorBrewer::brewer.pal(n = n_pal, name = fill_palette)
 
     # Create df of colours + categories for legend
-    legend_order <- data.frame(Value = data_sf$Value,
-                               value_cat = data_sf$value_cat) %>%
-      arrange(Value) %>% select(-Value) %>% distinct()
 
-    pal <- data.frame(value_cat = legend_order$value_cat,
-                      fill_colour = pal)
+    # legend_order <- data.frame(Value = data_sf$Value,
+    #                            value_cat = data_sf$value_cat) |>
+    #   arrange(Value) |> select(-Value) |> distinct()
+
+    # pal <- data.frame(value_cat = legend_order$value_cat,
+    #                   fill_colour = pal)
+
+    pal <- data.frame(value_cat = levels(cut(unlist(df$Value), n_breaks, dig.lab=10)),
+                      fill_colour = pal) |>
+            mutate(value_cat = gsub("\\(|\\]", "", unlist(value_cat))) |>
+            mutate(value_cat = gsub("\\,", " - ", unlist(value_cat)))
 
     # To use in drop category argument for map
     drop_cat <- TRUE
@@ -278,12 +342,12 @@ epi_map_leaflet <- function (dynamic = FALSE,
     if (!is.null(border_code_col)) {
       # Check if e have area to filter to- if not print message
       if (is.null(border_areaname)) {
-        print("border_areaname is missing so all shapefile data will be included")
+        message("border_areaname is missing so all border shapefile areas will be included")
 
       } else {
 
       # Filter area
-      border_sf <- border_sf %>%
+      border_sf <- border_sf |>
         filter(get({{border_code_col}}) == border_areaname)
 
       }
@@ -530,14 +594,14 @@ epi_map_leaflet <- function (dynamic = FALSE,
 
   if(is.null(labels)) {
 
-    labels <- df %>%
+    labels <- df |>
       mutate(labs = paste0(Area, ": ",  Value))
 
     labels <- as.list(labels$labs)
 
   } else {
 
-    labels <- df %>%
+    labels <- df |>
       mutate(labs = gsub("\\\\n","<br>",get({{labels}})))   # sub R linebreak for html linebreak
 
     labels <- as.list(labels$labs)
@@ -548,7 +612,7 @@ epi_map_leaflet <- function (dynamic = FALSE,
 
   # Create map
 
-  map <- leaflet::leaflet(st_as_sf(df)) %>%
+  map <- leaflet::leaflet(st_as_sf(df)) |>
 
 
     ## add polygons
@@ -565,16 +629,16 @@ epi_map_leaflet <- function (dynamic = FALSE,
                 highlightOptions = highlightOptions(color = "white",
                                                     weight = 2,
                                                     bringToFront = TRUE)
-    ) %>%
+    ) |>
 
 
     # Add title
 
-    addControl(title, position = "topleft", className="map-title") %>%
+    addControl(title, position = "topleft", className="map-title") |>
 
     # Add footer
 
-    addControl(footer, position = "bottomleft", className="map-footer") %>%
+    addControl(footer, position = "bottomleft", className="map-footer") |>
 
     # add legend
 
@@ -591,7 +655,7 @@ epi_map_leaflet <- function (dynamic = FALSE,
 
   if(area_labels == TRUE) {
 
-    map <- map %>%
+    map <- map |>
       addLabelOnlyMarkers(lng = ~centroid_long,
                           lat = ~centroid_lat,
                           label = ~labels_static,
@@ -611,7 +675,7 @@ epi_map_leaflet <- function (dynamic = FALSE,
 
   if(!is.null(map_zoom)){
 
-    map <- map %>%
+    map <- map |>
       setView(lat = map_zoom$LAT,
               lng = map_zoom$LONG,
               zoom = map_zoom$zoom)
@@ -623,7 +687,7 @@ epi_map_leaflet <- function (dynamic = FALSE,
   if (!is.null(border_shape_filepath)) {
 
     # Add border overlay
-    map <- map %>%
+    map <- map |>
       addPolylines(data = border_sf,
                   color = "black",
                   weight = 0.3,
