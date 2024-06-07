@@ -27,4 +27,6 @@ Imports:
     ggplot2,
     RColorBrewer,
     plotly,
-    sf
+    sf,
+    leaflet,
+    htmltools

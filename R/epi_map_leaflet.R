@@ -1,54 +1,75 @@
 #' epi_map_leaflet
 #'
-#' @description A function to produce interactive leaflet rate maps
+#' @description A function to produce either static (ggplot) or dynamic (leaflet)
+#' choropleth maps.
 #'
-#' @param dynamic Logical indicating whether to produce a dynamic (leaflet) output. Default is \code{FALSE}, which will return a static ggplot output.
-#' @param df data frame used for plotting including SF geometry
-#' @param value_col the name of the variable in the data frame to split the chart by and fill in the areas on the map
-#' @param data_areacode name of areacode variable in dataframe
-#' (Mandatory if shp_filepath argument passed).
-#' @param inc_shp boolean parameter to indicate whether df includes shapefile
-#' data or if this will be uploaded separately.
-#' @param shp_filepath filepath for the shapefile required for spatial data in
-#' function. Note this will not be uploaded if inc_shp = TRUE.
-#' @param shp_areacode name of areacode variable in shapefile
-#' (Mandatory if shp_filepath argument passed).
-#' @param fill_palette name of RColorBrewer palette to use in map fill
-#' @param fill_opacity numeric value between 0 and 1 to determine fill color opacity.
-#' @param break_intervals numeric vector of interval points for the legend
-#' (Mandatory if break_labels argument passed).
-#' @param break_labels vector of categories to include in the legend.
+#' @param dynamic Logical indicating whether to produce a dynamic (leaflet) output.
+#' Default is \code{FALSE}, which will return a static ggplot output.
+#' @param df Data frame containing values used to fill areas on the output map.
+#' Can include pre-merged shapefile data if inc_shp = TRUE.
+#' @param value_col Name of the variable in df used to fill map areas.
+#' @param data_areacode Name of the variable in df containing the name or code of
+#' the map areas to be plotted. (Mandatory if shp_filepath argument passed).
+#' @param inc_shp boolean parameter to indicate whether df already includes shapefile
+#' data.
+#' @param shp_filepath filepath for the shapefile containing the spatial information
+#' for the resultant map output. This will not be used if inc_shp = TRUE.
+#' @param shp_areacode Name of the variable in shp_filepath containing the name
+#' or code of the map areas to be plotted. (Mandatory if shp_filepath argument passed).
+#' @param fill_palette name of the RColorBrewer palette to use in map fill (default = "Blues")
+#' @param fill_opacity numeric value between 0 and 1 to determine map fill-color opacity.
+#' @param break_intervals numeric vector of interval points for legend
+#' (Mandatory if break_labels argument is passed, break_intervals and break_labels must be
+#' of equal length).
+#' @param break_labels vector of labels to include in the legend.
+#' (Mandatory if break_labels argument is passed, break_intervals and break_labels must be
+#' of equal length).
 #' @param force_cat boolean parameter to determine whether all arguments passed
-#' in the break_labels argument are used, even if there are no values present in the data.
-#' @param n_breaks number of break intervals. This argument is an alternative
-#' to supplying defined breaks in break_labels argument and will provide a number of
-#' evenly distributed breaks as specified. Note if break_labels argument is passed
-#' this will be ignored.
-#' @param labels name of the string variable in the data frame which will be applied
-#' to each map area. If dynamic = FALSE these labels will be positioned in the centre
-#' of each map area. If dynamic = TRUE then these labels will appear as hover-over labels.
-#' If dynamic = TRUE, labels can include HTML.
-#' @param map_title string to supply the chart title
-#' @param map_title_size font size of map title
-#' @param map_title_colour string to determine map title colour
-#' @param map_footer string to supply the chart subtitle
-#' @param map_footer_size font size of map footer
-#' @param map_footer_colour string to determine map title colour
-#' @param area_labels boolean parameter to add static area labels to the map areas.
-#' If dynamic = FALSE and a labels parameter has alredy been provided, then area_labels
+#' in break_labels are used in the legend, even if there are no values present in the data.
+#' @param n_breaks Number of break intervals. This argument is an alternative
+#' to supplying defined breaks via break_labels, and will provide a number of
+#' evenly distributed breaks as specified (default = 5). If break_labels argument is passed,
+#' n_breaks will be ignored.
+#' @param labels name of string variable in df containing labels for each map area. If
+#' dynamic = FALSE, these labels will be positioned in the centre of each map area.
+#' If dynamic = TRUE, then these labels will appear as hover-over labels. If dynamic =
+#' TRUE, labels can include HTML.
+#' @param map_title string to determine map title.
+#' @param map_title_size font size of map title.
+#' @param map_title_colour string to determine map title colour.
+#' @param map_footer string to determine map footer.
+#' @param map_footer_size font size of map footer.
+#' @param map_footer_colour string to determine map title colour.
+#' @param area_labels boolean parameter to add data_areacode as static area labels to the
+#' map areas. If dynamic = FALSE and a labels parameter has alredy been supplied, then area_labels
 #' will be ignored.
-#' @param area_labels_topn display static area labels for only map areas with the top n values
-#' @param legend_title string to supply the legend title
-#' @param legend_pos string containing legend position for a static map. string containing legend position for a dynamic map, c("topright", "bottomright", "bottomleft", "topleft")
-#' @param map_zoom a data frame that supplies values for latitude, longitude and zoom which will set the view of the chart. Variable names should be LAT, LONG, zoom.
-#' @param border_shape_filepath filepath for the shapefile if an outer border is
-#'  required for the map. This should be a higher geography e.g.
-#' if creating an UTLA map- a regional shapefile can be used.
-#' @param border_code_col name of areacode variable in the border shapefile.
+#' @param area_labels_topn numeric value to display only area_labels for areas with
+#' the top n values of value_col (e.g. if area_labels_topn = 5, only area_labels for map
+#' areas with the top 5 values of value_col will be displayed).
+#' @param legend_title string to determine legend title.
+#' @param legend_pos string to determine legend position. When dynamic = TRUE, both
+#' ggplot and leaflet permissable legend positions can be provided. When dynamic = FALSE,
+#' only leaflet permissable legend positions can be provided (i.e."topright", "bottomright",
+#'  "bottomleft", or "topleft").
+#' @param map_zoom A single row data frame with variables of 'LAT', 'LONG', and 'zoom'
+#' that allows the map to be zoomed in on a specific region (e.g. data.frame(LONG =
+#' -2.547855, LAT = 53.00366, zoom = 6)). LAT = numerical latitude coordinate for
+#' the centre point of the zoom, LONG = numerical longitude coordinate for the
+#' centre point of the zoom, zoom = numerical value to represent the depth of zoom.
+#' @param border_shape_filepath Optional filepath for a shapefile containing additional
+#' borders to include in the output map. This should be a higher geography than the base
+#' map (e.g. if creating a map displaying UTLAs, a shapefile containing regional boundaries
+#' or higher should be used). Only boundaries contained within border_shape_filepath will
+#' be used, areas will be unfilled.
+#' @param border_code_col Variable name of the area code / name within border_shape_filepath.
 #' Required if a specific area within the border shapefile is required.
-#' @param border_areaname string containing the name of area required for border
-#' shapefile (required if border_code_col argument passed).
-
+#' @param border_areaname String containing the name of a specific area within
+#' border_code_col to be plotted. If supplied, only the boundaries of border_areaname will
+#' be plotted. If not supplied, the boundaries of all areas within border_shape_filepath
+#' will be plotted.
+#'
+#'
+#' @return A ggplot or leaflet object.
 #'
 #' @import classInt
 #' @import RColorBrewer
@@ -57,7 +78,9 @@
 #' @import leaflet
 #' @import htmltools
 #' @export
-
+#'
+#' @examples
+#'
 epi_map_leaflet <- function (dynamic = FALSE,
                              df,
                              value_col,
@@ -166,7 +189,8 @@ epi_map_leaflet <- function (dynamic = FALSE,
   if ((dynamic == FALSE) & (area_labels == TRUE) & !is.null(labels))
     warning("area_labels will not be used if labels are provided when dynamic = FALSE")
 
-
+  # Warn
+  # shp_filepath included but inc_shape == TRUE
 
 
   # Read in data based on whether the df and shapefile are already merged
@@ -340,7 +364,7 @@ epi_map_leaflet <- function (dynamic = FALSE,
 
     # Filter for specific area for border in shapefile
     if (!is.null(border_code_col)) {
-      # Check if e have area to filter to- if not print message
+      # Check if we have area to filter by, if not print message
       if (is.null(border_areaname)) {
         message("border_areaname is missing so all border shapefile areas will be included")
 
