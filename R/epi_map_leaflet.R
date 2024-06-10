@@ -9,13 +9,13 @@
 #' Can include pre-merged shapefile data if inc_shp = TRUE.
 #' @param value_col Name of the variable in df used to fill map areas.
 #' @param data_areacode Name of the variable in df containing the name or code of
-#' the map areas to be plotted. (Mandatory if shp_filepath argument passed).
+#' the map areas to be plotted. (Mandatory if shp_name argument passed).
 #' @param inc_shp boolean parameter to indicate whether df already includes shapefile
 #' data.
-#' @param shp_filepath filepath for the shapefile containing the spatial information
+#' @param shp_name Data frame name or filepath of the shapefile containing the spatial information
 #' for the resultant map output. This will not be used if inc_shp = TRUE.
-#' @param shp_areacode Name of the variable in shp_filepath containing the name
-#' or code of the map areas to be plotted. (Mandatory if shp_filepath argument passed).
+#' @param shp_areacode Name of the variable in shp_name containing the name
+#' or code of the map areas to be plotted. (Mandatory if shp_name argument passed).
 #' @param fill_palette name of the RColorBrewer palette to use in map fill (default = "Blues")
 #' @param fill_opacity numeric value between 0 and 1 to determine map fill-color opacity.
 #' @param break_intervals numeric vector of interval points for legend
@@ -56,16 +56,16 @@
 #' -2.547855, LAT = 53.00366, zoom = 6)). LAT = numerical latitude coordinate for
 #' the centre point of the zoom, LONG = numerical longitude coordinate for the
 #' centre point of the zoom, zoom = numerical value to represent the depth of zoom.
-#' @param border_shape_filepath Optional filepath for a shapefile containing additional
+#' @param border_shape_name Optional filepath for a shapefile containing additional
 #' borders to include in the output map. This should be a higher geography than the base
 #' map (e.g. if creating a map displaying UTLAs, a shapefile containing regional boundaries
-#' or higher should be used). Only boundaries contained within border_shape_filepath will
+#' or higher should be used). Only boundaries contained within border_shape_name will
 #' be used, areas will be unfilled.
-#' @param border_code_col Variable name of the area code / name within border_shape_filepath.
+#' @param border_code_col Variable name of the area code / name within border_shape_name.
 #' Required if a specific area within the border shapefile is required.
 #' @param border_areaname String containing the name of a specific area within
 #' border_code_col to be plotted. If supplied, only the boundaries of border_areaname will
-#' be plotted. If not supplied, the boundaries of all areas within border_shape_filepath
+#' be plotted. If not supplied, the boundaries of all areas within border_shape_name
 #' will be plotted.
 #'
 #'
@@ -77,16 +77,113 @@
 #' @import sf
 #' @import leaflet
 #' @import htmltools
+#' @import stringr
 #' @export
 #'
 #' @examples
 #'
+#' # Example 1: Create a static map of Staphylococcus Aureus detections in London
+#' # Local Authority Districts.
+#' \dontrun{
+#' # Define values for choropleth map using lab_data dataset
+#' London_staph_detections <- lab_data %>%
+#'   filter(region == "London", organism_species_name == "STAPHYLOCOCCUS AUREUS") %>%
+#'   group_by(local_authority_name) %>%
+#'   summarise(detections = n())
+#'
+#' # Create static map using London_LA_boundaries_2023 data
+#' London_staph_detections_map <- epi_map_leaflet(
+#'   df = London_staph_dects,
+#'   value_col = "detections",
+#'   data_areacode = "local_authority_name",
+#'   inc_shp = FALSE,
+#'   area_labels = TRUE,
+#'   shp_name = London_LA_boundaries_2023,
+#'   shp_areacode = "LAD23NM",
+#'   map_title = "Staphylococcus Aureus detections in London Local Authority Districts",
+#'   map_zoom = data.frame(LONG = c(-0.12776), LAT = c(51.50735), zoom = c(8.7)),
+#'   legend_title = "Number of \nDetections",
+#'   legend_pos = "right")
+#' }
+#'
+#'
+#' # Example 2: Create a static map of Klebsiella Pneumoniae detections in England
+#' # public health regions using data pre-merged with a shapefile.
+#' \dontrun{
+#' # Define values for choropleth map using the lab_data dataset
+#' kleb_pneu_detections <- lab_data %>%
+#'   filter(organism_species_name == "KLEBSIELLA PNEUMONIAE") %>%
+#'   group_by(region) %>%
+#'   summarise(detections = n()) %>%
+#'   ungroup()
+#'
+#' # Add a column defining labels to apply to map areas
+#' kleb_pneu_detections <- kleb_pneu_detections %>%
+#'   mutate(map_labels = paste0(region,": \n",detections))
+#'
+#' # Join with the PHEC_boundaries_2016 shapefile data
+#' kleb_pneu_detections_shp <- left_join(x = PHEC_boundaries_2016, y = kleb_pneu_detections,
+#'                                       by = c("phec16nm" = "region"))
+#'
+#' # Create map
+#' kleb_pneu_detections_map <- epi_map_leaflet(
+#'   df = kleb_pneu_detections_shp,
+#'   value_col = "detections",
+#'   data_areacode = "phec16nm",
+#'   inc_shp = TRUE,
+#'   fill_palette = "YlOrRd",
+#'   fill_opacity = 0.7,
+#'   labels = "map_labels",
+#'   map_title = "Number of Klebsiella Pneumoniae detections \nin UK public health regions",
+#'   map_title_size = 12,
+#'   map_title_colour = "orangered",
+#'   map_footer = "Map represents simulated test data only.",
+#'   map_footer_size = 10,
+#'   map_footer_colour = "black",
+#'   legend_title = "Number of \nDetections",
+#'   legend_pos = "topright",
+#'   break_labels = c("0-499","500-999","1000-1499","1500-1999","2000-2499","2500+"),
+#'   break_intervals = c(0,500,1000,1500,2000,2500),
+#'   force_cat = TRUE)
+#' }
+#'
+#'
+#' # Example 3: Refactor the above map as dynamic map, only add area_labels for
+#' # the top 5 areas by number of detections, and add an additional border using
+#' # the UK_boundaries_2023 shapefile data.
+#' #' \dontrun{
+#' # Create map
+#' kleb_pneu_map_dynamic <- epi_map_leaflet(
+#'   dynamic = TRUE,
+#'   df = kleb_pneu_detections_shp,
+#'   value_col = "detections",
+#'   data_areacode = "phec16nm",
+#'   inc_shp = TRUE,
+#'   fill_palette = "YlOrRd",
+#'   fill_opacity = 0.7,
+#'   area_labels = TRUE,
+#'   area_labels_topn = 5,
+#'   labels = "map_labels",
+#'   map_title = "Number of Klebsiella Pneumoniae detections \nin UK public health regions",
+#'   map_title_size = 12,
+#'   map_title_colour = "orangered",
+#'   map_footer = "Map represents simulated test data only.",
+#'   map_footer_size = 10,
+#'   map_footer_colour = "black",
+#'   map_zoom = data.frame(LONG = c(-2.89479), LAT = c(54.793409), zoom = c(5)),
+#'   legend_title = "Number of \nDetections",
+#'   legend_pos = "topright",
+#'   break_labels = c("0-499","500-999","1000-1499","1500-1999","2000-2499","2500+"),
+#'   break_intervals = c(0,500,1000,1500,2000,2500),
+#'   force_cat = TRUE,
+#'   border_shape_name = UK_boundaries_2023)
+#' }
 epi_map_leaflet <- function (dynamic = FALSE,
                              df,
                              value_col,
                              data_areacode = NULL,
                              inc_shp = TRUE,
-                             shp_filepath = NULL,
+                             shp_name = NULL,
                              shp_areacode = NULL,
                              fill_palette = "Blues",
                              fill_opacity = 1.0,
@@ -106,14 +203,14 @@ epi_map_leaflet <- function (dynamic = FALSE,
                              legend_title = "",
                              legend_pos = "topright",
                              map_zoom = NULL,
-                             border_shape_filepath = NULL,
+                             border_shape_name = NULL,
                              border_code_col = NULL,
                              border_areaname = NULL) {
 
 
   #solves warnings regarding font family not found
   windowsFonts("Arial" = windowsFont("Arial"))
-  windowsFonts(Arial = windowsFont("Arial"))
+
 
 
   # Checks and warnings
@@ -144,9 +241,9 @@ epi_map_leaflet <- function (dynamic = FALSE,
   if (!data_areacode %in% colnames(df))
     stop("data_areacode not found within df. Please include a data frame variable for data_areacode, i.e. data_areacode = \"variable_name\"")
 
-  # Check if inc_shp = FALSE but no shp_filepath provided
-  if (inc_shp == FALSE & is.null(shp_filepath))
-    stop("A shp_filepath arguement must be provided when inc_shp = FALSE")
+  # Check if inc_shp = FALSE but no shp_name provided
+  if (inc_shp == FALSE & is.null(shp_name))
+    stop("A shp_name arguement must be provided when inc_shp = FALSE")
 
   # Check that if break_intervals has been passed then break_labels has also been passed
   if (!is.null(break_intervals) & is.null(break_labels))
@@ -177,9 +274,19 @@ epi_map_leaflet <- function (dynamic = FALSE,
            e.g. data.frame(LONG = -2.547855, LAT = 53.00366, zoom = 6)")
   }
 
-  # Check that if border_shape_filepath has been provided that border_code_col has also been provided
-  if (!is.null(border_shape_filepath) & is.null(border_code_col))
-    stop("border_code_col must be provided when border_shape_filepath is provided")
+  # # Warn that border_code_col has been provided but border_areaname has not
+  # if (!is.null(border_shape_name)) {
+  #   if (!is.null(border_code_col) & is.null(border_areaname)) {
+  #     warning("border_code_col provided but border_areaname missing, all border shapefile areas will be included in output")
+  #   }
+  # }
+  #
+  # # Warn that border_areaname has been provided but border_code_col has not
+  # if (!is.null(border_shape_name)) {
+  #   if (!is.null(border_areaname) & is.null(border_code_col)) {
+  #     warning("border_areaname provided but border_code_col missing, all border shapefile areas will be included in output")
+  #   }
+  # }
 
   # Warn that n_breaks will be ignored if break_intervals is set
   if (!is.null(break_intervals) & !is.null(n_breaks))
@@ -189,8 +296,17 @@ epi_map_leaflet <- function (dynamic = FALSE,
   if ((dynamic == FALSE) & (area_labels == TRUE) & !is.null(labels))
     warning("area_labels will not be used if labels are provided when dynamic = FALSE")
 
-  # Warn
-  # shp_filepath included but inc_shape == TRUE
+  # shp_name included but inc_shp == TRUE
+  if (!is.null(shp_name) & (inc_shp == TRUE))
+    warning("shp_name provided but shape data already included in df (inc_shp == TRUE)")
+
+  # border_shape_name not included but border_areaname or border_code_col included
+  if (is.null(border_shape_name) & !is.null(border_code_col))
+    warning("border_shape_name not included but border_code_col provided")
+  if (is.null(border_shape_name) & !is.null(border_areaname))
+    warning("border_shape_name not included but border_areaname provided")
+
+
 
 
   # Read in data based on whether the df and shapefile are already merged
@@ -202,8 +318,12 @@ epi_map_leaflet <- function (dynamic = FALSE,
 
   } else {
 
-    # Read in shapefile
-    area_sf <- st_read(shp_filepath)
+    # Read in shapefile based on whether it's provided as a filepath or df
+    if (is.data.frame(shp_name)) {
+      area_sf <- st_as_sf(shp_name)
+    } else {
+      area_sf <- st_read(shp_name)
+    }
 
     # Merge data and shapefile, assign 'Area' variable
     df <- merge(area_sf, df, by.x = shp_areacode, by.y = data_areacode) |>
@@ -358,15 +478,24 @@ epi_map_leaflet <- function (dynamic = FALSE,
 
   # Define border if provided
 
-  if (!is.null(border_shape_filepath)) {
-    # Read in shapefile
-    border_sf <- st_read(border_shape_filepath)
+  if (!is.null(border_shape_name)) {
+    # Read in shapefile based on whether it's provided as a filepath or df
+    if (is.data.frame(border_shape_name)) {
+      border_sf <- st_as_sf(border_shape_name)
+    } else {
+      border_sf <- st_read(border_shape_name)
+    }
+
+    # Check if border_code_col has been provided to filter by specific areas, if not print message
+    if (is.null(border_code_col)) {
+      warning("border_code_col is not provided so all border shapefile areas will be included")
+    }
 
     # Filter for specific area for border in shapefile
     if (!is.null(border_code_col)) {
       # Check if we have area to filter by, if not print message
       if (is.null(border_areaname)) {
-        message("border_areaname is missing so all border shapefile areas will be included")
+        warning("border_areaname is not provided so all border shapefile areas will be included")
 
       } else {
 
@@ -424,10 +553,9 @@ epi_map_leaflet <- function (dynamic = FALSE,
         geom_text(
           data = data_sf,
           size = 8/.pt,
-          #family = 'Ariel',
+          family = 'Arial',
           aes(x = centroid_long,
               y = centroid_lat,
-              family = 'Ariel',
               label = get({{labels}}))
               #label = stringr::str_wrap(get({{labels}}),12))
         )
@@ -441,11 +569,11 @@ epi_map_leaflet <- function (dynamic = FALSE,
         geom_text(
           data = data_sf,
           size = 8/.pt,
-          #family = 'Ariel',
+          family = 'Arial',
           aes(x = centroid_long,
               y = centroid_lat,
-              label = labels_static,
-              family = 'Ariel',
+              #label = labels_static,
+              label = stringr::str_wrap(labels_static,12),
               fontface = 'italic')
         )
     }
@@ -453,7 +581,7 @@ epi_map_leaflet <- function (dynamic = FALSE,
 
     # Add map border if provided
 
-    if (!is.null(border_shape_filepath)) {
+    if (!is.null(border_shape_name)) {
 
       # Add border overlay
       map <- map +
@@ -513,7 +641,7 @@ epi_map_leaflet <- function (dynamic = FALSE,
         plot.title = element_text(
           face = "bold",
           size = map_title_size,
-          family = "Ariel",
+          family = "Arial",
           colour = map_title_colour),
         # Set footer formatting
         plot.caption = element_text(
@@ -626,7 +754,7 @@ epi_map_leaflet <- function (dynamic = FALSE,
   } else {
 
     labels <- df |>
-      mutate(labs = gsub("\\\\n","<br>",get({{labels}})))   # sub R linebreak for html linebreak
+      mutate(labs = gsub("\\n","<br>",get({{labels}})))   # sub R linebreak for html linebreak
 
     labels <- as.list(labels$labs)
 
@@ -682,7 +810,9 @@ epi_map_leaflet <- function (dynamic = FALSE,
     map <- map |>
       addLabelOnlyMarkers(lng = ~centroid_long,
                           lat = ~centroid_lat,
-                          label = ~labels_static,
+                          label = ~lapply(gsub("\\n","<br>", # sub R linebreaks for html linebreaks
+                                        stringr::str_wrap(labels_static,12)
+                                        ), htmltools::HTML),
                           labelOptions = labelOptions(noHide = TRUE,
                                                       direction = 'center',
                                                       textOnly = TRUE,
@@ -708,7 +838,7 @@ epi_map_leaflet <- function (dynamic = FALSE,
 
   # Add border if provided
 
-  if (!is.null(border_shape_filepath)) {
+  if (!is.null(border_shape_name)) {
 
     # Add border overlay
     map <- map |>

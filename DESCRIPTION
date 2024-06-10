@@ -29,4 +29,7 @@ Imports:
     plotly,
     sf,
     leaflet,
-    htmltools
+    htmltools,
+    stringr
+Depends: 
+    R (>= 2.10)

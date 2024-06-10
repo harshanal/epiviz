@@ -10,7 +10,7 @@ epi_map_leaflet(
   value_col,
   data_areacode = NULL,
   inc_shp = TRUE,
-  shp_filepath = NULL,
+  shp_name = NULL,
   shp_areacode = NULL,
   fill_palette = "Blues",
   fill_opacity = 1,
@@ -30,7 +30,7 @@ epi_map_leaflet(
   legend_title = "",
   legend_pos = "topright",
   map_zoom = NULL,
-  border_shape_filepath = NULL,
+  border_shape_name = NULL,
   border_code_col = NULL,
   border_areaname = NULL
 )
@@ -45,16 +45,16 @@ Can include pre-merged shapefile data if inc_shp = TRUE.}
 \item{value_col}{Name of the variable in df used to fill map areas.}
 
 \item{data_areacode}{Name of the variable in df containing the name or code of
-the map areas to be plotted. (Mandatory if shp_filepath argument passed).}
+the map areas to be plotted. (Mandatory if shp_name argument passed).}
 
 \item{inc_shp}{boolean parameter to indicate whether df already includes shapefile
 data.}
 
-\item{shp_filepath}{filepath for the shapefile containing the spatial information
+\item{shp_name}{Data frame name or filepath of the shapefile containing the spatial information
 for the resultant map output. This will not be used if inc_shp = TRUE.}
 
-\item{shp_areacode}{Name of the variable in shp_filepath containing the name
-or code of the map areas to be plotted. (Mandatory if shp_filepath argument passed).}
+\item{shp_areacode}{Name of the variable in shp_name containing the name
+or code of the map areas to be plotted. (Mandatory if shp_name argument passed).}
 
 \item{fill_palette}{name of the RColorBrewer palette to use in map fill (default = "Blues")}
 
@@ -114,18 +114,18 @@ that allows the map to be zoomed in on a specific region (e.g. data.frame(LONG =
 the centre point of the zoom, LONG = numerical longitude coordinate for the
 centre point of the zoom, zoom = numerical value to represent the depth of zoom.}
 
-\item{border_shape_filepath}{Optional filepath for a shapefile containing additional
+\item{border_shape_name}{Optional filepath for a shapefile containing additional
 borders to include in the output map. This should be a higher geography than the base
 map (e.g. if creating a map displaying UTLAs, a shapefile containing regional boundaries
-or higher should be used). Only boundaries contained within border_shape_filepath will
+or higher should be used). Only boundaries contained within border_shape_name will
 be used, areas will be unfilled.}
 
-\item{border_code_col}{Variable name of the area code / name within border_shape_filepath.
+\item{border_code_col}{Variable name of the area code / name within border_shape_name.
 Required if a specific area within the border shapefile is required.}
 
 \item{border_areaname}{String containing the name of a specific area within
 border_code_col to be plotted. If supplied, only the boundaries of border_areaname will
-be plotted. If not supplied, the boundaries of all areas within border_shape_filepath
+be plotted. If not supplied, the boundaries of all areas within border_shape_name
 will be plotted.}
 }
 \value{
@@ -134,4 +134,103 @@ A ggplot or leaflet object.
 \description{
 A function to produce either static (ggplot) or dynamic (leaflet)
 choropleth maps.
+}
+\examples{
+
+# Example 1: Create a static map of Staphylococcus Aureus detections in London
+# Local Authority Districts.
+\dontrun{
+# Define values for choropleth map using lab_data dataset
+London_staph_detections <- lab_data \%>\%
+  filter(region == "London", organism_species_name == "STAPHYLOCOCCUS AUREUS") \%>\%
+  group_by(local_authority_name) \%>\%
+  summarise(detections = n())
+
+# Create static map using London_LA_boundaries_2023 data
+London_staph_detections_map <- epi_map_leaflet(
+  df = London_staph_dects,
+  value_col = "detections",
+  data_areacode = "local_authority_name",
+  inc_shp = FALSE,
+  area_labels = TRUE,
+  shp_name = London_LA_boundaries_2023,
+  shp_areacode = "LAD23NM",
+  map_title = "Staphylococcus Aureus detections in London Local Authority Districts",
+  map_zoom = data.frame(LONG = c(-0.12776), LAT = c(51.50735), zoom = c(8.7)),
+  legend_title = "Number of \nDetections",
+  legend_pos = "right")
+}
+
+
+# Example 2: Create a static map of Klebsiella Pneumoniae detections in England
+# public health regions using data pre-merged with a shapefile.
+\dontrun{
+# Define values for choropleth map using the lab_data dataset
+kleb_pneu_detections <- lab_data \%>\%
+  filter(organism_species_name == "KLEBSIELLA PNEUMONIAE") \%>\%
+  group_by(region) \%>\%
+  summarise(detections = n()) \%>\%
+  ungroup()
+
+# Add a column defining labels to apply to map areas
+kleb_pneu_detections <- kleb_pneu_detections \%>\%
+  mutate(map_labels = paste0(region,": \n",detections))
+
+# Join with the PHEC_boundaries_2016 shapefile data
+kleb_pneu_detections_shp <- left_join(x = PHEC_boundaries_2016, y = kleb_pneu_detections,
+                                      by = c("phec16nm" = "region"))
+
+# Create map
+kleb_pneu_detections_map <- epi_map_leaflet(
+  df = kleb_pneu_detections_shp,
+  value_col = "detections",
+  data_areacode = "phec16nm",
+  inc_shp = TRUE,
+  fill_palette = "YlOrRd",
+  fill_opacity = 0.7,
+  labels = "map_labels",
+  map_title = "Number of Klebsiella Pneumoniae detections \nin UK public health regions",
+  map_title_size = 12,
+  map_title_colour = "orangered",
+  map_footer = "Map represents simulated test data only.",
+  map_footer_size = 10,
+  map_footer_colour = "black",
+  legend_title = "Number of \nDetections",
+  legend_pos = "topright",
+  break_labels = c("0-499","500-999","1000-1499","1500-1999","2000-2499","2500+"),
+  break_intervals = c(0,500,1000,1500,2000,2500),
+  force_cat = TRUE)
+}
+
+
+# Example 3: Refactor the above map as dynamic map, only add area_labels for
+# the top 5 areas by number of detections, and add an additional border using
+# the UK_boundaries_2023 shapefile data.
+#' \dontrun{
+# Create map
+kleb_pneu_map_dynamic <- epi_map_leaflet(
+  dynamic = TRUE,
+  df = kleb_pneu_detections_shp,
+  value_col = "detections",
+  data_areacode = "phec16nm",
+  inc_shp = TRUE,
+  fill_palette = "YlOrRd",
+  fill_opacity = 0.7,
+  area_labels = TRUE,
+  area_labels_topn = 5,
+  labels = "map_labels",
+  map_title = "Number of Klebsiella Pneumoniae detections \nin UK public health regions",
+  map_title_size = 12,
+  map_title_colour = "orangered",
+  map_footer = "Map represents simulated test data only.",
+  map_footer_size = 10,
+  map_footer_colour = "black",
+  map_zoom = data.frame(LONG = c(-2.89479), LAT = c(54.793409), zoom = c(5)),
+  legend_title = "Number of \nDetections",
+  legend_pos = "topright",
+  break_labels = c("0-499","500-999","1000-1499","1500-1999","2000-2499","2500+"),
+  break_intervals = c(0,500,1000,1500,2000,2500),
+  force_cat = TRUE,
+  border_shape_name = UK_boundaries_2023)
+}
 }
