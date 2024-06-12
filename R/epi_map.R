@@ -95,7 +95,7 @@
 #'
 #' # Create static map using London_LA_boundaries_2023 data
 #' London_staph_detections_map <- epi_map(
-#'   df = London_staph_dects,
+#'   df = London_staph_detections,
 #'   value_col = "detections",
 #'   data_areacode = "local_authority_name",
 #'   inc_shp = FALSE,
@@ -196,10 +196,10 @@ epi_map <- function (dynamic = FALSE,
                      labels = NULL,
                      map_title = "",
                      map_title_size = 13,
-                     map_title_colour = "#007C91",
+                     map_title_colour = "black",
                      map_footer = "",
                      map_footer_size = 12,
-                     map_footer_colour = "#007C91",
+                     map_footer_colour = "black",
                      area_labels = FALSE,
                      area_labels_topn = NULL,
                      legend_title = "",
@@ -503,7 +503,7 @@ epi_map <- function (dynamic = FALSE,
 
       # Filter area
       border_sf <- border_sf |>
-        filter(get({{border_code_col}}) == border_areaname)
+        filter(get({{border_code_col}}) %in% border_areaname) ###
 
       }
 
@@ -802,7 +802,7 @@ epi_map <- function (dynamic = FALSE,
               opacity = fill_opacity,
               title = gsub("\n","<br>",legend_title),  # sub R linebreak for html linebreak
               position = legend_pos)
-  ##d optional legend?
+
 
 
   ## add static labels for top n Areas
@@ -846,7 +846,7 @@ epi_map <- function (dynamic = FALSE,
     map <- map |>
       addPolylines(data = border_sf,
                   color = "black",
-                  weight = 0.3,
+                  weight = 0.5,
       )
 
   }

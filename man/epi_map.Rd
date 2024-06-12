@@ -21,10 +21,10 @@ epi_map(
   labels = NULL,
   map_title = "",
   map_title_size = 13,
-  map_title_colour = "#007C91",
+  map_title_colour = "black",
   map_footer = "",
   map_footer_size = 12,
-  map_footer_colour = "#007C91",
+  map_footer_colour = "black",
   area_labels = FALSE,
   area_labels_topn = NULL,
   legend_title = "",
@@ -149,8 +149,8 @@ London_staph_detections <- lab_data \%>\%
   summarise(detections = n())
 
 # Create static map using London_LA_boundaries_2023 data
-London_staph_detections_map <- epi_map_leaflet(
-  df = London_staph_dects,
+London_staph_detections_map <- epi_map(
+  df = London_staph_detections,
   value_col = "detections",
   data_areacode = "local_authority_name",
   inc_shp = FALSE,
@@ -174,7 +174,7 @@ kleb_pneu_detections <- lab_data \%>\%
   summarise(detections = n()) \%>\%
   ungroup()
 
-# Add a column defining labels to apply to map areas
+# Add column defining labels to apply to map areas
 kleb_pneu_detections <- kleb_pneu_detections \%>\%
   mutate(map_labels = paste0(region,": \n",detections))
 
@@ -183,7 +183,7 @@ kleb_pneu_detections_shp <- left_join(x = PHEC_boundaries_2016, y = kleb_pneu_de
                                       by = c("phec16nm" = "region"))
 
 # Create map
-kleb_pneu_detections_map <- epi_map_leaflet(
+kleb_pneu_detections_map <- epi_map(
   df = kleb_pneu_detections_shp,
   value_col = "detections",
   data_areacode = "phec16nm",
@@ -210,7 +210,7 @@ kleb_pneu_detections_map <- epi_map_leaflet(
 # the UK_boundaries_2023 shapefile data.
 
 # Create map
-kleb_pneu_map_dynamic <- epi_map_leaflet(
+kleb_pneu_map_dynamic <- epi_map(
   dynamic = TRUE,
   df = kleb_pneu_detections_shp,
   value_col = "detections",
