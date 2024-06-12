@@ -123,9 +123,9 @@ be used, areas will be unfilled.}
 \item{border_code_col}{Variable name of the area code / name within border_shape_name.
 Required if a specific area within the border shapefile is required.}
 
-\item{border_areaname}{String containing the name of a specific area within
-border_code_col to be plotted. If supplied, only the boundaries of border_areaname will
-be plotted. If not supplied, the boundaries of all areas within border_shape_name
+\item{border_areaname}{Character vector containing the name of specific areas within
+border_code_col to be plotted. If supplied, only the boundaries included in border_areaname
+will be plotted. If not supplied, the boundaries of all areas within border_shape_name
 will be plotted.}
 }
 \value{

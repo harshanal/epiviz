@@ -63,9 +63,9 @@
 #' be used, areas will be unfilled.
 #' @param border_code_col Variable name of the area code / name within border_shape_name.
 #' Required if a specific area within the border shapefile is required.
-#' @param border_areaname String containing the name of a specific area within
-#' border_code_col to be plotted. If supplied, only the boundaries of border_areaname will
-#' be plotted. If not supplied, the boundaries of all areas within border_shape_name
+#' @param border_areaname Character vector containing the name of specific areas within
+#' border_code_col to be plotted. If supplied, only the boundaries included in border_areaname
+#' will be plotted. If not supplied, the boundaries of all areas within border_shape_name
 #' will be plotted.
 #'
 #'
@@ -276,20 +276,6 @@ epi_map <- function (dynamic = FALSE,
            e.g. data.frame(LONG = -2.547855, LAT = 53.00366, zoom = 6)")
   }
 
-  # # Warn that border_code_col has been provided but border_areaname has not
-  # if (!is.null(border_shape_name)) {
-  #   if (!is.null(border_code_col) & is.null(border_areaname)) {
-  #     warning("border_code_col provided but border_areaname missing, all border shapefile areas will be included in output")
-  #   }
-  # }
-  #
-  # # Warn that border_areaname has been provided but border_code_col has not
-  # if (!is.null(border_shape_name)) {
-  #   if (!is.null(border_areaname) & is.null(border_code_col)) {
-  #     warning("border_areaname provided but border_code_col missing, all border shapefile areas will be included in output")
-  #   }
-  # }
-
   # Warn that n_breaks will be ignored if break_intervals is set
   if (!is.null(break_intervals) & !is.null(n_breaks))
     warning("n_breaks will be ignored if break_intervals is set")
@@ -367,11 +353,6 @@ epi_map <- function (dynamic = FALSE,
 
   # Define colour palette and legend
 
-      # pal <- colorNumeric(
-      #   palette = "YlOrRd",
-      #   domain = df$Value
-      # )
-
   # Set breaks and break labels depending on whether they are predefined
   if (is.null(break_intervals)) {
     # Set default of n_breaks to 5 if this is missing
@@ -380,16 +361,17 @@ epi_map <- function (dynamic = FALSE,
 
     }
 
-    # # get quantile breaks. Add .00001 offset to catch the lowest value
+    # # Set quantile breaks. Add .00001 offset to catch the lowest value
     # breaks_qt <-
     #   classIntervals(c(min(unlist(df$Value)),# - .00001,
     #                    unlist(df$Value)),
     #                  n = n_breaks, style = "quantile")
 
-    # Re-format labels; remove ( and [  brackets and change ',' to ' - '
+    # Set equal-interval breaks
     data_sf <- df |>
-      # mutate(value_cat = cut(unlist(Value), breaks_qt$brks, dig.lab=10)) |>  # dig.lab=10 to eliminate scientific notation in legend
+      # mutate(value_cat = cut(unlist(Value), breaks_qt$brks, dig.lab=10)) |>  # quantile breaks option, dig.lab=10 to eliminate scientific notation in legend
       mutate(value_cat = cut(unlist(Value), n_breaks, dig.lab=10)) |>
+      # Re-format labels; remove ( and [  brackets and change ',' to ' - '
       mutate(value_cat = gsub("\\(|\\]", "", unlist(value_cat))) |>
       mutate(value_cat = gsub("\\,", " - ", unlist(value_cat)))
 
@@ -454,14 +436,6 @@ epi_map <- function (dynamic = FALSE,
     pal <- RColorBrewer::brewer.pal(n = n_pal, name = fill_palette)
 
     # Create df of colours + categories for legend
-
-    # legend_order <- data.frame(Value = data_sf$Value,
-    #                            value_cat = data_sf$value_cat) |>
-    #   arrange(Value) |> select(-Value) |> distinct()
-
-    # pal <- data.frame(value_cat = legend_order$value_cat,
-    #                   fill_colour = pal)
-
     pal <- data.frame(value_cat = levels(cut(unlist(df$Value), n_breaks, dig.lab=10)),
                       fill_colour = pal) |>
             mutate(value_cat = gsub("\\(|\\]", "", unlist(value_cat))) |>
@@ -559,12 +533,11 @@ epi_map <- function (dynamic = FALSE,
           aes(x = centroid_long,
               y = centroid_lat,
               label = get({{labels}}))
-              #label = stringr::str_wrap(get({{labels}}),12))
         )
     }
 
 
-    # Add area name labels; overidden if other area labels are defined
+    # Add area name labels; overridden if other area labels are defined
     if(area_labels == TRUE & is.null(labels)) {
 
       map <- map +
@@ -574,7 +547,6 @@ epi_map <- function (dynamic = FALSE,
           family = 'Arial',
           aes(x = centroid_long,
               y = centroid_lat,
-              #label = labels_static,
               label = stringr::str_wrap(labels_static,12),
               fontface = 'italic')
         )
@@ -637,8 +609,6 @@ epi_map <- function (dynamic = FALSE,
           size = 10,
           family = "Arial"
         ),
-        # Change legend position
-        #legend.position = legend_pos,
         # Set title formatting
         plot.title = element_text(
           face = "bold",
@@ -712,8 +682,6 @@ epi_map <- function (dynamic = FALSE,
       color:", map_title_colour,";
     }
     ")))
-    # border: 1px solid black;
-    # transform: translate(14%,-15%);
 
 
   # Add footer controls
@@ -775,8 +743,6 @@ epi_map <- function (dynamic = FALSE,
                 color = "black",
                 weight = "0.5",
                 smoothFactor = 0.3,
-                #fillOpacity = 0.7,
-                #fillColor = ~pal(Value),
                 fillOpacity = fill_opacity,
                 fillColor = ~fill_colour,
                 label = lapply(labels, htmltools::HTML),
@@ -855,7 +821,7 @@ epi_map <- function (dynamic = FALSE,
 
 }  ### LEAFLET END
 
-} ### epi_map_leaflet end
+}
 
 
 
