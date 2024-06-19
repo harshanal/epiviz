@@ -92,8 +92,16 @@ point_chart <- function(df,
                         no_shift = FALSE) {
 
 
-  #solves warnings regarding font family not found
-  windowsFonts("Arial" = windowsFont("Arial"))
+  #solve warnings regarding font family not found
+  if(get_os()[[1]] == "windows") {
+    windowsFonts("Arial" = windowsFont("Arial"))
+    chart_font <- "Arial"
+  } else if(get_os()[[1]] == "osx") {
+    chart_font <- "Arial"
+  } else {
+    # Arial not included with linux as standard, so default to sans
+    chart_font <- "sans"
+  }
 
 
 
@@ -354,7 +362,7 @@ point_chart <- function(df,
   # Set styling
   base <-
     base + ggplot2::theme(
-      text = element_text(size = 12, family = "Arial"),
+      text = element_text(size = 12, family = chart_font),
       axis.title.x = element_text(face = "bold"),
       axis.title.y = element_text(face = "bold")
     )
@@ -403,3 +411,25 @@ point_chart <- function(df,
   }
 
   return(base)}
+
+
+
+
+
+# credit: https://www.r-bloggers.com/2015/06/identifying-the-os-from-r/
+get_os <- function(){
+  sysinf <- Sys.info()
+  if (!is.null(sysinf)){
+    os <- sysinf['sysname']
+    if (os == 'Darwin')
+      os <- "osx"
+  } else { ## mystery machine
+    os <- .Platform$OS.type
+    if (grepl("^darwin", R.version$os))
+      os <- "osx"
+    if (grepl("linux-gnu", R.version$os))
+      os <- "linux"
+  }
+  tolower(os)
+}
+
