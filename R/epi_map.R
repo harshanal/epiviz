@@ -210,8 +210,16 @@ epi_map <- function (dynamic = FALSE,
 ) {
 
 
-  #solves warnings regarding font family not found
-  windowsFonts("Arial" = windowsFont("Arial"))
+  #solve warnings regarding font family not found
+  if(get_os()[[1]] == "windows") {
+    windowsFonts("Arial" = windowsFont("Arial"))
+    map_font <- "Arial"
+  } else if(get_os()[[1]] == "osx") {
+    map_font <- "Arial"
+  } else {
+    # Arial not included with linux as standard, so default to sans
+    map_font <- "sans"
+  }
 
 
   # Assign any missing default args to params list
@@ -573,7 +581,7 @@ epi_map <- function (dynamic = FALSE,
         geom_text(
           data = data_sf,
           size = 8/.pt,
-          family = 'Arial',
+          family = map_font,
           aes(x = centroid_long,
               y = centroid_lat,
               label = get({{labels}}))
@@ -588,7 +596,7 @@ epi_map <- function (dynamic = FALSE,
         geom_text(
           data = data_sf,
           size = 8/.pt,
-          family = 'Arial',
+          family = map_font,
           aes(x = centroid_long,
               y = centroid_lat,
               label = stringr::str_wrap(labels_static,12),
@@ -647,17 +655,17 @@ epi_map <- function (dynamic = FALSE,
         panel.grid.minor = element_blank(),
         panel.background = element_blank(),
         # Set legend text formattting
-        legend.text = element_text(size = 10, family = "Arial"),
+        legend.text = element_text(size = 10, family = map_font),
         legend.title = element_text(
           face = "bold",
           size = 10,
-          family = "Arial"
+          family = map_font
         ),
         # Set title formatting
         plot.title = element_text(
           face = "bold",
           size = map_title_size,
-          family = "Arial",
+          family = map_font,
           colour = map_title_colour),
         # Set footer formatting
         plot.caption = element_text(
@@ -870,6 +878,22 @@ epi_map <- function (dynamic = FALSE,
 
 
 
+# credit: https://www.r-bloggers.com/2015/06/identifying-the-os-from-r/
+get_os <- function(){
+  sysinf <- Sys.info()
+  if (!is.null(sysinf)){
+    os <- sysinf['sysname']
+    if (os == 'Darwin')
+      os <- "osx"
+  } else { ## mystery machine
+    os <- .Platform$OS.type
+    if (grepl("^darwin", R.version$os))
+      os <- "osx"
+    if (grepl("linux-gnu", R.version$os))
+      os <- "linux"
+  }
+  tolower(os)
+}
 
 
 
