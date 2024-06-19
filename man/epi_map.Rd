@@ -6,127 +6,85 @@
 \usage{
 epi_map(
   dynamic = FALSE,
-  df,
-  value_col,
-  data_areacode = NULL,
-  inc_shp = TRUE,
-  shp_name = NULL,
-  shp_areacode = NULL,
-  fill_palette = "Blues",
-  fill_opacity = 1,
-  break_intervals = NULL,
-  break_labels = NULL,
-  force_cat = TRUE,
-  n_breaks = NULL,
-  labels = NULL,
-  map_title = "",
-  map_title_size = 13,
-  map_title_colour = "black",
-  map_footer = "",
-  map_footer_size = 12,
-  map_footer_colour = "black",
-  area_labels = FALSE,
-  area_labels_topn = NULL,
-  legend_title = "",
-  legend_pos = "topright",
-  map_zoom = NULL,
-  border_shape_name = NULL,
-  border_code_col = NULL,
-  border_areaname = NULL
+  params = list(df = NULL, value_col = NULL, data_areacode = NULL, inc_shp = TRUE,
+    shp_name = NULL, shp_areacode = NULL, fill_palette = "Blues", fill_opacity = 1,
+    break_intervals = NULL, break_labels = NULL, force_cat = TRUE, n_breaks = NULL,
+    labels = NULL, map_title = "", map_title_size = 13, map_title_colour = "black",
+    map_footer = "", map_footer_size = 12, map_footer_colour = "black", area_labels =
+    FALSE, area_labels_topn = NULL, legend_title = "", legend_pos = "topright", map_zoom
+    = NULL, border_shape_name = NULL, 
+     border_code_col = NULL, border_areaname =
+    NULL)
 )
 }
 \arguments{
 \item{dynamic}{Logical indicating whether to produce a dynamic (leaflet) output.
 Default is \code{FALSE}, which will return a static ggplot output.}
 
+\item{params}{A named list containing arguements used in map.
+\describe{
 \item{df}{Data frame containing values used to fill areas on the output map.
 Can include pre-merged shapefile data if inc_shp = TRUE.}
-
 \item{value_col}{Name of the variable in df used to fill map areas.}
-
 \item{data_areacode}{Name of the variable in df containing the name or code of
 the map areas to be plotted. (Mandatory if shp_name argument passed).}
-
-\item{inc_shp}{boolean parameter to indicate whether df already includes shapefile
-data.}
-
-\item{shp_name}{Data frame name or filepath of the shapefile containing the spatial information
+\item{inc_shp}{boolean parameter to indicate whether df already includes
+shapefile data.}
+\item{shp_name}{ Data frame name or filepath of the shapefile containing the spatial information
 for the resultant map output. This will not be used if inc_shp = TRUE.}
-
-\item{shp_areacode}{Name of the variable in shp_name containing the name
+\item{shp_areacode}{ Name of the variable in shp_name containing the name
 or code of the map areas to be plotted. (Mandatory if shp_name argument passed).}
-
 \item{fill_palette}{name of the RColorBrewer palette to use in map fill (default = "Blues")}
-
 \item{fill_opacity}{numeric value between 0 and 1 to determine map fill-color opacity.}
-
 \item{break_intervals}{numeric vector of interval points for legend
 (Mandatory if break_labels argument is passed, break_intervals and break_labels must be
 of equal length).}
-
-\item{break_labels}{vector of labels to include in the legend.
+\item{break_labels}{ vector of labels to include in the legend.
 (Mandatory if break_labels argument is passed, break_intervals and break_labels must be
 of equal length).}
-
-\item{force_cat}{boolean parameter to determine whether all arguments passed
+\item{force_cat}{ boolean parameter to determine whether all arguments passed
 in break_labels are used in the legend, even if there are no values present in the data.}
-
-\item{n_breaks}{Number of break intervals. This argument is an alternative
+\item{n_breaks}{ Number of break intervals. This argument is an alternative
 to supplying defined breaks via break_labels, and will provide a number of
 evenly distributed breaks as specified (default = 5). If break_labels argument is passed,
 n_breaks will be ignored.}
-
-\item{labels}{name of string variable in df containing labels for each map area. If
+\item{labels}{ name of string variable in df containing labels for each map area. If
 dynamic = FALSE, these labels will be positioned in the centre of each map area.
 If dynamic = TRUE, then these labels will appear as hover-over labels. If dynamic =
 TRUE, labels can include HTML.}
-
 \item{map_title}{string to determine map title.}
-
-\item{map_title_size}{font size of map title.}
-
-\item{map_title_colour}{string to determine map title colour.}
-
-\item{map_footer}{string to determine map footer.}
-
-\item{map_footer_size}{font size of map footer.}
-
-\item{map_footer_colour}{string to determine map title colour.}
-
-\item{area_labels}{boolean parameter to add data_areacode as static area labels to the
+\item{map_title_size}{ font size of map title.}
+\item{map_title_colour}{ string to determine map title colour.}
+\item{map_footer_size}{ font size of map footer.}
+\item{map_footer_colour}{ string to determine map title colour.}
+\item{area_labels boolean}{ parameter to add data_areacode as static area labels to the
 map areas. If dynamic = FALSE and a labels parameter has alredy been supplied, then area_labels
 will be ignored.}
-
-\item{area_labels_topn}{numeric value to display only area_labels for areas with
+\item{area_labels_topn}{ numeric value to display only area_labels for areas with
 the top n values of value_col (e.g. if area_labels_topn = 5, only area_labels for map
 areas with the top 5 values of value_col will be displayed).}
-
-\item{legend_title}{string to determine legend title.}
-
-\item{legend_pos}{string to determine legend position. When dynamic = TRUE, both
+\item{legend_title}{ string to determine legend title.}
+\item{legend_pos}{ string to determine legend position. When dynamic = TRUE, both
 ggplot and leaflet permissable legend positions can be provided. When dynamic = FALSE,
 only leaflet permissable legend positions can be provided (i.e."topright", "bottomright",
 "bottomleft", or "topleft").}
-
-\item{map_zoom}{A single row data frame with variables of 'LAT', 'LONG', and 'zoom'
+\item{map_zoom}{ A single row data frame with variables of 'LAT', 'LONG', and 'zoom'
 that allows the map to be zoomed in on a specific region (e.g. data.frame(LONG =
 -2.547855, LAT = 53.00366, zoom = 6)). LAT = numerical latitude coordinate for
 the centre point of the zoom, LONG = numerical longitude coordinate for the
 centre point of the zoom, zoom = numerical value to represent the depth of zoom.}
-
-\item{border_shape_name}{Optional filepath for a shapefile containing additional
+\item{border_shape_name}{ Optional filepath for a shapefile containing additional
 borders to include in the output map. This should be a higher geography than the base
 map (e.g. if creating a map displaying UTLAs, a shapefile containing regional boundaries
 or higher should be used). Only boundaries contained within border_shape_name will
 be used, areas will be unfilled.}
-
-\item{border_code_col}{Variable name of the area code / name within border_shape_name.
+\item{border_code_col}{ Variable name of the area code / name within border_shape_name.
 Required if a specific area within the border shapefile is required.}
-
-\item{border_areaname}{Character vector containing the name of specific areas within
+\item{border_areaname}{ Character vector containing the name of specific areas within
 border_code_col to be plotted. If supplied, only the boundaries included in border_areaname
 will be plotted. If not supplied, the boundaries of all areas within border_shape_name
 will be plotted.}
+}}
 }
 \value{
 A ggplot or leaflet object.
@@ -150,17 +108,19 @@ London_staph_detections <- lab_data \%>\%
 
 # Create static map using London_LA_boundaries_2023 data
 London_staph_detections_map <- epi_map(
-  df = London_staph_detections,
-  value_col = "detections",
-  data_areacode = "local_authority_name",
-  inc_shp = FALSE,
-  area_labels = TRUE,
-  shp_name = London_LA_boundaries_2023,
-  shp_areacode = "LAD23NM",
-  map_title = "Staphylococcus Aureus detections in London Local Authority Districts",
-  map_zoom = data.frame(LONG = c(-0.12776), LAT = c(51.50735), zoom = c(8.7)),
-  legend_title = "Number of \nDetections",
-  legend_pos = "right")
+  params = list(
+    df = London_staph_detections,
+    value_col = "detections",
+    data_areacode = "local_authority_name",
+    inc_shp = FALSE,
+    area_labels = TRUE,
+    shp_name = London_LA_boundaries_2023,
+    shp_areacode = "LAD23NM",
+    map_title = "Staphylococcus Aureus detections in London Local Authority Districts",
+    map_zoom = data.frame(LONG = c(-0.12776), LAT = c(51.50735), zoom = c(8.7)),
+    legend_title = "Number of \nDetections",
+    legend_pos = "right")
+)
 
 
 
@@ -182,8 +142,8 @@ kleb_pneu_detections <- kleb_pneu_detections \%>\%
 kleb_pneu_detections_shp <- left_join(x = PHEC_boundaries_2016, y = kleb_pneu_detections,
                                       by = c("phec16nm" = "region"))
 
-# Create map
-kleb_pneu_detections_map <- epi_map(
+# Define parameter list for map function
+kleb_pneu_params <- list(
   df = kleb_pneu_detections_shp,
   value_col = "detections",
   data_areacode = "phec16nm",
@@ -201,7 +161,11 @@ kleb_pneu_detections_map <- epi_map(
   legend_pos = "topright",
   break_labels = c("0-499","500-999","1000-1499","1500-1999","2000-2499","2500+"),
   break_intervals = c(0,500,1000,1500,2000,2500),
-  force_cat = TRUE)
+  force_cat = TRUE
+)
+
+# Create map
+kleb_pneu_detections_map <- epi_map(dynamic = FALSE, params = kleb_pneu_params)
 
 
 
@@ -209,30 +173,19 @@ kleb_pneu_detections_map <- epi_map(
 # the top 5 areas by number of detections, and add an additional border using
 # the UK_boundaries_2023 shapefile data.
 
-# Create map
-kleb_pneu_map_dynamic <- epi_map(
-  dynamic = TRUE,
-  df = kleb_pneu_detections_shp,
-  value_col = "detections",
-  data_areacode = "phec16nm",
-  inc_shp = TRUE,
-  fill_palette = "YlOrRd",
-  fill_opacity = 0.7,
+# Create list of additional parameters
+kleb_pneu_params_add <- list(
   area_labels = TRUE,
   area_labels_topn = 5,
-  labels = "map_labels",
-  map_title = "Number of Klebsiella Pneumoniae detections \nin UK public health regions",
-  map_title_size = 12,
-  map_title_colour = "orangered",
-  map_footer = "Map represents simulated test data only.",
-  map_footer_size = 10,
-  map_footer_colour = "black",
   map_zoom = data.frame(LONG = c(-2.89479), LAT = c(54.793409), zoom = c(5)),
-  legend_title = "Number of \nDetections",
-  legend_pos = "topright",
-  break_labels = c("0-499","500-999","1000-1499","1500-1999","2000-2499","2500+"),
-  break_intervals = c(0,500,1000,1500,2000,2500),
-  force_cat = TRUE,
-  border_shape_name = UK_boundaries_2023)
+  border_shape_name = UK_boundaries_2023
+)
+
+# Combine existing parameters list with additional parameters list
+kleb_pneu_params_dyn <- c(kleb_pneu_params, kleb_pneu_params_add)
+
+# Create map
+kleb_pneu_map_dynamic <- epi_map(dynamic = TRUE, params = kleb_pneu_params_dyn)
+
 }
 }
