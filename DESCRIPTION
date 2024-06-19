@@ -1,6 +1,6 @@
 Package: epiviz
 Title: data visualisation functions for epidemiological data science products
-Version: 0.0.0.9001
+Version: 0.0.0.9002
 Authors@R: 
     c(person(given="Harshana", family="Liyanage", email="harshana.liyanage@ukhsa.gov.uk", role = c("aut","cre"),
            comment = c(ORCID = "0000-0001-9738-6349")),
@@ -10,6 +10,7 @@ Authors@R:
     person(given="James", family="Leatherland", email="james.leatherland@ukhsa.gov.uk", role = c("aut")),
     person(given="Sudha", family="Aurumugam", email="sudha.arumugam@ukhsa.gov.uk", role = c("aut")),
     person(given="Jordan", family="Worth", email="jordan.worth@ukhsa.gov.uk", role = c("aut")),
+    person(given="James", family="Duke", email="james.duke@ukhsa.gov.uk", role = c("aut")),
     person(given="Emma", family="Parker", email="emma.k.parker@ukhsa.gov.uk", role = c("aut")))
 Description: The epiviz package provides a set of functions to produce frequently used static and interactive graphs in epidemiological data science products.
 License: MIT + file LICENSE
@@ -27,4 +28,9 @@ Imports:
     ggplot2,
     RColorBrewer,
     plotly,
-    sf
+    sf,
+    leaflet,
+    htmltools,
+    stringr
+Depends: 
+    R (>= 2.10)
