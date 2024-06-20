@@ -238,7 +238,8 @@ line_chart <- function(df,
           colour = .data[[group_var]]
         ),
         linetype = line_type,
-        linewidth = line_size
+        linewidth = line_size,
+        na.rm = TRUE
       ) +
       scale_colour_manual(values = line_colour)
   } else if (!(missing(group_var)) && (missing(line_type))) {
@@ -251,7 +252,8 @@ line_chart <- function(df,
           y = .data[[y]],
           group = .data[[group_var]],
           colour = .data[[group_var]],
-          linetype = .data[[group_var]]
+          linetype = .data[[group_var]],
+          na.rm = TRUE
         ),
         linewidth = line_size
       ) +
@@ -267,7 +269,8 @@ line_chart <- function(df,
           linetype = line_type
         ),
         colour = line_colour,
-        linewidth = line_size
+        linewidth = line_size,
+        na.rm = TRUE
       )
 
   } else if ((missing(group_var)) && (missing(line_type))) {
@@ -278,7 +281,8 @@ line_chart <- function(df,
         aes(x = .data[[x]], y = .data[[y]]),
         linetype = line_type,
         colour = line_colour,
-        linewidth = line_size
+        linewidth = line_size,
+        na.rm = TRUE
       )
   }
 
