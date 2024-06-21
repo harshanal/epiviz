@@ -41,7 +41,7 @@
 #' @param labels labels to display alongside the plotted geom_points
 #' @param labels_hjust the horizontal adjustment of the point labels
 #' @param labels_vjust the vertical adjustment of the point labels
-#' @param shape shape of the points to be plotted (only used when not plotting
+#' @param point_shape shape of the points to be plotted (only used when not plotting
 #' by group)
 #' @param no_shift If no shift should be applied to the secondary y-axis
 #'
@@ -65,45 +65,47 @@
 point_chart_plotly <- function(
                         dynamic = FALSE,
                         base = NULL,
-                        df,
-                        x = NULL,
-                        y = NULL,
-                        ci = "e",
-                        lower = NULL,
-                        upper = NULL,
-                        error_colour = "red",
-                        group_var = NULL,
-                        shape = "triangle", #
-                        labels = NULL, #
-                        labels_hjust = 0, #
-                        labels_vjust = 0, #
-                        y_axis = "y1",              ##add to line_chart?
-                        no_shift = FALSE,           ##add to line_chart?
-                        chart_title = NULL,         # change to chart_title in line_chart
-                        chart_footer = NULL,        ##add to line_chart?
-                        x_label = NULL,
-                        x_label_angle = NULL,
-                        y_label = NULL,
-                        y_label_angle = NULL,
-                        y_percent = NULL,
-                        st_theme = NULL,
-                        x_labels_reverse = NULL,    ##add to line_chart?
-                        y_min_limit = NULL,         ##add to line_chart?
-                        y_max_limit= NULL,          ##add to line_chart?
-                        x_axis_breaks = NULL,       ##add to line_chart?
-                        show_gridlines = FALSE,
-                        show_axislines = TRUE,
-                        legend_title = "",
-                        legend_pos = "bottom",      # change to legend_pos in line_chart
-                        hline = NULL,
-                        hline_colour = "black",
-                        hline_width = 0.5,          ##add to line_chart?
-                        hline_type = "dashed",      ##add to line_chart?
-                        hline_label = NULL
-                        ) {
+                        params = list(
+                          df = NULL,
+                          x = NULL,
+                          y = NULL,
+                          ci = NULL,
+                          lower = NULL,
+                          upper = NULL,
+                          error_colour = "red",
+                          group_var = NULL,
+                          point_shape = "triangle",
+                          labels = NULL,
+                          labels_hjust = 0,
+                          labels_vjust = 0,
+                          y_axis = "y1",              ##add to line_chart?
+                          no_shift = FALSE,           ##add to line_chart?
+                          chart_title = NULL,         # change to chart_title in line_chart
+                          chart_footer = NULL,        ##add to line_chart?
+                          x_label = NULL,
+                          x_label_angle = NULL,
+                          y_label = NULL,
+                          y_label_angle = NULL,
+                          y_percent = NULL,
+                          st_theme = NULL,
+                          x_labels_reverse = NULL,    ##add to line_chart?
+                          y_min_limit = NULL,         ##add to line_chart?
+                          y_max_limit= NULL,          ##add to line_chart?
+                          x_axis_breaks = NULL,       ##add to line_chart?
+                          show_gridlines = FALSE,
+                          show_axislines = TRUE,
+                          legend_title = "",
+                          legend_pos = "bottom",      # change to legend_pos in line_chart
+                          hline = NULL,
+                          hline_colour = "black",
+                          hline_width = 0.5,          ##add to line_chart?
+                          hline_type = "dashed",      ##add to line_chart?
+                          hline_label = NULL
+                        )
+                  ) {
 
 
-  #solve warnings regarding font family not found
+  # Solve warnings regarding font family not found
   if(get_os()[[1]] == "windows") {
     windowsFonts("Arial" = windowsFont("Arial"))
     chart_font <- "Arial"
@@ -115,15 +117,64 @@ point_chart_plotly <- function(
   }
 
 
+  # Assign any is.null default args to params list
+  if(!exists('error_colour',where=params)) params$error_colour <- "red"
+  if(!exists('point_shape',where=params)) params$point_shape <- "triangle"
+  if(!exists('labels_hjust',where=params)) params$labels_hjust <- 0
+  if(!exists('labels_vjust',where=params)) params$labels_vjust <- 0
+  if(!exists('y_axis',where=params)) params$y_axis <- "y1"
+  if(!exists('no_shift',where=params)) params$no_shift <- FALSE
+  if(!exists('show_gridlines',where=params)) params$show_gridlines <- FALSE
+  if(!exists('show_axislines',where=params)) params$show_axislines <- TRUE
+  if(!exists('legend_title',where=params)) params$legend_title <- ""
+  if(!exists('legend_pos',where=params)) params$legend_pos <- "bottom"
+  if(!exists('hline_colour',where=params)) params$hline_colour <- "black"
+  if(!exists('hline_width',where=params)) params$hline_width <- 0.5
+  if(!exists('hline_type',where=params)) params$hline_type <- "dashed"
 
 
-  # check for any missing mandatory arguments
-  if (missing(df))
-    stop("A data frame argument is required")
-  if (missing(x))
-    stop("Please inlcude argument data frame variable for x axis, ie x = variable_name")
-  if (missing(y))
-    stop("Please include argument data frame variable for y axis, ie y = variable_name")
+print(params)
+
+
+  ### Checks and warnings
+
+  # Check if df is is.null
+  if (!exists('df',where=params)) stop("A data frame argument is required")
+
+  # Check df is a df class
+  if(!is.data.frame(params$df)) stop("Argument df is not a data frame object")
+
+  # Check if x argument is is.null
+  if ((is.null(params$x)) | !exists('x',where=params))
+    stop("Please include a variable from df for x, i.e. x = \"variable_name\"")
+
+  # Check if y argument is is.null
+  if ((is.null(params$y)) | !exists('y',where=params))
+    stop("Please include a variable from df for y, i.e. y = \"variable_name\"")
+
+
+
+
+  # Define parameters from params list
+  for(i in 1:length(params)) {
+    assign(names(params)[i], params[[i]])
+  }
+
+  # Set any unused parameter values to NULL
+  unused <- setdiff(c("df","x","y","ci","lower",
+                      "upper","error_colour","group_var","point_shape","labels",
+                      "labels_hjust","labels_vjust","y_axis","no_shift","chart_title",
+                      "chart_footer","x_label","x_label_angle","y_label","y_label_angle",
+                      "y_percent","st_theme","x_labels_reverse","y_min_limit","y_max_limit",
+                      "x_axis_breaks","show_gridlines","show_axislines","legend_title","legend_pos",
+                      "hline","hline_colour","hline_width","hline_type","hline_label"),
+                    names(params))
+
+  if (length(unused) > 0) {
+    for(i in 1:length(unused)) {
+      assign(unused[i], NULL)
+    }
+  }
 
 
 
@@ -211,7 +262,7 @@ point_chart_plotly <- function(
 
 
   # add default theme if theme argument not provided
-  if (!missing(st_theme)) {
+  if (!is.null(st_theme)) {
     base <- base + st_theme
   } else {
     # If not provided, use the default theme
@@ -222,7 +273,7 @@ point_chart_plotly <- function(
 
   ### Build base plot
   #   according to whether plotting variables are grouped
-  if(missing(group_var)) {
+  if(is.null(group_var)) {
 
     # create base graph without groups
     base <-
@@ -231,7 +282,7 @@ point_chart_plotly <- function(
         aes(x = .data[[x]],
             y = .data[[y]]),
         color = "blue",
-        shape = shape
+        shape = point_shape
       )
 
   } else {
@@ -251,13 +302,13 @@ point_chart_plotly <- function(
 
     # Legend parameters
 
-    if (!missing(legend_title)) {
+    if (!is.null(legend_title)) {
       base <-  base + labs(name = legend_title,
                            colour = legend_title,
                            shape = legend_title)
     }
 
-    if (!missing(legend_pos)) {
+    if (!is.null(legend_pos)) {
       base <-  base + theme(legend.position = legend_pos)
     }
 
@@ -268,28 +319,28 @@ point_chart_plotly <- function(
   ##### Titles and labels
 
   # Add title
-  if (!missing(chart_title)) {
+  if (!is.null(chart_title)) {
     base <- base + ggplot2::labs(title = chart_title) +
       # centre title
       theme(plot.title = element_text(hjust = 0.5))
   }
 
   # Apply x label using arguments provided
-  if (!missing(x_label)) {
+  if (!is.null(x_label)) {
     base <- base + ggplot2::labs(x = x_label)
   }
 
   # Apply y label using arguments provided
-  if (!missing(y_label)) {                      # bug in line_chart, change
+  if (!is.null(y_label)) {                      # bug in line_chart, change
     base <- base + ggplot2::labs(y = y_label)
   }
 
   # Rotate axis text if angle is given
-  if (!missing(x_label_angle)) {
+  if (!is.null(x_label_angle)) {
     base <- base + ggplot2::theme(axis.text.x = element_text(angle  = x_label_angle, vjust = 0.5))
   }
 
-  if (!missing(y_label_angle)) {
+  if (!is.null(y_label_angle)) {
     base <- base + ggplot2::theme(axis.text.y = element_text(angle  = y_label_angle, vjust = 0.5))
   }
 
@@ -324,10 +375,10 @@ point_chart_plotly <- function(
 
 
   # confidence interval; ribbon \ error bar
-  if (!(missing(ci)) && missing(group_var)) {
+  if (!(is.null(ci)) && is.null(group_var)) {
     # continue if  arguments for ci and bounds are provided
     ifelse(
-      !(missing(lower)) && !(missing(upper)),
+      !(is.null(lower)) && !(is.null(upper)),
 
       # continue if type geom required is error else ribbon
       ifelse(
@@ -368,10 +419,10 @@ point_chart_plotly <- function(
 
   }
 
-  if (!(missing(ci)) && !missing(group_var)) {
+  if (!(is.null(ci)) && !is.null(group_var)) {
     # continue if  arguments for ci and bounds are provided
     ifelse(
-      !(missing(lower)) && !(missing(upper)),
+      !(is.null(lower)) && !(is.null(upper)),
 
       # continue if type geom required is error else ribbon
       ifelse(
@@ -412,7 +463,7 @@ point_chart_plotly <- function(
   }
 
 
-  if (!missing(labels)) {
+  if (!is.null(labels)) {
     base <-
       base + geom_text(
         data = df,
@@ -428,7 +479,7 @@ point_chart_plotly <- function(
 
 
   # adds horizontal line at the y value specified for hline
-  if (!missing(hline)) {
+  if (!is.null(hline)) {
     base <-
       base + geom_hline(yintercept = hline,
                         colour = hline_colour,
@@ -437,7 +488,7 @@ point_chart_plotly <- function(
   }
 
   # adds a label specified at the start of the horizontal line
-  if (!missing(hline) && !(missing(hline_label))) {
+  if (!is.null(hline) && !(is.null(hline_label))) {
     base <-
       base + geom_text(aes(
         x = min(df[[x]]),
@@ -460,7 +511,7 @@ point_chart_plotly <- function(
 
 
   # Reverse the x axis scales for discrete variable (factors) if argument provided
-  if (!(missing(x_labels_reverse))) {
+  if (!(is.null(x_labels_reverse))) {
     if (is.factor(df[[x]])) {
       base  <-
         base + ggplot2::scale_x_discrete(limits = rev(levels(df[[x]])))
@@ -470,7 +521,7 @@ point_chart_plotly <- function(
 
 
 
-  if (!(missing(y_min_limit))) {
+  if (!(is.null(y_min_limit))) {
     base  <-
       base + ggplot2::scale_y_continuous(limits = c(y_min_limit, y_max_limit))
 
@@ -489,7 +540,7 @@ point_chart_plotly <- function(
 
 
   # #remove major y grid lines
-  # if (!(missing(remove_gridlines))) {
+  # if (!(is.null(remove_gridlines))) {
   #   base <-
   #     base + ggplot2::theme(panel.grid.major.y = element_blank())
   #
@@ -498,7 +549,7 @@ point_chart_plotly <- function(
 
 
   #append percentage labels
-  if (!(missing(y_percent))) {
+  if (!(is.null(y_percent))) {
 
     ##d change to scales functionality
 
@@ -522,12 +573,12 @@ point_chart_plotly <- function(
   }
 
   # # Apply x label using arguments provided
-  # if (!(missing(x_label))) {
+  # if (!(is.null(x_label))) {
   #   base <- base + ggplot2::labs(x = x_label)
   #
   # }
 
-  if (!(missing(chart_footer))) {
+  if (!(is.null(chart_footer))) {
     base  <- base  + ggplot2::labs(caption = chart_footer)
 
   }
