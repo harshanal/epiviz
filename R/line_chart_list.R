@@ -80,7 +80,7 @@ linechart <-  function(dynamic = FALSE,
 
 
 
-  # Assign any missing default args to params list
+  # Assign any is.null default args to params list
   if(!exists('error_colour',where=params)) params$error_colour <- c("#f2c75c")
   if(!exists('line_colour',where=params)) params$line_colour <- c("blue")
   if(!exists('line_type',where=params)) params$line_type <- "solid"
@@ -91,18 +91,65 @@ linechart <-  function(dynamic = FALSE,
   if(!exists('show_axislines',where=params)) params$show_axislines <- TRUE
   if(!exists('hline_colour',where=params)) params$hline_colour <- "red"
 
-
-#### NEED TO REMOVE MISSING() WITH PARAMS LIST
-
+print(params)
 
   ### Checks and warnings
 
   # Define valid line types
   valid_line_types <- c("solid", "dotted", "dashed", "longdash", "dotdash")
 
+
+  # # Check for any is.null mandatory arguments
+  # is.null_args <- c()
+  # if (is.null(df)) {
+  #   is.null_args <- c(is.null_args, "data frame")
+  # }
+  # if (is.null(x)) {
+  #   is.null_args <- c(is.null_args, "x-axis variable")
+  # }
+  # if (is.null(y)) {
+  #   is.null_args <- c(is.null_args, "y-axis variable")
+  # }
+  #
+  # if (length(is.null_args) > 0) {
+  #   stop(paste(
+  #     "Please include argument(s) for the following:",
+  #     paste(is.null_args, collapse = ", ")
+  #   ))
+  # }
+  #
+  # # check if dataset provided is not empty
+  # if (is.null(df) || nrow(df) == 0) {
+  #   stop("Error: The provided data frame is empty.")
+  # }
+
+
+
+  # Define parameters from params list
+  for(i in 1:length(params)) {
+    assign(names(params)[i], params[[i]])
+  }
+
+  # Set any unused parameter values to NULL
+  unused <- setdiff(c("df","x","y","ci","lower",
+                      "upper","error_colour","group_var","line_colour","line_type",
+                      "width","title","x_label","x_label_angle","y_label",
+                      "y_label_angle","y_percent","st_theme","add_points","show_gridlines",
+                      "show_axislines","legend_title","legend_pos","hline","hline_colour",
+                      "hline_label"),
+                    names(params))
+
+  if (length(unused) > 0) {
+    for(i in 1:length(unused)) {
+      assign(unused[i], NULL)
+    }
+  }
+
+
+
   # default RColorBrewer color pallette
 
-  if(!missing(group_var)){
+  if(!is.null(group_var)){
     # creating base graph with groups
     groupvar_levels <- nlevels(df[[group_var]])
 
@@ -143,31 +190,6 @@ linechart <-  function(dynamic = FALSE,
     }
   }
 
-  # Check for any missing mandatory arguments
-  missing_args <- c()
-  if (missing(df)) {
-    missing_args <- c(missing_args, "data frame")
-  }
-  if (missing(x)) {
-    missing_args <- c(missing_args, "x-axis variable")
-  }
-  if (missing(y)) {
-    missing_args <- c(missing_args, "y-axis variable")
-  }
-
-  if (length(missing_args) > 0) {
-    stop(paste(
-      "Please include argument(s) for the following:",
-      paste(missing_args, collapse = ", ")
-    ))
-  }
-
-  # check if dataset provided is not empty
-  if (is.null(df) || nrow(df) == 0) {
-    stop("Error: The provided data frame is empty.")
-  }
-
-
 
 
   if (!dynamic) {
@@ -188,7 +210,7 @@ linechart <-  function(dynamic = FALSE,
     }
 
     # add default theme if theme argument not provided
-    if (!missing(st_theme)) {
+    if (!is.null(st_theme)) {
       base <- base + st_theme
     } else {
       # If not provided, use the default theme
@@ -196,7 +218,7 @@ linechart <-  function(dynamic = FALSE,
     }
 
 
-    if (missing(group_var)) {
+    if (is.null(group_var)) {
       # creating base graph without groups
       base <-
         base + ggplot2::geom_line(
@@ -228,11 +250,11 @@ linechart <-  function(dynamic = FALSE,
 
       # Legend parameters
 
-      if (!missing(legend_title)) {
+      if (!is.null(legend_title)) {
         base <-  base + labs(color = legend_title)
       }
 
-      if (!missing(legend_pos)) {
+      if (!is.null(legend_pos)) {
         base <-  base + theme(legend.position = legend_pos)
       }
 
@@ -242,28 +264,28 @@ linechart <-  function(dynamic = FALSE,
     ##### Titles and labels
 
     # Add title
-    if (!missing(title)) {
+    if (!is.null(title)) {
       base <- base + ggplot2::labs(title = title) +
         # centre title
         theme(plot.title = element_text(hjust = 0.5))
     }
 
     # Apply x label using arguments provided
-    if (!missing(x_label)) {
+    if (!is.null(x_label)) {
       base <- base + ggplot2::labs(x = x_label)
     }
 
     # Apply y label using arguments provided
-    if (!missing(x_label)) {
+    if (!is.null(x_label)) {
       base <- base + ggplot2::labs(y = y_label)
     }
 
     # Rotate axis text if angle is given
-    if (!missing(x_label_angle)) {
+    if (!is.null(x_label_angle)) {
       base <- base + ggplot2::theme(axis.text.x = element_text(angle  = x_label_angle, vjust = 0.5))
     }
 
-    if (!missing(y_label_angle)) {
+    if (!is.null(y_label_angle)) {
       base <- base + ggplot2::theme(axis.text.y = element_text(angle  = y_label_angle, vjust = 0.5))
     }
 
@@ -295,7 +317,7 @@ linechart <-  function(dynamic = FALSE,
     }
 
     # adds horizontal line at the y value specified for hline
-    if (!missing(hline)) {
+    if (!is.null(hline)) {
       base <-
         base + geom_hline(yintercept = hline,
                           colour = hline_colour,
@@ -303,7 +325,7 @@ linechart <-  function(dynamic = FALSE,
     }
 
     # adds a label specified at the start of the horizontal line
-    if (!missing(hline) && !(missing(hline_label))) {
+    if (!is.null(hline) && !(is.null(hline_label))) {
       base <-
         base + geom_text(aes(
           x = min(df[[x]]),
@@ -326,7 +348,7 @@ linechart <-  function(dynamic = FALSE,
 
     # if add points included then add geom
     if(add_points) {
-      if(!missing(group_var)){
+      if(!is.null(group_var)){
         base <-
           base + ggplot2::geom_point(data = df, aes(
             x = .data[[x]], y = .data[[y]], colour = .data[[group_var]], size=1
@@ -344,10 +366,10 @@ linechart <-  function(dynamic = FALSE,
 
 
     #### confidence interval; ribbon \ error bar
-    if (!(missing(ci)) && missing(group_var)) {
+    if (!(is.null(ci)) && is.null(group_var)) {
       # continue if  arguments for ci and bounds are provided
       ifelse(
-        !(missing(lower)) && !(missing(upper)),
+        !(is.null(lower)) && !(is.null(upper)),
 
         # continue if type geom required is error else ribbon
         ifelse(
@@ -386,10 +408,10 @@ linechart <-  function(dynamic = FALSE,
 
     }
 
-    if (!(missing(ci)) && !missing(group_var)) {
+    if (!(is.null(ci)) && !is.null(group_var)) {
       # continue if  arguments for ci and bounds are provided
       ifelse(
-        !(missing(lower)) && !(missing(upper)),
+        !(is.null(lower)) && !(is.null(upper)),
 
         # continue if type geom required is error else ribbon
         ifelse(
@@ -461,13 +483,13 @@ linechart <-  function(dynamic = FALSE,
     line_attributes <- list()
 
     # Add line modifiers
-    if (!missing(width)) {
+    if (!is.null(width)) {
       line_attributes$width <- width * 2
     }
-    if (!missing(line_type)) {
+    if (!is.null(line_type)) {
       line_attributes$dash <- plotly_line_style
     }
-    if (!missing(line_colour)) {
+    if (!is.null(line_colour)) {
       line_attributes$color <- line_colour
     }
 
@@ -478,7 +500,7 @@ linechart <-  function(dynamic = FALSE,
     }
 
 
-    if (missing(group_var)) {
+    if (is.null(group_var)) {
       # create plotly base plot without groups
       base <- df |>
         plot_ly(
@@ -527,28 +549,28 @@ linechart <-  function(dynamic = FALSE,
     ##### Titles and labels
 
     # add title
-    if (!missing(title)) {
+    if (!is.null(title)) {
       base <- base |> layout(title = list(text=title))
     }
 
     # add x axis label
-    if (!missing(x_label)) {
+    if (!is.null(x_label)) {
       base <- base |> layout(xaxis = list(title = x_label))
     }
 
     # add y axis label
-    if (!missing(y_label)) {
+    if (!is.null(y_label)) {
       base <- base |> layout(yaxis = list(title = y_label))
     }
 
     # change x axis angle
-    if (!missing(x_label_angle)){
+    if (!is.null(x_label_angle)){
       # angle negated as this function following ggplot rotation direction
       base <- base |>  layout(xaxis = list(tickangle = -x_label_angle))
     }
 
     # change y axis angle
-    if (!missing(y_label_angle)){
+    if (!is.null(y_label_angle)){
       # angle negated as this function following ggplot rotation direction
       base <- base |>  layout(yaxis = list(tickangle = -y_label_angle))
     }
@@ -569,7 +591,7 @@ linechart <-  function(dynamic = FALSE,
       )
     }
 
-    if (!missing(hline)) {
+    if (!is.null(hline)) {
       base <- base |>
         layout(shapes = list(
           type = "line",
@@ -582,7 +604,7 @@ linechart <-  function(dynamic = FALSE,
         ))
     }
 
-    if (!missing(hline_label)) {
+    if (!is.null(hline_label)) {
       base <- base %>% add_annotations(
         text = hline_label,
         x = min(df[[x]]),
@@ -601,7 +623,7 @@ linechart <-  function(dynamic = FALSE,
 
     ## Legend settings
 
-    if (!missing(legend_pos)) {
+    if (!is.null(legend_pos)) {
 
       legend_orientation <-
         if (legend_pos %in% c("top", "bottom"))
