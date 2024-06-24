@@ -12,7 +12,7 @@
 #' (if required) in data frame
 #' @param y_axis y_axis
 #' @param ci indicator for using ribbon or error bar geom (if required),
-#' enter 'e' for error bar, enter any other value for ribbon
+#' enter 'errorbar' for error bar, enter 'ribbon' for ribbon
 #' @param lower lower value for error \ ribbon geom (mandatory if ci argument passed)
 #' @param upper upper value for error \ ribbon geom (mandatory if ci argument passed)
 #' @param error_colour if not plotting by group this is the colour of the error
@@ -75,6 +75,7 @@ point_chart_plotly <- function(
                           error_colour = "red",
                           group_var = NULL,
                           point_shape = "triangle",
+                          point_colour = "blue",
                           labels = NULL,
                           labels_hjust = 0,
                           labels_vjust = 0,
@@ -120,6 +121,7 @@ point_chart_plotly <- function(
   # Assign any is.null default args to params list
   if(!exists('error_colour',where=params)) params$error_colour <- "red"
   if(!exists('point_shape',where=params)) params$point_shape <- "triangle"
+  if(!exists('point_colour',where=params)) params$point_colour <- "blue"
   if(!exists('labels_hjust',where=params)) params$labels_hjust <- 0
   if(!exists('labels_vjust',where=params)) params$labels_vjust <- 0
   if(!exists('y_axis',where=params)) params$y_axis <- "y1"
@@ -162,7 +164,7 @@ print(params)
 
   # Set any unused parameter values to NULL
   unused <- setdiff(c("df","x","y","ci","lower",
-                      "upper","error_colour","group_var","point_shape","labels",
+                      "upper","error_colour","group_var","point_shape","point_colour","labels",
                       "labels_hjust","labels_vjust","y_axis","no_shift","chart_title",
                       "chart_footer","x_label","x_label_angle","y_label","y_label_angle",
                       "y_percent","st_theme","x_labels_reverse","y_min_limit","y_max_limit",
@@ -175,7 +177,6 @@ print(params)
       assign(unused[i], NULL)
     }
   }
-
 
 
   # Check that the data frame provided is not empty, else stop
@@ -271,8 +272,105 @@ print(params)
 
 
 
-  ### Build base plot
-  #   according to whether plotting variables are grouped
+  ##### Confidence intervals
+
+  # Add conf intervals if arguments for ci and upper+lower bounds are provided
+  # Apply before main point-plot so that points appear in front of bars / ribbons
+
+  if(!is.null(ci)) {
+
+    if(!is.null(lower) && !is.null(upper)) {
+
+      # Add error bars or ribbon depending upon ci arguement
+
+      # No group_var; don't add separate legend
+      if (is.null(group_var)) {
+
+        # Add error bars without separate legend
+        if(ci == 'errorbar') {
+
+          base <-
+            base + ggplot2::geom_errorbar(
+              data = df,
+              aes(
+                x = .data[[x]],
+                ymin = .data[[lower]],
+                ymax = .data[[upper]]
+              ),
+              colour = error_colour,
+              linewidth = 0.5
+            )
+
+          # Add ribbon without separate legend
+        } else if (ci == 'ribbon') {
+
+          base <-
+            base + ggplot2::geom_ribbon(
+              data = df,
+              aes(
+                x = .data[[x]],
+                ymin = .data[[lower]],
+                ymax = .data[[upper]],
+                group = 1
+              ),
+              fill = error_colour,
+              alpha = .5
+            )
+        }
+
+        # With group_var; add separate legend
+      } else if (!is.null(group_var)) {
+
+        # Add error bars with separate legend
+        if(ci == 'errorbar') {
+
+          base <-
+            base + ggplot2::geom_errorbar(
+              data = df,
+              aes(
+                x = .data[[x]],
+                ymin = .data[[lower]],
+                ymax = .data[[upper]],
+                group = .data[[group_var]],
+                colour =  .data[[group_var]]
+              ),
+              linewidth = .5
+            )
+
+          # Add ribbon with separate legend
+        } else if (ci == 'ribbon') {
+
+          base <-
+            base +
+            ggplot2::geom_ribbon(
+              data = df,
+              aes(
+                x = .data[[x]],
+                ymin = .data[[lower]],
+                ymax = .data[[upper]],
+                group = .data[[group_var]],
+                #fill = "ci"
+                #fill = error_colour
+                fill = .data[[group_var]]
+              ),
+              #fill = error_colour,
+              alpha = .5
+            )
+
+        }
+      }
+      # Stop if upper and/or lower limit isn't provided
+    } else {
+      stop("Please provide arguements for 'upper' and 'lower' when ci is specified.")
+    }
+  }
+
+
+
+
+  ##### Build base point plot
+
+  # Build according to whether plotting variables are grouped or not
   if(is.null(group_var)) {
 
     # create base graph without groups
@@ -281,7 +379,7 @@ print(params)
         data = df,
         aes(x = .data[[x]],
             y = .data[[y]]),
-        color = "blue",
+        color = point_colour,
         shape = point_shape
       )
 
@@ -300,7 +398,9 @@ print(params)
         )
       )
 
-    # Legend parameters
+
+
+    ##### Legend parameters
 
     if (!is.null(legend_title)) {
       base <-  base + labs(name = legend_title,
@@ -316,7 +416,25 @@ print(params)
 
 
 
-  ##### Titles and labels
+  ##### Apply chart labels
+
+  if (!is.null(labels)) {
+    base <-
+      base + geom_text(
+        data = df,
+        aes(
+          x = .data[[x]],
+          y = .data[[y]],
+          label = round(.data$original_label, 0)
+        ),
+        hjust = labels_hjust,
+        vjust = labels_vjust
+      )
+  }
+
+
+
+  ##### Titles and axis labels
 
   # Add title
   if (!is.null(chart_title)) {
@@ -346,26 +464,31 @@ print(params)
 
 
 
-  ##### Grid lines and axis
 
-  #remove major and minor grid lines
+  ##### Grid lines and axes
+
+  # Remove or apply major and minor grid lines
   if (!show_gridlines) {
     base <- base + ggplot2::theme(
-      panel.grid.major.y = element_blank(),
-      panel.grid.major.x = element_blank(),
-      panel.grid.minor.y = element_blank(),
-      panel.grid.minor.x = element_blank()
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
     )
+  } else {
+    base <- base + ggplot2::theme(
+      panel.grid.major = element_line(colour = "grey83", linewidth = 0.2),
+      panel.grid.minor = element_line(colour = "grey93", linewidth = 0.1)
+    )
+
   }
 
 
-  # shows axis lines
+  # Remove or apply axis lines
   if (show_axislines) {
     base <- base + theme(
       axis.line.x = element_line(colour = "black", linewidth = 1),
       axis.line.y = element_line(colour = "black", linewidth = 1)
     )
-  }else{
+  } else {
     base <- base + theme(
       axis.line.x = element_blank(),
       axis.line.y = element_blank()
@@ -374,109 +497,11 @@ print(params)
 
 
 
-  # confidence interval; ribbon \ error bar
-  if (!(is.null(ci)) && is.null(group_var)) {
-    # continue if  arguments for ci and bounds are provided
-    ifelse(
-      !(is.null(lower)) && !(is.null(upper)),
-
-      # continue if type geom required is error else ribbon
-      ifelse(
-        ci == 'e',
-
-        # Apply error bar with separate legends for line and ci
-        base <-
-          base + ggplot2::geom_errorbar(
-            data = df,
-            aes(
-              x = .data[[x]],
-              ymin = .data[[lower]],
-              ymax = .data[[upper]]
-            ),
-            colour = error_colour,
-            linewidth = 0.5
-          )
-
-        ,
-
-        # Apply ribbon with separate legends for line and ci
-        base <-
-          base + ggplot2::geom_ribbon(
-            data = df,
-            aes(
-              x = .data[[x]],
-              ymin = .data[[lower]],
-              ymax = .data[[upper]],
-              group = 1
-            ),
-            fill = error_colour,
-            alpha = .5
-          )
-      )
-
-    )
 
 
-  }
-
-  if (!(is.null(ci)) && !is.null(group_var)) {
-    # continue if  arguments for ci and bounds are provided
-    ifelse(
-      !(is.null(lower)) && !(is.null(upper)),
-
-      # continue if type geom required is error else ribbon
-      ifelse(
-        ci == 'e',
-
-        # Apply error bar with separate legends for line and ci
-        base <-
-          base + ggplot2::geom_errorbar(
-            data = df,
-            aes(
-              x = .data[[x]],
-              ymin = .data[[lower]],
-              ymax = .data[[upper]],
-              group = .data[[group_var]],
-              colour =  .data[[group_var]]
-            ),
-            linewidth = .5
-          )
-        ,
-
-        # Apply ribbon with separate legends for line and ci
-        base <-
-          base +
-          ggplot2::geom_ribbon(
-            data = df,
-            aes(
-              x = .data[[x]],
-              ymin = .data[[lower]],
-              ymax = .data[[upper]],
-              group = .data[[group_var]],
-              fill = "ci"
-            ),
-            alpha = .5
-          )
-      )
-
-    )
-  }
 
 
-  if (!is.null(labels)) {
-    base <-
-      base + geom_text(
-        data = df,
-        aes(
-          x = .data[[x]],
-          y = .data[[y]],
-          label = round(.data$original_label, 0)
-        ),
-        hjust = labels_hjust,
-        vjust = labels_vjust
-      )
-  }
-
+  ##### Apply hlines
 
   # adds horizontal line at the y value specified for hline
   if (!is.null(hline)) {
@@ -529,7 +554,7 @@ print(params)
 
 
 
-  # Set styling
+  # Set title styling
   base <-
     base + ggplot2::theme(
       text = element_text(size = 12, family = chart_font),
@@ -589,20 +614,4 @@ print(params)
 
 
 
-# credit: https://www.r-bloggers.com/2015/06/identifying-the-os-from-r/
-get_os <- function(){
-  sysinf <- Sys.info()
-  if (!is.null(sysinf)){
-    os <- sysinf['sysname']
-    if (os == 'Darwin')
-      os <- "osx"
-  } else { ## mystery machine
-    os <- .Platform$OS.type
-    if (grepl("^darwin", R.version$os))
-      os <- "osx"
-    if (grepl("linux-gnu", R.version$os))
-      os <- "linux"
-  }
-  tolower(os)
-}
 
