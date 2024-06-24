@@ -70,6 +70,7 @@ point_chart_plotly <- function(
                           x = NULL,
                           y = NULL,
                           ci = NULL,
+                          ci_legend = FALSE,
                           lower = NULL,
                           upper = NULL,
                           error_colour = "red",
@@ -106,19 +107,12 @@ point_chart_plotly <- function(
                   ) {
 
 
-  # Solve warnings regarding font family not found
-  if(get_os()[[1]] == "windows") {
-    windowsFonts("Arial" = windowsFont("Arial"))
-    chart_font <- "Arial"
-  } else if(get_os()[[1]] == "osx") {
-    chart_font <- "Arial"
-  } else {
-    # Arial not included with linux as standard, so default to sans
-    chart_font <- "sans"
-  }
+  # Solve warnings regarding font family not found using R/set_Arial.R function
+  source("R/set_Arial.R")
 
 
   # Assign any is.null default args to params list
+  if(!exists('ci_legend',where=params)) params$ci_legend <- FALSE
   if(!exists('error_colour',where=params)) params$error_colour <- "red"
   if(!exists('point_shape',where=params)) params$point_shape <- "triangle"
   if(!exists('point_colour',where=params)) params$point_colour <- "blue"
@@ -163,7 +157,7 @@ print(params)
   }
 
   # Set any unused parameter values to NULL
-  unused <- setdiff(c("df","x","y","ci","lower",
+  unused <- setdiff(c("df","x","y","ci","ci_legend","lower",
                       "upper","error_colour","group_var","point_shape","point_colour","labels",
                       "labels_hjust","labels_vjust","y_axis","no_shift","chart_title",
                       "chart_footer","x_label","x_label_angle","y_label","y_label_angle",
@@ -283,10 +277,10 @@ print(params)
 
       # Add error bars or ribbon depending upon ci arguement
 
-      # No group_var; don't add separate legend
+      # Plot for no group_var
       if (is.null(group_var)) {
 
-        # Add error bars without separate legend
+        # Add error bars without grouping variable
         if(ci == 'errorbar') {
 
           base <-
@@ -301,7 +295,8 @@ print(params)
               linewidth = 0.5
             )
 
-          # Add ribbon without separate legend
+        # Add ribbon without grouping variable
+          # DOES NOT give additional legend
         } else if (ci == 'ribbon') {
 
           base <-
@@ -314,14 +309,16 @@ print(params)
                 group = 1
               ),
               fill = error_colour,
+              #show.legend = ci_legend,
               alpha = .5
-            )
+            ) #+
+            #scale_fill_manual("test",values=error_colour)
         }
 
-        # With group_var; add separate legend
+      # Plot for group_var provided
       } else if (!is.null(group_var)) {
 
-        # Add error bars with separate legend
+        # Add error bars with grouping variable
         if(ci == 'errorbar') {
 
           base <-
@@ -337,8 +334,12 @@ print(params)
               linewidth = .5
             )
 
-          # Add ribbon with separate legend
+        # Add ribbon with grouping variable
+          # DOES give additional legend
         } else if (ci == 'ribbon') {
+
+          # Account for geom_ribbon show.legend parameter accepting values of 'NA' or 'FALSE'
+          show_ci_leg <- ifelse(ci_legend == TRUE, NA, FALSE)
 
           base <-
             base +
@@ -349,20 +350,20 @@ print(params)
                 ymin = .data[[lower]],
                 ymax = .data[[upper]],
                 group = .data[[group_var]],
-                #fill = "ci"
-                #fill = error_colour
                 fill = .data[[group_var]]
               ),
-              #fill = error_colour,
-              alpha = .5
+              alpha = .5,
+              show.legend = show_ci_leg
             )
 
         }
       }
+
       # Stop if upper and/or lower limit isn't provided
     } else {
       stop("Please provide arguements for 'upper' and 'lower' when ci is specified.")
     }
+
   }
 
 
