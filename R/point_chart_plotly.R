@@ -71,6 +71,7 @@ point_chart_plotly <- function(
                           y = NULL,
                           ci = NULL,
                           ci_legend = FALSE,
+                          ci_legend_title = "Confidence interval",
                           lower = NULL,
                           upper = NULL,
                           error_colour = "red",
@@ -107,12 +108,13 @@ point_chart_plotly <- function(
                   ) {
 
 
-  # Solve warnings regarding font family not found using R/set_Arial.R function
-  source("R/set_Arial.R")
+  # Solve warnings regarding font family not found using set_Arial() function (in utils)
+  set_Arial()
 
 
   # Assign any is.null default args to params list
   if(!exists('ci_legend',where=params)) params$ci_legend <- FALSE
+  if(!exists('ci_legend_title',where=params)) params$ci_legend_title <- "Confidence interval"
   if(!exists('error_colour',where=params)) params$error_colour <- "red"
   if(!exists('point_shape',where=params)) params$point_shape <- "triangle"
   if(!exists('point_colour',where=params)) params$point_colour <- "blue"
@@ -132,7 +134,7 @@ point_chart_plotly <- function(
 print(params)
 
 
-  ### Checks and warnings
+  ##### Checks and warnings
 
   # Check if df is is.null
   if (!exists('df',where=params)) stop("A data frame argument is required")
@@ -157,7 +159,7 @@ print(params)
   }
 
   # Set any unused parameter values to NULL
-  unused <- setdiff(c("df","x","y","ci","ci_legend","lower",
+  unused <- setdiff(c("df","x","y","ci","ci_legend","ci_legend_title","lower",
                       "upper","error_colour","group_var","point_shape","point_colour","labels",
                       "labels_hjust","labels_vjust","y_axis","no_shift","chart_title",
                       "chart_footer","x_label","x_label_angle","y_label","y_label_angle",
@@ -173,6 +175,7 @@ print(params)
   }
 
 
+
   # Check that the data frame provided is not empty, else stop
   assertthat::assert_that(not_empty(df))
 
@@ -181,8 +184,12 @@ print(params)
   }
 
 
+
+  ##### Secondary axis
+
   # If user wants to plot on the secondary y-axis
   if (y_axis == "y2") {
+
     # Get limits of current plotted data (returns -Inf if no data currently plotted)
     current_plotted_data_max <-
       max(layer_scales(base)$y$range$range)
@@ -192,46 +199,48 @@ print(params)
     y2_max <- max(df[[y]])
     y2_min <- min(df[[y]])
 
+
     # If no secondary y data has been plotted yet
     if (is.null(base$secondary_y_shift) &
         is.null(base$secondary_y_scale)) {
-      if (is.finite(current_plotted_data_max)) {
-        # If data has already been plotted on y1
-        # scale and shift variables calculated based on desired mins and maxes
-        scale = (y2_max - y2_min) / (current_plotted_data_max - current_plotted_data_min)
-        shift = current_plotted_data_min - y2_min
-        # Add variables to chart "metadata"
-        base$secondary_y_shift <- shift
-        base$secondary_y_scale <- scale
-        # Get current y1 axis name
 
+        if (is.finite(current_plotted_data_max)) {
+          # If data has already been plotted on y1;
+          #   Scale and shift variables calculated based on desired mins and maxes
+          scale = (y2_max - y2_min) / (current_plotted_data_max - current_plotted_data_min)
+          shift = current_plotted_data_min - y2_min
+          # Add variables to chart "metadata"
+          base$secondary_y_shift <- shift
+          base$secondary_y_scale <- scale
+          # Get current y1 axis name
 
-      } else {
-        # Data hasn't already been plotted on y1
-        # Just plot data as normal but on y2
-        current_y_axis_name <- NULL
-        scale <- 1
-        shift <- 0
-      }
+        } else {
+          # If data hasn't already been plotted on y1;
+          #   Just plot data as normal but on y2
+          current_y_axis_name <- NULL
+          scale <- 1
+          shift <- 0
+        }
 
+    # If secondary y data has already been plotted
     } else {
-      # If secondary y data has already been plotted
       shift <- base$secondary_y_shift
       scale <- base$secondary_y_scale
     }
 
+  # User does not want to plot on secondary axis
   } else {
     scale <- 1
     shift <- 0
   }
 
-
+  # Force shift to 0 if no_shift == TRUE
   if (no_shift == TRUE) {
     shift <- 0
     base$secondary_y_shift <- 0
   }
 
-  # Apply the inv_scale_function to the values that will be plotted on the
+  # Apply the inv_scale_function (in utils) to the values that will be plotted on the
   # scaled secondary y axis (if they've been supplied)
   if (!is.null(y)) {
     df[[y]] <- inv_scale_function(df[[y]], scale, shift)
@@ -250,6 +259,9 @@ print(params)
   }
 
 
+
+
+
   # create base plot
   if (is.null(base)) {
     base <- ggplot2::ggplot() + ggplot2::theme_classic()
@@ -266,6 +278,7 @@ print(params)
 
 
 
+
   ##### Confidence intervals
 
   # Add conf intervals if arguments for ci and upper+lower bounds are provided
@@ -276,6 +289,9 @@ print(params)
     if(!is.null(lower) && !is.null(upper)) {
 
       # Add error bars or ribbon depending upon ci arguement
+
+      # Account for geom_ribbon show.legend parameter accepting values of 'NA' or 'FALSE'
+      show_ci_leg <- ifelse(ci_legend == TRUE, NA, FALSE)
 
       # Plot for no group_var
       if (is.null(group_var)) {
@@ -296,7 +312,6 @@ print(params)
             )
 
         # Add ribbon without grouping variable
-          # DOES NOT give additional legend
         } else if (ci == 'ribbon') {
 
           base <-
@@ -306,13 +321,13 @@ print(params)
                 x = .data[[x]],
                 ymin = .data[[lower]],
                 ymax = .data[[upper]],
+                fill = ci_legend_title,
                 group = 1
               ),
-              fill = error_colour,
-              #show.legend = ci_legend,
-              alpha = .5
-            ) #+
-            #scale_fill_manual("test",values=error_colour)
+              alpha = .5,
+              show.legend = show_ci_leg
+            ) +
+            scale_fill_manual("",values=error_colour)
         }
 
       # Plot for group_var provided
@@ -335,11 +350,7 @@ print(params)
             )
 
         # Add ribbon with grouping variable
-          # DOES give additional legend
         } else if (ci == 'ribbon') {
-
-          # Account for geom_ribbon show.legend parameter accepting values of 'NA' or 'FALSE'
-          show_ci_leg <- ifelse(ci_legend == TRUE, NA, FALSE)
 
           base <-
             base +
@@ -354,7 +365,9 @@ print(params)
               ),
               alpha = .5,
               show.legend = show_ci_leg
-            )
+            ) +
+            labs(fill = ci_legend_title)
+            #scale_fill_manual(name = "Confidence interval")
 
         }
       }
