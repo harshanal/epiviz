@@ -240,6 +240,9 @@ print(params)
     base$secondary_y_shift <- 0
   }
 
+print(paste0("scale: ",scale,", shift: ",shift)) ###
+print(df %>% select(y,upper,lower) %>% head()) ###
+
   # Apply the inv_scale_function (in utils) to the values that will be plotted on the
   # scaled secondary y axis (if they've been supplied)
   if (!is.null(y)) {
@@ -257,6 +260,8 @@ print(params)
   if (!is.null(hline)) {
     hline <- inv_scale_function(hline, scale, shift)
   }
+
+print(df %>% select(y,upper,lower) %>% head()) ###
 
 
 
@@ -462,8 +467,9 @@ print(params)
     base <- base + ggplot2::labs(x = x_label)
   }
 
+
   # Apply y label using arguments provided
-  if (!is.null(y_label)) {                      # bug in line_chart, change
+  if (!is.null(y_label) & (y_axis == "y1")) {                      # bug in line_chart, change
     base <- base + ggplot2::labs(y = y_label)
   }
 
@@ -499,8 +505,8 @@ print(params)
   # Remove or apply axis lines
   if (show_axislines) {
     base <- base + theme(
-      axis.line.x = element_line(colour = "black", linewidth = 1),
-      axis.line.y = element_line(colour = "black", linewidth = 1)
+      axis.line.x = element_line(colour = "black", linewidth = 0.5),
+      axis.line.y = element_line(colour = "black", linewidth = 0.5)
     )
   } else {
     base <- base + theme(
@@ -600,22 +606,18 @@ print(params)
 
   }
 
+
+  ##### Apply secondary axis
+
   if (y_axis == "y2") {
-    current_y_axis_name <-
-      ggplot_build(base)$layout$panel_params[[1]]$y$name
-    base <-
-      base  + scale_y_continuous(name = current_y_axis_name,
-                                 sec.axis = sec_axis( ~ scale_function(., scale, shift),
-                                                      name = y_label))
-  } else {
-    base <- base + ggplot2::labs(y = y_label)
+    base <- base +
+      scale_y_continuous(sec.axis = sec_axis(~scale_function(., scale, shift),
+                                             name = y_label))
   }
 
-  # # Apply x label using arguments provided
-  # if (!(is.null(x_label))) {
-  #   base <- base + ggplot2::labs(x = x_label)
-  #
-  # }
+
+
+  ##### Apply footer
 
   if (!(is.null(chart_footer))) {
     base  <- base  + ggplot2::labs(caption = chart_footer)
