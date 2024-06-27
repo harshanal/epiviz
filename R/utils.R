@@ -81,6 +81,42 @@ set_Arial <- function() {
     # Arial not included with linux as standard, so default to sans
     chart_font <- "sans"
   }
-  assign(chart_font, chart_font, envir = parent.frame())
+  assign("chart_font", chart_font, envir = parent.frame())
 }
+
+
+
+
+
+#' Function to assign list elements to variables within the parent
+#' environment. Compares input list against a vector of expected
+#' list elements, and assigns any that it cannot find a value of 'NULL'.
+#'
+#' @return
+#'
+#' @examples
+#' \dontrun{
+#' param_assign(params, c("df","x","y","legend","title"))
+#' }
+param_assign <- function(params, reference) {
+
+  # Define parameters from params list
+  for(i in 1:length(params)) {
+    assign(names(params)[i], params[[i]], envir = parent.frame())
+  }
+
+  # Set any unused parameter values to NULL
+  unused <- setdiff(reference, names(params))
+
+  if (length(unused) > 0) {
+    for(i in 1:length(unused)) {
+      assign(unused[i], NULL, envir = parent.frame())
+    }
+  }
+
+}
+
+
+
+
 

@@ -43,10 +43,11 @@
 #' @param labels_vjust the vertical adjustment of the point labels
 #' @param point_shape shape of the points to be plotted (only used when not plotting
 #' by group)
-#' @param no_shift If no shift should be applied to the secondary y-axis
+#' @param y_sec_axis_no_shift If no shift should be applied to the secondary y-axis
 #'
 #' @import assertthat
 #' @import grDevices
+#' @import scales
 #'
 #' @return the final plot
 #' @export
@@ -78,11 +79,14 @@ point_chart_plotly <- function(
                           group_var = NULL,
                           point_shape = "triangle",
                           point_colour = "blue",
-                          labels = NULL,
-                          labels_hjust = 0,
-                          labels_vjust = 0,
-                          y_axis = "y1",              ##add to line_chart?
-                          no_shift = FALSE,           ##add to line_chart?
+                          point_labels = NULL,
+                          point_labels_hjust = 0,
+                          point_labels_vjust = 0,
+                          point_labels_nudge_x = 0,
+                          point_labels_nudge_y = 0,
+                          #y_axis = "y1",              ##add to line_chart?
+                          y_sec_axis = FALSE,
+                          y_sec_axis_no_shift = FALSE,           ##add to line_chart?
                           chart_title = NULL,         # change to chart_title in line_chart
                           chart_footer = NULL,        ##add to line_chart?
                           x_label = NULL,
@@ -92,8 +96,10 @@ point_chart_plotly <- function(
                           y_percent = NULL,
                           st_theme = NULL,
                           x_labels_reverse = NULL,    ##add to line_chart?
-                          y_min_limit = NULL,         ##add to line_chart?
-                          y_max_limit= NULL,          ##add to line_chart?
+                          y_limit_min = NULL,         ##add to line_chart?
+                          y_limit_max = NULL,          ##add to line_chart?
+                          x_limit_min = NULL,         ##add to line_chart?
+                          x_limit_max = NULL,          ##add to line_chart?
                           x_axis_breaks = NULL,       ##add to line_chart?
                           show_gridlines = FALSE,
                           show_axislines = TRUE,
@@ -103,25 +109,29 @@ point_chart_plotly <- function(
                           hline_colour = "black",
                           hline_width = 0.5,          ##add to line_chart?
                           hline_type = "dashed",      ##add to line_chart?
-                          hline_label = NULL
+                          hline_label = NULL,
+                          hline_label_colour = "black"
                         )
                   ) {
 
 
-  # Solve warnings regarding font family not found using set_Arial() function (in utils)
+  # Solve warnings regarding font family not found using utils/set_Arial() function
   set_Arial()
 
 
-  # Assign any is.null default args to params list
+  # Assign any null default args to params list
   if(!exists('ci_legend',where=params)) params$ci_legend <- FALSE
   if(!exists('ci_legend_title',where=params)) params$ci_legend_title <- "Confidence interval"
   if(!exists('error_colour',where=params)) params$error_colour <- "red"
   if(!exists('point_shape',where=params)) params$point_shape <- "triangle"
   if(!exists('point_colour',where=params)) params$point_colour <- "blue"
-  if(!exists('labels_hjust',where=params)) params$labels_hjust <- 0
-  if(!exists('labels_vjust',where=params)) params$labels_vjust <- 0
-  if(!exists('y_axis',where=params)) params$y_axis <- "y1"
-  if(!exists('no_shift',where=params)) params$no_shift <- FALSE
+  if(!exists('point_labels_hjust',where=params)) params$point_labels_hjust <- 0
+  if(!exists('point_labels_vjust',where=params)) params$point_labels_vjust <- 0
+  if(!exists('point_labels_nudge_x',where=params)) params$point_labels_nudge_x <- 0
+  if(!exists('point_labels_nudge_y',where=params)) params$point_labels_nudge_y <- 0
+  #if(!exists('y_axis',where=params)) params$y_axis <- "y1"
+  if(!exists('y_sec_axis',where=params)) params$y_sec_axis <- FALSE
+  if(!exists('y_sec_axis_no_shift',where=params)) params$y_sec_axis_no_shift <- FALSE
   if(!exists('show_gridlines',where=params)) params$show_gridlines <- FALSE
   if(!exists('show_axislines',where=params)) params$show_axislines <- TRUE
   if(!exists('legend_title',where=params)) params$legend_title <- ""
@@ -129,9 +139,11 @@ point_chart_plotly <- function(
   if(!exists('hline_colour',where=params)) params$hline_colour <- "black"
   if(!exists('hline_width',where=params)) params$hline_width <- 0.5
   if(!exists('hline_type',where=params)) params$hline_type <- "dashed"
+  if(!exists('hline_label_colour',where=params)) params$hline_label_colour <- "black"
 
 
-print(params)
+
+print(params) ###
 
 
   ##### Checks and warnings
@@ -151,44 +163,152 @@ print(params)
     stop("Please include a variable from df for y, i.e. y = \"variable_name\"")
 
 
+  ### Parameter assignment
+
+  # Define parameters as variables using utils/param_assign() function
+  #   -Takes input list, compares it ro a reference vector of expected
+  #     list elements, assigns each element to a variable within the
+  #     parent environment, and allocates a value of 'NULL' to anything
+  #     it can't find within the reference list.
+  param_assign(params,
+               c("df","x","y","ci","ci_legend","ci_legend_title","lower",
+                 "upper","error_colour","group_var","point_shape","point_colour","point_labels",
+                 "point_labels_hjust","point_labels_vjust","point_labels_nudge_x",
+                 "point_labels_nudge_y","y_sec_axis","y_sec_axis_no_shift","chart_title",
+                 "chart_footer","x_label","x_label_angle","y_label","y_label_angle",
+                 "y_percent","st_theme","x_labels_reverse","y_limit_min","y_limit_max",
+                 "x_limit_min","x_limit_max",
+                 "x_axis_breaks","show_gridlines","show_axislines","legend_title","legend_pos",
+                 "hline","hline_colour","hline_width","hline_type","hline_label",
+                 "hline_label_colour"))
 
 
-  # Define parameters from params list
-  for(i in 1:length(params)) {
-    assign(names(params)[i], params[[i]])
-  }
-
-  # Set any unused parameter values to NULL
-  unused <- setdiff(c("df","x","y","ci","ci_legend","ci_legend_title","lower",
-                      "upper","error_colour","group_var","point_shape","point_colour","labels",
-                      "labels_hjust","labels_vjust","y_axis","no_shift","chart_title",
-                      "chart_footer","x_label","x_label_angle","y_label","y_label_angle",
-                      "y_percent","st_theme","x_labels_reverse","y_min_limit","y_max_limit",
-                      "x_axis_breaks","show_gridlines","show_axislines","legend_title","legend_pos",
-                      "hline","hline_colour","hline_width","hline_type","hline_label"),
-                    names(params))
-
-  if (length(unused) > 0) {
-    for(i in 1:length(unused)) {
-      assign(unused[i], NULL)
-    }
-  }
+  # # Define parameters from params list
+  # for(i in 1:length(params)) {
+  #   assign(names(params)[i], params[[i]])
+  # }
+  #
+  # # Set any unused parameter values to NULL
+  # unused <- setdiff(c("df","x","y","ci","ci_legend","ci_legend_title","lower",
+  #                     "upper","error_colour","group_var","point_shape","point_colour","point_labels",
+  #                     "point_labels_hjust","point_labels_vjust","y_axis","y_sec_axis_no_shift","chart_title",
+  #                     "chart_footer","x_label","x_label_angle","y_label","y_label_angle",
+  #                     "y_percent","st_theme","x_labels_reverse","y_min_limit","y_max_limit",
+  #                     "x_axis_breaks","show_gridlines","show_axislines","legend_title","legend_pos",
+  #                     "hline","hline_colour","hline_width","hline_type","hline_label"),
+  #                   names(params))
+  #
+  # if (length(unused) > 0) {
+  #   for(i in 1:length(unused)) {
+  #     assign(unused[i], NULL)
+  #   }
+  # }
 
 
 
   # Check that the data frame provided is not empty, else stop
   assertthat::assert_that(not_empty(df))
 
+
+
+  #################### BASE GGPLOT #######################################
+
+  ##### Create base ggplot
+
+  # create base plot
   if (is.null(base)) {
-    base <- ggplot2::ggplot()
+    base <- ggplot()
+  }
+
+  # Add theme if theme argument provided
+  if (!is.null(st_theme)) {
+    base <- base + st_theme
+  } else {
+    # If not provided, use the default theme
+    base <- base + ggplot2::theme_classic()
   }
 
 
 
-  ##### Secondary axis
+  ##### Add chart titles, footers, and axis labels
+
+  # Add title
+  if (!is.null(chart_title)) {
+    base <- base + ggplot2::labs(title = chart_title) +
+      # Add title and axis base styling
+      theme(plot.title = element_text(hjust = 0.5,
+                                      size = 12,
+                                      family = chart_font),
+            axis.title.x = element_text(face = "bold"),
+            axis.title.y = element_text(face = "bold"))
+  }
+
+  # Add footer
+  if (!(is.null(chart_footer))) {
+    base  <- base  + ggplot2::labs(caption = chart_footer)
+
+  }
+
+  # Apply x-axis label
+  if (!is.null(x_label)) {
+    base <- base + labs(x = x_label)
+  }
+
+  # Apply y-axis label
+  if (!is.null(y_label) & (y_sec_axis == FALSE)) {                      # bug in line_chart, change
+    base <- base + labs(y = y_label)
+  }
+
+  # Rotate axis text
+  if (!is.null(x_label_angle)) {
+    base <- base + theme(axis.text.x = element_text(angle  = x_label_angle, vjust = 0.5))
+  }
+
+  if (!is.null(y_label_angle)) {
+    base <- base + theme(axis.text.y = element_text(angle  = y_label_angle, vjust = 0.5))
+  }
+
+
+
+  ##### Grid and axis lines
+
+  ##dev separate options for major / minor, x / y ?
+
+  # Remove or apply grid lines
+  if (show_gridlines) {
+    base <- base + ggplot2::theme(
+      panel.grid.major = element_line(colour = "grey83", linewidth = 0.2),
+      panel.grid.minor = element_line(colour = "grey93", linewidth = 0.1)
+    )
+  } else {
+    base <- base + ggplot2::theme(
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+    )
+
+  }
+
+  # Remove or apply axis lines
+  if (show_axislines) {
+    base <- base + theme(
+      axis.line.x = element_line(colour = "black", linewidth = 0.5),
+      axis.line.y = element_line(colour = "black", linewidth = 0.5)
+    )
+  } else {
+    base <- base + theme(
+      axis.line.x = element_blank(),
+      axis.line.y = element_blank()
+    )
+  }
+
+
+
+  ##### Define secondary axis
+
+  # Applied separately below
 
   # If user wants to plot on the secondary y-axis
-  if (y_axis == "y2") {
+  if (y_sec_axis == TRUE) {
 
     # Get limits of current plotted data (returns -Inf if no data currently plotted)
     current_plotted_data_max <-
@@ -204,46 +324,43 @@ print(params)
     if (is.null(base$secondary_y_shift) &
         is.null(base$secondary_y_scale)) {
 
-        if (is.finite(current_plotted_data_max)) {
-          # If data has already been plotted on y1;
-          #   Scale and shift variables calculated based on desired mins and maxes
-          scale = (y2_max - y2_min) / (current_plotted_data_max - current_plotted_data_min)
-          shift = current_plotted_data_min - y2_min
-          # Add variables to chart "metadata"
-          base$secondary_y_shift <- shift
-          base$secondary_y_scale <- scale
-          # Get current y1 axis name
+      if (is.finite(current_plotted_data_max)) {
+        # If data has already been plotted on y1;
+        #   Scale and shift variables calculated based on desired mins and maxes
+        scale = (y2_max - y2_min) / (current_plotted_data_max - current_plotted_data_min)
+        shift = current_plotted_data_min - y2_min
+        # Add variables to chart "metadata"
+        base$secondary_y_shift <- shift
+        base$secondary_y_scale <- scale
+        # Get current y1 axis name
 
-        } else {
-          # If data hasn't already been plotted on y1;
-          #   Just plot data as normal but on y2
-          current_y_axis_name <- NULL
-          scale <- 1
-          shift <- 0
-        }
+      } else {
+        # If data hasn't already been plotted on y1;
+        #   Just plot data as normal but on y2
+        current_y_axis_name <- NULL
+        scale <- 1
+        shift <- 0
+      }
 
-    # If secondary y data has already been plotted
+      # If secondary y data has already been plotted
     } else {
       shift <- base$secondary_y_shift
       scale <- base$secondary_y_scale
     }
 
-  # User does not want to plot on secondary axis
+    # User does not want to plot on secondary axis
   } else {
     scale <- 1
     shift <- 0
   }
 
-  # Force shift to 0 if no_shift == TRUE
-  if (no_shift == TRUE) {
+  # Force shift to 0 if y_sec_axis_no_shift == TRUE
+  if (y_sec_axis_no_shift == TRUE) {
     shift <- 0
     base$secondary_y_shift <- 0
   }
 
-print(paste0("scale: ",scale,", shift: ",shift)) ###
-print(df %>% select(y,upper,lower) %>% head()) ###
-
-  # Apply the inv_scale_function (in utils) to the values that will be plotted on the
+  # Apply utils/inv_scale_function to the values that will be plotted on the
   # scaled secondary y axis (if they've been supplied)
   if (!is.null(y)) {
     df[[y]] <- inv_scale_function(df[[y]], scale, shift)
@@ -261,34 +378,149 @@ print(df %>% select(y,upper,lower) %>% head()) ###
     hline <- inv_scale_function(hline, scale, shift)
   }
 
-print(df %>% select(y,upper,lower) %>% head()) ###
 
 
 
+  ##### Apply hlines
 
+  # adds horizontal line at the y value specified for hline
+  if (!is.null(hline)) {
+    base <-
+      base + geom_hline(yintercept = hline,
+                        colour = hline_colour,
+                        linewidth = hline_width,
+                        linetype = hline_type)
+  }
 
-  # create base plot
-  if (is.null(base)) {
-    base <- ggplot2::ggplot() + ggplot2::theme_classic()
+  # If specified, add label to the start of the horizontal line
+  if (!is.null(hline) && !(is.null(hline_label))) {
+
+    # Define x-position of hline label
+    #   (leaving this static will cut off label if x_limit_min applied)
+    if (is.null(x_limit_min)) {
+      hline_xpos = min(df[[x]])
+    } else {
+      # account for xdate axis
+      if (is.Date(df[[x]])) {
+        hline_xpos <- as.Date(x_limit_min)
+      } else {
+        hline_xpos <- x_limit_min
+      }
+    }
+
+    # Apply hline label to plot
+    base <- base +
+      geom_text(
+        aes(
+          x = hline_xpos,
+          y = hline,
+          label = hline_label,
+          vjust = -0.5,
+          hjust = 0
+        ),
+        colour = hline_label_colour)
+
   }
 
 
-  # add default theme if theme argument not provided
-  if (!is.null(st_theme)) {
-    base <- base + st_theme
+
+  ##### Apply axis limits
+
+  # Build ylim and xlim vars for coord_cartesian
+
+  # y lower limit only
+  if (!is.null(y_limit_min) & is.null(y_limit_max)) {
+    ylim <- c(y_limit_min, NA)
+    # y upper limit only
+  } else if (is.null(y_limit_min) & !is.null(y_limit_max)) {
+    ylim <- c(NA, y_limit_max)
+    # y upper and lower limits
+  } else if (!is.null(y_limit_min) & !is.null(y_limit_max)) {
+    ylim <- c(y_limit_min, y_limit_max)
   } else {
-    # If not provided, use the default theme
-    base <- base + ggplot2::theme_classic()
+    ylim <- NULL
+  }
+
+  # x lower limit only
+  if (!is.null(x_limit_min) & is.null(x_limit_max)) {
+    xlim <- c(x_limit_min, NA)
+    # x upper limit only
+  } else if (is.null(x_limit_min) & !is.null(x_limit_max)) {
+    xlim <- c(NA, x_limit_max)
+    # x upper and lower limits
+  } else if (!is.null(x_limit_min) & !is.null(x_limit_max)) {
+    xlim <- c(x_limit_min, x_limit_max)
+  } else {
+    xlim <- NULL
+  }
+
+  # Convert any date axis limits to dates if necessary
+  if (is.Date(df[[y]]) & !is.null(ylim)) {ylim <- as.Date(ylim)}
+  if (is.Date(df[[x]]) & !is.null(xlim)) {xlim <- as.Date(xlim)}
+
+  # Apply axis limits to base plot
+  if (!is.null(ylim) & is.null(xlim)) {
+    base <- base + coord_cartesian(ylim = ylim)
+  } else if (is.null(ylim) & !is.null(xlim)) {
+    base <- base + coord_cartesian(xlim = xlim)
+  } else if (!is.null(ylim) & !is.null(xlim)) {
+    base <- base + coord_cartesian(xlim = xlim, ylim = ylim)
+  } else {
+    base <- base
   }
 
 
 
+  ##### Change y-axis to percentage scale
 
-  ##### Confidence intervals
+  if (!(is.null(y_percent))) {
 
-  # Add conf intervals if arguments for ci and upper+lower bounds are provided
-  # Apply before main point-plot so that points appear in front of bars / ribbons
+    base <-
+      base + scale_y_continuous(
+        ##labels = function(x) paste0(x, "%")
+        labels = scales::label_percent()
+      )
 
+  }
+
+
+  ##### Apply secondary axis
+
+  if (y_sec_axis == TRUE) {
+    # apply percentage scale if invoked
+    if (is.null(y_percent)) {
+      base <- base +
+        scale_y_continuous(sec.axis = sec_axis(~scale_function(., scale, shift),
+                                               name = y_label))
+    } else {
+      base <- base +
+        scale_y_continuous(sec.axis = sec_axis(~scale_function(., scale, shift),
+                                               name = y_label,
+                                               labels = scales::label_percent()))
+    }
+  }
+
+
+
+  # # Reverse the x axis scales for discrete variable (factors) if argument provided
+  # if (!(is.null(x_labels_reverse))) {
+  #   if (is.factor(df[[x]])) {
+  #     base  <-
+  #       base + ggplot2::scale_x_discrete(limits = rev(levels(df[[x]])))
+  #
+  #   }
+  # }
+
+
+
+
+  #################### POINT CHART #################################
+
+  ##### Apply confidence intervals
+
+  # Apply before main point-plot so that points appear in front of bars / ribbons.
+
+  # Add conf intervals if arguments for ci and upper+lower bounds are provided.
   if(!is.null(ci)) {
 
     if(!is.null(lower) && !is.null(upper)) {
@@ -386,13 +618,12 @@ print(df %>% select(y,upper,lower) %>% head()) ###
 
 
 
-
-  ##### Build base point plot
+  ##### Build point plot
 
   # Build according to whether plotting variables are grouped or not
   if(is.null(group_var)) {
 
-    # create base graph without groups
+    # create base point chart without groups
     base <-
       base + ggplot2::geom_point(
         data = df,
@@ -404,7 +635,7 @@ print(df %>% select(y,upper,lower) %>% head()) ###
 
   } else {
 
-    # creating base graph with groups
+    # creating base point chart with groups
     base <-
       base + ggplot2::geom_point(
         data = df,
@@ -418,8 +649,7 @@ print(df %>% select(y,upper,lower) %>% head()) ###
       )
 
 
-
-    ##### Legend parameters
+    ##### Apply point legend parameters
 
     if (!is.null(legend_title)) {
       base <-  base + labs(name = legend_title,
@@ -434,197 +664,30 @@ print(df %>% select(y,upper,lower) %>% head()) ###
   }
 
 
+  ##### Apply point labels
 
-  ##### Apply chart labels
-
-  if (!is.null(labels)) {
+  if (!is.null(point_labels)) {
     base <-
       base + geom_text(
         data = df,
         aes(
           x = .data[[x]],
           y = .data[[y]],
-          label = round(.data$original_label, 0)
+          label = .data[[point_labels]]
         ),
-        hjust = labels_hjust,
-        vjust = labels_vjust
+        hjust = point_labels_hjust,
+        vjust = point_labels_vjust,
+        nudge_x = point_labels_nudge_x,
+        nudge_y = point_labels_nudge_y
       )
   }
 
 
+  ########################################
 
-  ##### Titles and axis labels
+  return(base)
 
-  # Add title
-  if (!is.null(chart_title)) {
-    base <- base + ggplot2::labs(title = chart_title) +
-      # centre title
-      theme(plot.title = element_text(hjust = 0.5))
-  }
-
-  # Apply x label using arguments provided
-  if (!is.null(x_label)) {
-    base <- base + ggplot2::labs(x = x_label)
-  }
-
-
-  # Apply y label using arguments provided
-  if (!is.null(y_label) & (y_axis == "y1")) {                      # bug in line_chart, change
-    base <- base + ggplot2::labs(y = y_label)
-  }
-
-  # Rotate axis text if angle is given
-  if (!is.null(x_label_angle)) {
-    base <- base + ggplot2::theme(axis.text.x = element_text(angle  = x_label_angle, vjust = 0.5))
-  }
-
-  if (!is.null(y_label_angle)) {
-    base <- base + ggplot2::theme(axis.text.y = element_text(angle  = y_label_angle, vjust = 0.5))
-  }
-
-
-
-
-  ##### Grid lines and axes
-
-  # Remove or apply major and minor grid lines
-  if (!show_gridlines) {
-    base <- base + ggplot2::theme(
-      panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank(),
-    )
-  } else {
-    base <- base + ggplot2::theme(
-      panel.grid.major = element_line(colour = "grey83", linewidth = 0.2),
-      panel.grid.minor = element_line(colour = "grey93", linewidth = 0.1)
-    )
-
-  }
-
-
-  # Remove or apply axis lines
-  if (show_axislines) {
-    base <- base + theme(
-      axis.line.x = element_line(colour = "black", linewidth = 0.5),
-      axis.line.y = element_line(colour = "black", linewidth = 0.5)
-    )
-  } else {
-    base <- base + theme(
-      axis.line.x = element_blank(),
-      axis.line.y = element_blank()
-    )
-  }
-
-
-
-
-
-
-
-  ##### Apply hlines
-
-  # adds horizontal line at the y value specified for hline
-  if (!is.null(hline)) {
-    base <-
-      base + geom_hline(yintercept = hline,
-                        colour = hline_colour,
-                        linewidth = hline_width,
-                        linetype = hline_type)
-  }
-
-  # adds a label specified at the start of the horizontal line
-  if (!is.null(hline) && !(is.null(hline_label))) {
-    base <-
-      base + geom_text(aes(
-        x = min(df[[x]]),
-        y = hline,
-        label = hline_label,
-        vjust = -1,  ##d adjust
-        hjust = -0.1
-      ))
-
-  }
-
-
-  # # Theme settings
-  # base <-
-  #   base + ggplot2::theme(
-  #     #legend.title = element_blank(),
-  #     #legend.position = legend_pos,
-  #     #axis.text.x = element_text(angle  = x_label_angle, vjust = 0.5)
-  #   )
-
-
-  # Reverse the x axis scales for discrete variable (factors) if argument provided
-  if (!(is.null(x_labels_reverse))) {
-    if (is.factor(df[[x]])) {
-      base  <-
-        base + ggplot2::scale_x_discrete(limits = rev(levels(df[[x]])))
-
-    }
-  }
-
-
-
-  if (!(is.null(y_min_limit))) {
-    base  <-
-      base + ggplot2::scale_y_continuous(limits = c(y_min_limit, y_max_limit))
-
-  }
-
-
-
-  # Set title styling
-  base <-
-    base + ggplot2::theme(
-      text = element_text(size = 12, family = chart_font),
-      axis.title.x = element_text(face = "bold"),
-      axis.title.y = element_text(face = "bold")
-    )
-
-
-
-  # #remove major y grid lines
-  # if (!(is.null(remove_gridlines))) {
-  #   base <-
-  #     base + ggplot2::theme(panel.grid.major.y = element_blank())
-  #
-  # }
-
-
-
-  #append percentage labels
-  if (!(is.null(y_percent))) {
-
-    ##d change to scales functionality
-
-    base <-
-      base + ggplot2::scale_y_continuous(
-        labels = function(x)
-          paste0(x, "%")
-      )
-
-  }
-
-
-  ##### Apply secondary axis
-
-  if (y_axis == "y2") {
-    base <- base +
-      scale_y_continuous(sec.axis = sec_axis(~scale_function(., scale, shift),
-                                             name = y_label))
-  }
-
-
-
-  ##### Apply footer
-
-  if (!(is.null(chart_footer))) {
-    base  <- base  + ggplot2::labs(caption = chart_footer)
-
-  }
-
-  return(base)}
+}
 
 
 
