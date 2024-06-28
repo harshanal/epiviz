@@ -465,13 +465,16 @@ epi_map <- function (dynamic = FALSE,
     n_pal <- as.numeric(length(break_intervals))
 
     # Designate RColorBrewer palette for map
-    #   RColourBrewer::brewer.pal has a min palette size of 3,
-    #   if n_pal <= 2 manually create 2 element palette
+    #   RColourBrewer::brewer.pal has a min palette size of 3 and max of 9
+    #   -If n_pal <= 2, manually create 2 element palette
+    #   -If n_pal >= 9, extend palette with colorRampPalette()
     if (n_pal <= 2) {
       suppressWarnings({
-        pal <- RColorBrewer::brewer.pal(n = n_pal, name = fill_palette)
+          pal <- RColorBrewer::brewer.pal(n = n_pal, name = fill_palette)
       })
       pal <- c(first(pal),last(pal))
+    } else if (n_pal >= 9) {
+      pal <- colorRampPalette(RColorBrewer::brewer.pal(n = 9, name = fill_palette))(n_pal)
     } else {
       pal <- RColorBrewer::brewer.pal(n = n_pal, name = fill_palette)
     }
@@ -494,13 +497,16 @@ epi_map <- function (dynamic = FALSE,
     }
 
     # Designate RColorBrewer palette for map
-    #   RColourBrewer::brewer.pal has a min palette size of 3,
-    #   if n_pal <= 2 manually create 2 element palette
+    #   RColourBrewer::brewer.pal has a min palette size of 3 and max of 9
+    #   -If n_pal <= 2, manually create 2 element palette
+    #   -If n_pal >= 9, extend palette with colorRampPalette()
     if (n_pal <= 2) {
       suppressWarnings({
         pal <- RColorBrewer::brewer.pal(n = n_pal, name = fill_palette)
-                      })
+      })
       pal <- c(first(pal),last(pal))
+    } else if (n_pal >= 9) {
+      pal <- colorRampPalette(RColorBrewer::brewer.pal(n = 9, name = fill_palette))(n_pal)
     } else {
       pal <- RColorBrewer::brewer.pal(n = n_pal, name = fill_palette)
     }
