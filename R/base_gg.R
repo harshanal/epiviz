@@ -1,12 +1,18 @@
 
+#' Creates base ggplot object for use across other functions.
+#' Parameters are not passed explicitely to the function, so
+#' function call needs to be proceeded by environment(base_gg) <- environment()
+#'
+#' @return ggplot object
+#'
+#' \dontrun{
+#' environment(base_gg) <- environment()
+#' base <- base_gg()
+#' }
 base_gg <- function() {
 
-  #env = parent.frame()
 
-#################### BASE GGPLOT OBJECT #######################################
-
-
-  ##### Create base ggplot
+  ##### Create base ggplot object
 
   # create base plot
   if (is.null(base)) {

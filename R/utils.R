@@ -89,8 +89,11 @@ set_Arial <- function() {
 
 
 #' Function to assign list elements to variables within the parent
-#' environment. Compares input list against a vector of expected
+#' environment. Compares input list against a reference vector of expected
 #' list elements, and assigns any that it cannot find a value of 'NULL'.
+#'
+#' @param params List of input parameters.
+#' @param reference Character vector of expected parameters.
 #'
 #' @return
 #'

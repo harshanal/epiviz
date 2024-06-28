@@ -212,7 +212,12 @@ print(params) ###
 
 
   # Define base ggplot object using R/base_gg() function
-  base_gg()
+  #    -Force base_gg() to run in calling environment so it can find variables
+  #     (lexical scoping will cause it to look for unfound variables in /R where
+  #     it's stored rather than within the calling function's environment)
+  environment(base_gg) <- environment()
+  base <- base_gg()
+
 
 
 
