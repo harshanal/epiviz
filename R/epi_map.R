@@ -464,8 +464,17 @@ epi_map <- function (dynamic = FALSE,
     # Count number of intervals for palette
     n_pal <- as.numeric(length(break_intervals))
 
-    # Designate RColorBrewer palatte for map
-    pal <- RColorBrewer::brewer.pal(n = n_pal, name = fill_palette)
+    # Designate RColorBrewer palette for map
+    #   RColourBrewer::brewer.pal has a min palette size of 3,
+    #   if n_pal <= 2 manually create 2 element palette
+    if (n_pal <= 2) {
+      suppressWarnings({
+        pal <- RColorBrewer::brewer.pal(n = n_pal, name = fill_palette)
+      })
+      pal <- c(first(pal),last(pal))
+    } else {
+      pal <- RColorBrewer::brewer.pal(n = n_pal, name = fill_palette)
+    }
 
     # Create df of colours + categories for legend
     pal <- data.frame(value_cat = break_labels,
@@ -485,10 +494,19 @@ epi_map <- function (dynamic = FALSE,
     }
 
     # Designate RColorBrewer palette for map
-    pal <- RColorBrewer::brewer.pal(n = n_pal, name = fill_palette)
+    #   RColourBrewer::brewer.pal has a min palette size of 3,
+    #   if n_pal <= 2 manually create 2 element palette
+    if (n_pal <= 2) {
+      suppressWarnings({
+        pal <- RColorBrewer::brewer.pal(n = n_pal, name = fill_palette)
+                      })
+      pal <- c(first(pal),last(pal))
+    } else {
+      pal <- RColorBrewer::brewer.pal(n = n_pal, name = fill_palette)
+    }
 
     # Create df of colours + categories for legend
-    pal <- data.frame(value_cat = levels(cut(unlist(df$Value), n_breaks, dig.lab=10)),
+    pal <- data.frame(value_cat = levels(cut(unlist(df$Value), n_pal, dig.lab=10)),
                       fill_colour = pal) |>
       mutate(value_cat = gsub("\\(|\\]", "", unlist(value_cat))) |>
       mutate(value_cat = gsub("\\,", " - ", unlist(value_cat)))
@@ -500,7 +518,6 @@ epi_map <- function (dynamic = FALSE,
 
   # merge fill-colors back into df for use in leaflet
   df <- merge(data_sf, pal, by = "value_cat")
-
 
 
 
