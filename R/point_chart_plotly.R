@@ -15,7 +15,7 @@
 #' enter 'errorbar' for error bar, enter 'ribbon' for ribbon
 #' @param lower lower value for error \ ribbon geom (mandatory if ci argument passed)
 #' @param upper upper value for error \ ribbon geom (mandatory if ci argument passed)
-#' @param error_colour if not plotting by group this is the colour of the error
+#' @param error_colours if not plotting by group this is the colour of the error
 #' bars or ribbon
 #' @param hline will display a horizontal line if valid inter passed
 #' provided where multiple lines generated each will be of different type
@@ -75,10 +75,11 @@ point_chart_plotly <- function(
                           ci_legend_title = "Confidence interval",
                           lower = NULL,
                           upper = NULL,
-                          error_colour = "red",
+                          error_colours = "red",
+                          errorbar_width = NULL,
                           group_var = NULL,
                           point_shape = "triangle",
-                          point_colour = "blue",
+                          point_colours = "blue",
                           point_labels = NULL,
                           point_labels_hjust = 0,
                           point_labels_vjust = 0,
@@ -122,9 +123,10 @@ point_chart_plotly <- function(
   # Assign any null default args to params list
   if(!exists('ci_legend',where=params)) params$ci_legend <- FALSE
   if(!exists('ci_legend_title',where=params)) params$ci_legend_title <- "Confidence interval"
-  if(!exists('error_colour',where=params)) params$error_colour <- "red"
+  if(!exists('error_colours',where=params)) params$error_colours <- "red"
+  if(!exists('errorbar_width',where=params)) params$errorbar_width <- NULL
   if(!exists('point_shape',where=params)) params$point_shape <- "triangle"
-  if(!exists('point_colour',where=params)) params$point_colour <- "blue"
+  if(!exists('point_colours',where=params)) params$point_colours <- "blue"
   if(!exists('point_labels_hjust',where=params)) params$point_labels_hjust <- 0
   if(!exists('point_labels_vjust',where=params)) params$point_labels_vjust <- 0
   if(!exists('point_labels_nudge_x',where=params)) params$point_labels_nudge_x <- 0
@@ -162,6 +164,11 @@ print(params) ###
   if ((is.null(params$y)) | !exists('y',where=params))
     stop("Please include a variable from df for y, i.e. y = \"variable_name\"")
 
+  # Check if number of groups and number of line colours the same
+
+  # Warn that multiple colours have been provided but group var absent
+
+
 
   ### Parameter assignment
 
@@ -172,7 +179,8 @@ print(params) ###
   #     it can't find within the reference list.
   param_assign(params,
                c("df","x","y","ci","ci_legend","ci_legend_title","lower",
-                 "upper","error_colour","group_var","point_shape","point_colour","point_labels",
+                 "upper","error_colours","errorbar_width","group_var","point_shape",
+                 "point_colours","point_labels",
                  "point_labels_hjust","point_labels_vjust","point_labels_nudge_x",
                  "point_labels_nudge_y","y_sec_axis","y_sec_axis_no_shift","chart_title",
                  "chart_footer","x_label","x_label_angle","y_label","y_label_angle",
@@ -190,7 +198,7 @@ print(params) ###
   #
   # # Set any unused parameter values to NULL
   # unused <- setdiff(c("df","x","y","ci","ci_legend","ci_legend_title","lower",
-  #                     "upper","error_colour","group_var","point_shape","point_colour","point_labels",
+  #                     "upper","error_colours","group_var","point_shape","point_colours","point_labels",
   #                     "point_labels_hjust","point_labels_vjust","y_axis","y_sec_axis_no_shift","chart_title",
   #                     "chart_footer","x_label","x_label_angle","y_label","y_label_angle",
   #                     "y_percent","st_theme","x_labels_reverse","y_min_limit","y_max_limit",
@@ -216,7 +224,11 @@ print(params) ###
   #     (lexical scoping will cause it to look for unfound variables in /R where
   #     it's stored rather than within the calling function's environment)
   environment(base_gg) <- environment()
-  base <- base_gg()
+  base_return <- base_gg()
+
+  # base_gg() returns a list containing base and df; extract here
+  base <- base_return$base
+  df <- base_return$df
 
 
 
@@ -233,6 +245,15 @@ print(params) ###
     if(!is.null(lower) && !is.null(upper)) {
 
       # Add error bars or ribbon depending upon ci arguement
+
+      # If errorbar_width not provided; define default based on x-axis limits
+      if (is.null(errorbar_width)) {
+        if (is.null(base$coordinates$limits$x)) {
+          errorbar_width <- as.numeric((max(df[[x]]) - min(df[[x]])) / 100)
+        } else {
+          errorbar_width <- as.numeric((base$coordinates$limits$x[[2]] - base$coordinates$limits$x[[1]]) / 100)
+        }
+      }
 
       # Account for geom_ribbon show.legend parameter accepting values of 'NA' or 'FALSE'
       show_ci_leg <- ifelse(ci_legend == TRUE, NA, FALSE)
@@ -251,7 +272,8 @@ print(params) ###
                 ymin = .data[[lower]],
                 ymax = .data[[upper]]
               ),
-              colour = error_colour,
+              colour = error_colours[[1]],
+              width = errorbar_width,
               linewidth = 0.5
             )
 
@@ -271,7 +293,7 @@ print(params) ###
               alpha = .5,
               show.legend = show_ci_leg
             ) +
-            scale_fill_manual("",values=error_colour)
+            scale_fill_manual("",values=error_colours[[1]])
         }
 
       # Plot for group_var provided
@@ -290,8 +312,15 @@ print(params) ###
                 group = .data[[group_var]],
                 colour =  .data[[group_var]]
               ),
+              width = errorbar_width,
               linewidth = .5
             )
+
+          # Add error_colours if provided
+          if (length(error_colours) > 1) {
+            base <- base +
+              scale_colour_manual(values = error_colours)
+          }
 
         # Add ribbon with grouping variable
         } else if (ci == 'ribbon') {
@@ -311,7 +340,12 @@ print(params) ###
               show.legend = show_ci_leg
             ) +
             labs(fill = ci_legend_title)
-            #scale_fill_manual(name = "Confidence interval")
+
+            # Add error_colours if provided
+            if (length(error_colours) > 1) {
+              base <- base +
+                scale_fill_manual(values = error_colours)
+            }
 
         }
       }
@@ -336,7 +370,7 @@ print(params) ###
         data = df,
         aes(x = .data[[x]],
             y = .data[[y]]),
-        color = point_colour,
+        color = point_colours[[1]],
         shape = point_shape
       )
 
@@ -354,6 +388,12 @@ print(params) ###
           shape = factor(.data[[group_var]])
         )
       )
+
+    # Add point_colours if provided
+    if (length(point_colours) > 1) {
+      base <- base +
+        scale_colour_manual(values = point_colours)
+    }
 
 
     ##### Apply point legend parameters
@@ -389,6 +429,27 @@ print(params) ###
       )
   }
 
+
+  # ##### Apply secondary axis
+  #
+  # if (y_sec_axis == TRUE) {
+  #   # apply percentage scale if invoked
+  #   if (is.null(y_percent)) {
+  #     base <- base +
+  #       # scale_y_continuous(sec.axis = sec_axis(~scale_function(., scale, shift),
+  #       #                                        name = y_label))
+  #     scale_y_continuous(sec.axis = sec_axis(~ . * scale + shift,
+  #                                            name = y_label))
+  #   } else {
+  #     base <- base +
+  #       # scale_y_continuous(sec.axis = sec_axis(~scale_function(., scale, shift),
+  #       #                                        name = y_label,
+  #       #                                        labels = scales::label_percent()))
+  #     scale_y_continuous(sec.axis = sec_axis(~ . * scale + shift,
+  #                                            name = y_label,
+  #                                            labels = scales::label_percent()))
+  #   }
+  # }
 
   ########################################
 

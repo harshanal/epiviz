@@ -195,16 +195,24 @@ base_gg <- function() {
   if (!is.null(hline) && !(is.null(hline_label))) {
 
     # Define x-position of hline label
-    #   (leaving this static will cut off label if x_limit_min applied)
-    if (is.null(x_limit_min)) {
-      hline_xpos = min(df[[x]])
+
+    # If x limits already defined in base then use their lower limit
+    if (!is.null(base$coordinates$limits$x[[1]])) {
+      hline_xpos <- base$coordinates$limits$x[[1]]
     } else {
-      # account for xdate axis
-      if (is.Date(df[[x]])) {
-        hline_xpos <- as.Date(x_limit_min)
+
+      # If x_limit_min arguement passed then use this, else use minimum value of df[[x]]
+      if (is.null(x_limit_min)) {
+        hline_xpos <- min(df[[x]])
       } else {
-        hline_xpos <- x_limit_min
+        # account for xdate axis
+        if (is.Date(df[[x]])) {
+          hline_xpos <- as.Date(x_limit_min)
+        } else {
+          hline_xpos <- x_limit_min
+        }
       }
+
     }
 
     # Apply hline label to plot
@@ -289,15 +297,21 @@ base_gg <- function() {
     # apply percentage scale if invoked
     if (is.null(y_percent)) {
       base <- base +
-        scale_y_continuous(sec.axis = sec_axis(~scale_function(., scale, shift),
+        # scale_y_continuous(sec.axis = sec_axis(~scale_function(., scale, shift),
+        #                                        name = y_label))
+        scale_y_continuous(sec.axis = sec_axis(~ . * scale + shift,
                                                name = y_label))
     } else {
       base <- base +
-        scale_y_continuous(sec.axis = sec_axis(~scale_function(., scale, shift),
+        # scale_y_continuous(sec.axis = sec_axis(~scale_function(., scale, shift),
+        #                                        name = y_label,
+        #                                        labels = scales::label_percent()))
+        scale_y_continuous(sec.axis = sec_axis(~ . * scale + shift,
                                                name = y_label,
                                                labels = scales::label_percent()))
     }
   }
+
 
 
 
@@ -310,7 +324,15 @@ base_gg <- function() {
   #   }
   # }
 
-  return(base)
+
+  ##### Return both df and base
+  #       (df$y may have been modified through sec axis scaling)
+
+  return_list <- list("base" = base, "df" = df)
+
+  return(return_list)
+
+  #return(base)
 
 }
 
