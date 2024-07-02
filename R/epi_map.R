@@ -371,10 +371,15 @@ epi_map <- function (dynamic = FALSE,
 
 
   # define area centroid long & lat for label positions
-  df <- df |>
-    mutate(centroid_long = sf::st_coordinates(sf::st_centroid(df$geometry))[,1],
-           centroid_lat = sf::st_coordinates(sf::st_centroid(df$geometry))[,2])
 
+    # Eliminate 'Edge X has duplicate vertex' error, issue with warnings still
+    sf_use_s2(FALSE)
+    # Above generates warnings each run, suppress
+    suppressWarnings(
+      df <- df |>
+      mutate(centroid_long = sf::st_coordinates(sf::st_centroid(df$geometry))[,1],
+             centroid_lat = sf::st_coordinates(sf::st_centroid(df$geometry))[,2])
+    )
 
   # Define static area labels
   if(area_labels == TRUE) {
