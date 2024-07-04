@@ -372,13 +372,21 @@ epi_map <- function (dynamic = FALSE,
 
   # define area centroid long & lat for label positions
 
-    # Eliminate 'Edge X has duplicate vertex' error, issue with warnings still
-    sf_use_s2(FALSE)
-    # Above generates warnings each run, suppress
+    # Temporarily turn off spherical geometry to eliminate 'Edge X has duplicate vertex' error
+    #    Centroids only used to position chart labels, true spherical centroid not needed
+    suppressMessages(
+      sf_use_s2(FALSE)
+    )
+    # Above generates warnings with each run, suppress
     suppressWarnings(
+      # Add centroid co-ords to df
       df <- df |>
       mutate(centroid_long = sf::st_coordinates(sf::st_centroid(df$geometry))[,1],
              centroid_lat = sf::st_coordinates(sf::st_centroid(df$geometry))[,2])
+    )
+    # Turn spherical geometry back on
+    suppressMessages(
+      sf_use_s2(TRUE)
     )
 
   # Define static area labels
