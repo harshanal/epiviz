@@ -96,7 +96,7 @@ point_chart_plotly <- function(
                           y_label_angle = NULL,
                           y_percent = NULL,
                           st_theme = NULL,
-                          x_labels_reverse = NULL,    ##add to line_chart?
+                          x_labels_reverse = FALSE,    ##add to line_chart?
                           y_limit_min = NULL,         ##add to line_chart?
                           y_limit_max = NULL,          ##add to line_chart?
                           x_limit_min = NULL,         ##add to line_chart?
@@ -134,6 +134,7 @@ point_chart_plotly <- function(
   #if(!exists('y_axis',where=params)) params$y_axis <- "y1"
   if(!exists('y_sec_axis',where=params)) params$y_sec_axis <- FALSE
   if(!exists('y_sec_axis_no_shift',where=params)) params$y_sec_axis_no_shift <- FALSE
+  if(!exists('x_labels_reverse',where=params)) params$x_labels_reverse <- FALSE
   if(!exists('show_gridlines',where=params)) params$show_gridlines <- FALSE
   if(!exists('show_axislines',where=params)) params$show_axislines <- TRUE
   if(!exists('legend_title',where=params)) params$legend_title <- ""
@@ -267,7 +268,7 @@ print(params) ###
           base <-
             base + ggplot2::geom_errorbar(
               data = df,
-              aes(
+              mapping = aes(
                 x = .data[[x]],
                 ymin = .data[[lower]],
                 ymax = .data[[upper]]
@@ -283,7 +284,7 @@ print(params) ###
           base <-
             base + ggplot2::geom_ribbon(
               data = df,
-              aes(
+              mapping = aes(
                 x = .data[[x]],
                 ymin = .data[[lower]],
                 ymax = .data[[upper]],
@@ -305,7 +306,7 @@ print(params) ###
           base <-
             base + ggplot2::geom_errorbar(
               data = df,
-              aes(
+              mapping = aes(
                 x = .data[[x]],
                 ymin = .data[[lower]],
                 ymax = .data[[upper]],
@@ -329,7 +330,7 @@ print(params) ###
             base +
             ggplot2::geom_ribbon(
               data = df,
-              aes(
+              mapping = aes(
                 x = .data[[x]],
                 ymin = .data[[lower]],
                 ymax = .data[[upper]],
@@ -359,7 +360,7 @@ print(params) ###
 
 
 
-  ##### Build point plot
+  ##### Build point chart
 
   # Build according to whether plotting variables are grouped or not
   if(is.null(group_var)) {
@@ -368,7 +369,7 @@ print(params) ###
     base <-
       base + ggplot2::geom_point(
         data = df,
-        aes(x = .data[[x]],
+        mapping = aes(x = .data[[x]],
             y = .data[[y]]),
         color = point_colours[[1]],
         shape = point_shape
@@ -380,7 +381,7 @@ print(params) ###
     base <-
       base + ggplot2::geom_point(
         data = df,
-        aes(
+        mapping = aes(
           x = .data[[x]],
           y = .data[[y]],
           group = factor(.data[[group_var]]),
@@ -417,7 +418,7 @@ print(params) ###
     base <-
       base + geom_text(
         data = df,
-        aes(
+        mapping = aes(
           x = .data[[x]],
           y = .data[[y]],
           label = .data[[point_labels]]

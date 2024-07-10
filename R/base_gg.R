@@ -180,54 +180,56 @@ base_gg <- function() {
 
 
 
-  ##### Apply hlines
 
-  # adds horizontal line at the y value specified for hline
-  if (!is.null(hline)) {
-    base <-
-      base + geom_hline(yintercept = hline,
-                        colour = hline_colour,
-                        linewidth = hline_width,
-                        linetype = hline_type)
-  }
+  ##### Reverse axes
 
-  # If specified, add label to the start of the horizontal line
-  if (!is.null(hline) && !(is.null(hline_label))) {
+  # Note: Done at this stage as it alters x/y limits
+      # https://github.com/tidyverse/ggplot2/issues/4014
 
-    # Define x-position of hline label
+  # x-axis
+  if (x_labels_reverse == TRUE) {
 
-    # If x limits already defined in base then use their lower limit
-    if (!is.null(base$coordinates$limits$x[[1]])) {
-      hline_xpos <- base$coordinates$limits$x[[1]]
+    # Limits need to be inverted if axis is reversed
+
+    # 1) Obtain limits from base plot if available
+    if (!is.null((base$coordinates$limits$x)[2])) {x_limit_max <- (base$coordinates$limits$x)[2]}
+    if (!is.null((base$coordinates$limits$x)[1])) {x_limit_min <- (base$coordinates$limits$x)[1]}
+
+    # 2) Supercede with newly specified limits if provided
+    if (!is.null(params$x_limit_max)) {x_limit_max <- params$x_limit_max}
+    if (!is.null(params$x_limit_min)) {x_limit_min <- params$x_limit_min}
+
+    # 3) Invert these limits
+    x_limit_max_start <- x_limit_max  # Redefine starting vars here else the inversion below
+    x_limit_min_start <- x_limit_min  #    will pick up the inverted var and duplicate
+
+    x_limit_max <- x_limit_min_start
+    x_limit_min <- x_limit_max_start
+
+    # 4) Convert to dates if needed
+    x_limit_max <- if (is.Date(df[[x]]) & !is.null(x_limit_max)) {as.Date(x_limit_max)} else {x_limit_max}
+    x_limit_min <- if (is.Date(df[[x]]) & !is.null(x_limit_min)) {as.Date(x_limit_min)} else {x_limit_min}
+
+
+    # Apply axis inversion
+    if (is.Date(df[[x]])) { # Handle date axes
+      base <- base + scale_x_continuous(trans = c("date", "reverse"))
     } else {
-
-      # If x_limit_min arguement passed then use this, else use minimum value of df[[x]]
-      if (is.null(x_limit_min)) {
-        hline_xpos <- min(df[[x]])
-      } else {
-        # account for xdate axis
-        if (is.Date(df[[x]])) {
-          hline_xpos <- as.Date(x_limit_min)
-        } else {
-          hline_xpos <- x_limit_min
-        }
-      }
-
+      base <- base + scale_x_reverse()
     }
 
-    # Apply hline label to plot
-    base <- base +
-      geom_text(
-        aes(
-          x = hline_xpos,
-          y = hline,
-          label = hline_label,
-          vjust = -0.5,
-          hjust = 0
-        ),
-        colour = hline_label_colour)
-
   }
+##d handle factors
+
+  # # Reverse the x axis scales for discrete variable (factors) if argument provided
+  # if (!(is.null(x_labels_reverse))) {
+  #   if (is.factor(df[[x]])) {
+  #     base  <-
+  #       base + ggplot2::scale_x_discrete(limits = rev(levels(df[[x]])))
+  #
+  #   }
+  # }
+
 
 
 
@@ -257,6 +259,7 @@ base_gg <- function() {
     # x upper and lower limits
   } else if (!is.null(x_limit_min) & !is.null(x_limit_max)) {
     xlim <- c(x_limit_min, x_limit_max)
+
   } else {
     xlim <- NULL
   }
@@ -278,6 +281,41 @@ base_gg <- function() {
 
 
 
+
+  ##### Apply hlines
+
+  # adds horizontal line at the y value specified for hline
+  if (!is.null(hline)) {
+    base <-
+      base + geom_hline(yintercept = hline,
+                        colour = hline_colour,
+                        linewidth = hline_width,
+                        linetype = hline_type)
+  }
+
+  # If specified, add label to the start of the horizontal line
+  if (!is.null(hline) && !(is.null(hline_label))) {
+
+    # Define x-position of hline label
+    hline_xpos <- base$coordinates$limits$x[[1]]
+
+    # Apply hline label to plot
+    base <- base +
+      geom_text(
+        aes(
+          x = hline_xpos,
+          y = hline,
+          label = hline_label,
+          vjust = -0.5,
+          hjust = 0
+        ),
+        colour = hline_label_colour)
+
+  }
+
+
+
+
   ##### Change y-axis to percentage scale
 
   if (!(is.null(y_percent))) {
@@ -289,6 +327,7 @@ base_gg <- function() {
       )
 
   }
+
 
 
   ##### Apply secondary axis
@@ -313,16 +352,6 @@ base_gg <- function() {
   }
 
 
-
-
-  # # Reverse the x axis scales for discrete variable (factors) if argument provided
-  # if (!(is.null(x_labels_reverse))) {
-  #   if (is.factor(df[[x]])) {
-  #     base  <-
-  #       base + ggplot2::scale_x_discrete(limits = rev(levels(df[[x]])))
-  #
-  #   }
-  # }
 
 
   ##### Return both df and base
