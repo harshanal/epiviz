@@ -101,7 +101,11 @@ point_chart_plotly <- function(
                           y_limit_max = NULL,          ##add to line_chart?
                           x_limit_min = NULL,         ##add to line_chart?
                           x_limit_max = NULL,          ##add to line_chart?
-                          x_axis_breaks = NULL,       ##add to line_chart?
+                          x_axis_break_labels = NULL,       ##add to line_chart?
+                          y_axis_break_labels = NULL,
+                          x_axis_n_breaks = NULL,
+                          y_axis_n_breaks = NULL,
+                          x_axis_date_breaks = NULL,
                           show_gridlines = FALSE,
                           show_axislines = TRUE,
                           legend_title = "",
@@ -169,6 +173,24 @@ print(params) ###
 
   # Warn that multiple colours have been provided but group var absent
 
+  # Allow axis_break_labels or axis_n_breaks
+  if ((!is.null(params$x_axis_break_labels)) & (!is.null(params$x_axis_n_breaks)))
+    stop("x_axis_break_labels cannot be provided with x_axis_n_breaks, please provide
+         x_axis_break_labels OR x_axis_n_breaks")
+  if ((!is.null(params$y_axis_break_labels)) & (!is.null(params$y_axis_n_breaks)))
+    stop("y_axis_break_labels cannot be provided with y_axis_n_breaks, please provide
+           y_axis_break_labels OR y_axis_n_breaks")
+
+  # Allow x_axis_break_labels or x_axis_date_breaks
+  if ((!is.null(params$x_axis_break_labels)) & (!is.null(params$x_axis_date_breaks)))
+    stop("x_axis_break_labels cannot be provided with x_axis_date_breaks, please provide
+           x_axis_break_labels OR x_axis_date_breaks")
+
+  # Warn that x_axis_date_breaks cannot be used with a reversed x-axis
+  if ((params$x_labels_reverse == TRUE) & (!is.null(params$x_axis_date_breaks)))
+    warning("x_axis_date_breaks cannot be used with a reversed x-axis, consider using
+              x_axis_break_labels instead")
+
 
 
   ### Parameter assignment
@@ -186,10 +208,12 @@ print(params) ###
                  "point_labels_nudge_y","y_sec_axis","y_sec_axis_no_shift","chart_title",
                  "chart_footer","x_label","x_label_angle","y_label","y_label_angle",
                  "y_percent","st_theme","x_labels_reverse","y_limit_min","y_limit_max",
-                 "x_limit_min","x_limit_max",
-                 "x_axis_breaks","show_gridlines","show_axislines","legend_title","legend_pos",
-                 "hline","hline_colour","hline_width","hline_type","hline_label",
+                 "x_limit_min","x_limit_max", "x_axis_break_labels", "y_axis_break_labels",
+                 "x_axis_n_breaks", "y_axis_n_breaks", "x_axis_date_breaks",
+                 "show_gridlines","show_axislines", "legend_title","legend_pos",
+                 "hline","hline_colour","hline_width", "hline_type","hline_label",
                  "hline_label_colour"))
+
 
 
   # # Define parameters from params list
@@ -220,6 +244,13 @@ print(params) ###
 
 
 
+
+  #################### POINT CHART #################################
+
+  if (!dynamic) {
+    # produce ggplot object if 'dynamic' is set to FALSE
+
+
   # Define base ggplot object using R/base_gg() function
   #    -Force base_gg() to run in calling environment so it can find variables
   #     (lexical scoping will cause it to look for unfound variables in /R where
@@ -232,9 +263,6 @@ print(params) ###
   df <- base_return$df
 
 
-
-
-  #################### POINT CHART #################################
 
   ##### Apply confidence intervals
 
@@ -431,30 +459,21 @@ print(params) ###
   }
 
 
-  # ##### Apply secondary axis
-  #
-  # if (y_sec_axis == TRUE) {
-  #   # apply percentage scale if invoked
-  #   if (is.null(y_percent)) {
-  #     base <- base +
-  #       # scale_y_continuous(sec.axis = sec_axis(~scale_function(., scale, shift),
-  #       #                                        name = y_label))
-  #     scale_y_continuous(sec.axis = sec_axis(~ . * scale + shift,
-  #                                            name = y_label))
-  #   } else {
-  #     base <- base +
-  #       # scale_y_continuous(sec.axis = sec_axis(~scale_function(., scale, shift),
-  #       #                                        name = y_label,
-  #       #                                        labels = scales::label_percent()))
-  #     scale_y_continuous(sec.axis = sec_axis(~ . * scale + shift,
-  #                                            name = y_label,
-  #                                            labels = scales::label_percent()))
-  #   }
-  # }
-
-  ########################################
-
+  ##### Return final output
   return(base)
+
+  ### GGPLOT END
+
+
+  } else {
+    # produce plotly object if 'dynamic' is set to TRUE
+
+
+
+
+    ### PLOTLY END
+
+  }
 
 }
 

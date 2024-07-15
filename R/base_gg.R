@@ -180,6 +180,49 @@ base_gg <- function() {
 
 
 
+  ##### Apply axis breaks if provided
+
+  # Apply specified axis_break_labels
+
+  if (!is.null(x_axis_break_labels)) {
+    base <- base + scale_x_continuous(breaks = x_axis_break_labels)
+  }
+
+  if (!is.null(y_axis_break_labels)) {
+    base <- base + scale_y_continuous(breaks = y_axis_break_labels)
+  }
+
+
+  # Apply specified axis_n_breaks
+
+  if (!is.null(x_axis_n_breaks)) {
+    # n.breaks will not work for dates, ignore arguement and issue warning
+    if (is.Date(df[[x]])) {
+      warning("x_axis_n_breaks will be ignored if x is a date variable, consider using
+              x_axis_date_breaks or x_axis_break_labels instead")
+    } else {
+      base <- base + scale_x_continuous(n.breaks = x_axis_n_breaks)
+    }
+  }
+
+  if (!is.null(y_axis_n_breaks)) {
+    base <- base + scale_y_continuous(n.breaks = y_axis_n_breaks)
+  }
+
+
+  # Apply x-axis date intervals
+
+  if (!is.null(x_axis_date_breaks)) {
+    # Ignore arguement and issue warning if x is not a date variable
+    if (!is.Date(df[[x]])) {
+      warning("x is not a date variable, x_axis_date_breaks will be ignored")
+    } else {
+      base <- base + scale_x_date(date_breaks = x_axis_date_breaks)
+    }
+  }
+
+
+
 
   ##### Reverse axes
 
@@ -211,24 +254,22 @@ base_gg <- function() {
     x_limit_min <- if (is.Date(df[[x]]) & !is.null(x_limit_min)) {as.Date(x_limit_min)} else {x_limit_min}
 
 
-    # Apply axis inversion
-    if (is.Date(df[[x]])) { # Handle date axes
-      base <- base + scale_x_continuous(trans = c("date", "reverse"))
+    # Apply axis reversal
+    if (is.Date(df[[x]])) {
+      # Handle date axes
+        if (!is.null(x_axis_break_labels)) { # take into account x_axis_break_labels if provided
+          base <- base + scale_x_continuous(trans = c("date", "reverse"), breaks = x_axis_break_labels)
+        } else {
+          base <- base + scale_x_continuous(trans = c("date", "reverse"))
+        }
+    } else if (is.factor(df[[x]])) {
+      # Handle discrete axes (i.e. factors)
+      base <- base + scale_x_discrete(limits = rev(levels(df[[x]])))
     } else {
       base <- base + scale_x_reverse()
     }
 
   }
-##d handle factors
-
-  # # Reverse the x axis scales for discrete variable (factors) if argument provided
-  # if (!(is.null(x_labels_reverse))) {
-  #   if (is.factor(df[[x]])) {
-  #     base  <-
-  #       base + ggplot2::scale_x_discrete(limits = rev(levels(df[[x]])))
-  #
-  #   }
-  # }
 
 
 
@@ -312,6 +353,7 @@ base_gg <- function() {
         colour = hline_label_colour)
 
   }
+
 
 
 
