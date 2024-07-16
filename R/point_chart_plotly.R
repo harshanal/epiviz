@@ -465,13 +465,199 @@ print(params) ###
   ### GGPLOT END
 
 
+
   } else {
-    # produce plotly object if 'dynamic' is set to TRUE
+
+  ### PLOTLY START
+  # Produce plotly object if 'dynamic' is set to TRUE
 
 
+    ### Resolve point style
+
+    # Create ggplot -> plotly point-shape key
+    ggplot_point_shapes <- c('circle','triangle','square','plus','square cross','asterisk','diamond')
+    plotly_point_shapes <- c('circle','triangle-up','square','cross-thin-open','square-x-open','asterisk-open','diamond')
+    point_shapes_key <- setNames(as.list(plotly_point_shapes),ggplot_point_shapes)
+
+    # Stop if point_shape is not in list
+    if (!(point_shape %in% ggplot_point_shapes)) {
+      stop(
+        "Invalid point type. Please provide one of the following point types:
+           'circle', 'triangle', 'square', 'plus', 'square cross', 'asterisk', 'diamond'"
+      )
 
 
-    ### PLOTLY END
+    ### Create point chart
+
+    if (is.null(group_var)) {
+##d pull out this into a base plotly object
+      # create plotly base plot without groups
+      base <- df |>
+        plot_ly(
+          x = ~ .data[[x]],
+          y = ~ .data[[y]],
+          type = 'scatter',
+          mode = 'markers',
+          marker = list(
+            color = point_colours,
+            symbol = point_shapes_key[[point_shape]]
+            )
+        ) |>
+        layout(xaxis = list(title = x),
+               yaxis = list(title = y))
+
+    } else {
+
+      # create plotly base plot with groups
+      base <- df |>
+        plot_ly(
+          x = ~ .data[[x]],
+          y = ~ .data[[y]],
+          type = "scatter",
+          color = ~ .data[[group_var]],
+          colors = ~ point_colours,
+          mode = 'markers',
+          symbol = ~ .data[[group_var]],
+          symbols = plotly_point_shapes
+        )
+
+      base <- base |>
+        layout(xaxis = list(title = x),
+               yaxis = list(title = y))
+
+    }
+
+
+    # ##### Titles and labels
+    #
+    # # add title
+    # if (!missing(title)) {
+    #   base <- base |> layout(title = list(text=title))
+    # }
+    #
+    # # add x axis label
+    # if (!missing(x_label)) {
+    #   base <- base |> layout(xaxis = list(title = x_label))
+    # }
+    #
+    # # add y axis label
+    # if (!missing(y_label)) {
+    #   base <- base |> layout(yaxis = list(title = y_label))
+    # }
+    #
+    # # change x axis angle
+    # if (!missing(x_label_angle)){
+    #   # angle negated as this function following ggplot rotation direction
+    #   base <- base |>  layout(xaxis = list(tickangle = -x_label_angle))
+    # }
+    #
+    # # change y axis angle
+    # if (!missing(y_label_angle)){
+    #   # angle negated as this function following ggplot rotation direction
+    #   base <- base |>  layout(yaxis = list(tickangle = -y_label_angle))
+    # }
+    #
+    #
+    # ####### Grid lines and axis
+    #
+    # if (!show_gridlines) {
+    #   base <- base |> layout(xaxis = list(showgrid = F),
+    #                          yaxis = list(showgrid = F))
+    # }
+    #
+    # if (show_axislines) {
+    #   base <- base |> layout(
+    #     xaxis = list(showline = TRUE),
+    #     yaxis = list(showline = TRUE,
+    #                  zeroline = FALSE)
+    #   )
+    # }
+    #
+    # if (!missing(hline)) {
+    #   base <- base |>
+    #     layout(shapes = list(
+    #       type = "line",
+    #       x0 = 0,
+    #       x1 = 1,
+    #       xref = "paper",
+    #       y0 = hline,
+    #       y1 = hline,
+    #       line = list(color = hline_colour)
+    #     ))
+    # }
+    #
+    # if (!missing(hline_label)) {
+    #   base <- base %>% add_annotations(
+    #     text = hline_label,
+    #     x = min(df[[x]]),
+    #     y = hline,
+    #     showarrow = FALSE,
+    #     bgcolor = "white",
+    #     font = list(weight="bold")
+    #   )
+    # }
+    #
+    # if (y_percent) {
+    #   # Apply percentage formatting to y-axis labels (inline)
+    #   base <- base |>  layout(yaxis = list(ticksuffix  = "%"))
+    #
+    # }
+    #
+    # ## Legend settings
+    #
+    # if (!missing(legend_position)) {
+    #
+    #   legend_orientation <-
+    #     if (legend_position %in% c("top", "bottom"))
+    #       "h"
+    #   else
+    #     "v"
+    #
+    #   # configure legend settings
+    #   legend_settings <- switch(
+    #     legend_position,
+    #     "left" = list(
+    #       x = -0.2,
+    #       y = 0.5,
+    #       xanchor = "right",
+    #       yanchor = "middle",
+    #       orientation = legend_orientation
+    #     ),
+    #     "top" = list(
+    #       x = 0.5,
+    #       y = 0.97,
+    #       xanchor = "center",
+    #       yanchor = "bottom",
+    #       orientation = legend_orientation
+    #     ),
+    #     "right" = list(
+    #       x = 1.1,
+    #       y = 0.5,
+    #       xanchor = "left",
+    #       yanchor = "middle",
+    #       orientation = legend_orientation
+    #     ),
+    #     "bottom" = list(
+    #       x = 0.5,
+    #       y = -0.2,
+    #       xanchor = "center",
+    #       yanchor = "top",
+    #       orientation = legend_orientation
+    #     )
+    #
+    #   )  # Move legend outside of the plot area)
+    #
+    #   if(legend_position!="none"){
+    #     base <- base |> layout(legend = legend_settings)
+    #   }else{
+    #     base <- base |> layout(showlegend = F)
+    #   }
+    # }
+
+  # return base plot
+  return(base)
+
+  ### PLOTLY END
 
   }
 
