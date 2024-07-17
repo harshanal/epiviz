@@ -123,3 +123,21 @@ param_assign <- function(params, reference) {
 
 
 
+
+#' Function to apply html bold tags to input text strings for use in
+#' plotly font definitions.
+#'
+#' @param x A text string
+#'
+#' @return
+#'
+#' @examples
+#' \dontrun{
+#' html_bold("Chart Title")
+#' }
+html_bold <- function(x) {
+  x <- paste0("<b>",x,"</b>")
+}
+
+
+

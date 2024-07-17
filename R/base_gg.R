@@ -51,11 +51,15 @@ base_gg <- function() {
   # Apply x-axis label
   if (!is.null(x_label)) {
     base <- base + labs(x = x_label)
+  } else {
+    base <- base + labs(x = x) # default to variable name if label not provided
   }
 
   # Apply y-axis label
-  if (!is.null(y_label) & (y_sec_axis == FALSE)) {                      # bug in line_chart, change
+  if (!is.null(y_label) & (y_sec_axis == FALSE)) {
     base <- base + labs(y = y_label)
+  } else {
+    base <- base + labs(y = y) # default to variable name if label not provided
   }
 
   # Rotate axis text
@@ -288,7 +292,7 @@ base_gg <- function() {
   } else if (!is.null(y_limit_min) & !is.null(y_limit_max)) {
     ylim <- c(y_limit_min, y_limit_max)
   } else {
-    ylim <- NULL
+    ylim <- c(NA,NA)
   }
 
   # x lower limit only
@@ -300,9 +304,8 @@ base_gg <- function() {
     # x upper and lower limits
   } else if (!is.null(x_limit_min) & !is.null(x_limit_max)) {
     xlim <- c(x_limit_min, x_limit_max)
-
   } else {
-    xlim <- NULL
+    xlim <- c(NA,NA)
   }
 
   # Convert any date axis limits to dates if necessary
@@ -335,10 +338,15 @@ base_gg <- function() {
   }
 
   # If specified, add label to the start of the horizontal line
-  if (!is.null(hline) && !(is.null(hline_label))) {
+  if (!is.null(hline) && !is.null(hline_label)) {
 
     # Define x-position of hline label
-    hline_xpos <- base$coordinates$limits$x[[1]]
+    # If lower x-axis limit present use that, else use min value of x
+    if (!is.na(base$coordinates$limits$x[[1]])) {
+      hline_xpos <- base$coordinates$limits$x[[1]]
+    } else {
+      hline_xpos <- min(df[[x]])
+    }
 
     # Apply hline label to plot
     base <- base +

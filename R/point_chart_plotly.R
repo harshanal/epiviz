@@ -459,6 +459,10 @@ print(params) ###
   }
 
 
+  ##### Add default axis labels if not provided
+
+
+
   ##### Return final output
   return(base)
 
@@ -468,11 +472,167 @@ print(params) ###
 
   } else {
 
-  ### PLOTLY START
+  ##### PLOTLY START
   # Produce plotly object if 'dynamic' is set to TRUE
 
 
-    ### Resolve point style
+    ##### BASE
+
+    ##### Create base plotly object
+    if (!is.null(base)) {
+      base <- base
+    } else {
+      base <- plot_ly() |>
+        layout(margin = list(r=10,t=30,b=30,l=3))   # set margin to match ggplot
+    }
+
+
+    ##### Titles and axis labels
+
+    # Define fonts
+    title_font <- list(
+      family = chart_font,
+      size = 12,
+      color = "black")
+
+    axis_label_font <- list(
+      family = chart_font,
+      size = 11,
+      color = "black")
+
+    axis_break_font <- list(
+      family = chart_font,
+      size = 10,
+      color = "black")
+
+
+    # Add title
+    if (!is.null(chart_title)) {
+      base <- base |>
+        layout(title = list(text = chart_title,
+                            font = title_font))
+    }
+
+    #Note:- utils/html_bold function used to apply <b> </b> tags to axis titles for bold font
+
+    # Add x axis label
+    if (!is.null(x_label)) {
+      base <- base |>
+        layout(xaxis = list(title =
+                              list(text = html_bold(x_label),
+                                   font = axis_label_font)))
+    } else {
+      base <- base |>
+        layout(xaxis = list(title =
+                              list(text = html_bold(x),
+                                   font = axis_label_font)))
+    }
+
+    # Add y axis label
+    if (!is.null(y_label)) {
+      base <- base |>
+        layout(yaxis = list(title =
+                              list(text = html_bold(y_label),
+                                   font = axis_label_font)))
+    } else {
+      base <- base |>
+        layout(yaxis = list(title =
+                              list(text = html_bold(y),
+                                   font = axis_label_font)))
+    }
+
+
+    # Set font for axis break text
+    base <- base |> layout(font = axis_break_font)
+
+    # Change x axis text angle
+    if (!is.null(x_label_angle)){
+      # angle negated as this function following ggplot rotation direction
+      base <- base |> layout(xaxis = list(tickangle = -x_label_angle))
+    }
+
+    # Change y axis text angle
+    if (!is.null(y_label_angle)){
+      # angle negated as this function following ggplot rotation direction
+      base <- base |> layout(yaxis = list(tickangle = -y_label_angle))
+    }
+
+
+
+    ####### Grid lines and axes
+
+    if (!show_gridlines) {
+      base <- base |> layout(xaxis = list(showgrid = F),
+                             yaxis = list(showgrid = F))
+    }
+
+    if (show_axislines) {
+      base <- base |> layout(
+        xaxis = list(showline = TRUE,
+                     linewidth = 1,
+                     ticks="outside",
+                     ticklen=3),
+        yaxis = list(showline = TRUE,
+                     zeroline = FALSE,
+                     linewidth = 1,
+                     ticks="outside",
+                     ticklen=3)
+      )
+    }
+
+
+    ##### Apply y percentage axis
+
+    if (!is.null(y_percent)) {
+      #base <- base |> layout(yaxis = list(ticksuffix  = "%"))
+      base <- base |> layout(yaxis = list(tickformat  = ".0%"))
+    }
+
+
+
+    ##### Apply hline
+
+    # Draw line
+    if (!is.null(hline)) {
+      base <- base |>
+        layout(shapes = list(
+          type = "line",
+          x0 = 0,
+          x1 = 1,
+          xref = "paper",
+          y0 = hline,
+          y1 = hline,
+          line = list(color = hline_colour,
+                      dash = "dash",          ##d change to hline_type
+                      width = hline_width)
+        ))
+    }
+
+    # Add label
+    if (!is.null(hline_label)) {
+      base <- base |>
+        # add_annotations(
+        #   text = hline_label,
+        #   x = min(df[[x]]),
+        #   y = hline,
+        #   showarrow = FALSE,
+        #   bgcolor = "white",
+        #   font = list(weight="bold")
+        # )
+      add_text(showlegend = FALSE,
+               x = min(df[[x]]),
+               y = hline,
+               text = hline_label,
+               textposition = 'top right',
+               textfont = list(color = hline_colour,
+                               size = 12)
+               )
+    }
+
+
+    ##### POINT
+
+    ##### Resolve point style
 
     # Create ggplot -> plotly point-shape key
     ggplot_point_shapes <- c('circle','triangle','square','plus','square cross','asterisk','diamond')
@@ -485,123 +645,58 @@ print(params) ###
         "Invalid point type. Please provide one of the following point types:
            'circle', 'triangle', 'square', 'plus', 'square cross', 'asterisk', 'diamond'"
       )
+    }
 
 
-    ### Create point chart
 
+    ##### Create point chart
+
+    # Build according to whether plotting variables are grouped or not
     if (is.null(group_var)) {
-##d pull out this into a base plotly object
-      # create plotly base plot without groups
-      base <- df |>
-        plot_ly(
-          x = ~ .data[[x]],
-          y = ~ .data[[y]],
+
+      # Add plotly trace without groups
+      base <- base |>
+        add_trace(
+          df,
+          x = ~ df[[x]],
+          y = ~ df[[y]],
           type = 'scatter',
           mode = 'markers',
           marker = list(
             color = point_colours,
             symbol = point_shapes_key[[point_shape]]
             )
-        ) |>
-        layout(xaxis = list(title = x),
-               yaxis = list(title = y))
+        )
 
     } else {
 
-      # create plotly base plot with groups
-      base <- df |>
-        plot_ly(
-          x = ~ .data[[x]],
-          y = ~ .data[[y]],
+      # Add plotly trace with groups
+      base <- base |>
+        add_trace(
+          df,
+          x = ~ df[[x]],
+          y = ~ df[[y]],
           type = "scatter",
-          color = ~ .data[[group_var]],
+          color = ~ df[[group_var]],
           colors = ~ point_colours,
           mode = 'markers',
-          symbol = ~ .data[[group_var]],
+          symbol = ~ df[[group_var]],
           symbols = plotly_point_shapes
         )
-
-      base <- base |>
-        layout(xaxis = list(title = x),
-               yaxis = list(title = y))
 
     }
 
 
-    # ##### Titles and labels
+
+
+
+
     #
-    # # add title
-    # if (!missing(title)) {
-    #   base <- base |> layout(title = list(text=title))
-    # }
+
     #
-    # # add x axis label
-    # if (!missing(x_label)) {
-    #   base <- base |> layout(xaxis = list(title = x_label))
-    # }
+
     #
-    # # add y axis label
-    # if (!missing(y_label)) {
-    #   base <- base |> layout(yaxis = list(title = y_label))
-    # }
-    #
-    # # change x axis angle
-    # if (!missing(x_label_angle)){
-    #   # angle negated as this function following ggplot rotation direction
-    #   base <- base |>  layout(xaxis = list(tickangle = -x_label_angle))
-    # }
-    #
-    # # change y axis angle
-    # if (!missing(y_label_angle)){
-    #   # angle negated as this function following ggplot rotation direction
-    #   base <- base |>  layout(yaxis = list(tickangle = -y_label_angle))
-    # }
-    #
-    #
-    # ####### Grid lines and axis
-    #
-    # if (!show_gridlines) {
-    #   base <- base |> layout(xaxis = list(showgrid = F),
-    #                          yaxis = list(showgrid = F))
-    # }
-    #
-    # if (show_axislines) {
-    #   base <- base |> layout(
-    #     xaxis = list(showline = TRUE),
-    #     yaxis = list(showline = TRUE,
-    #                  zeroline = FALSE)
-    #   )
-    # }
-    #
-    # if (!missing(hline)) {
-    #   base <- base |>
-    #     layout(shapes = list(
-    #       type = "line",
-    #       x0 = 0,
-    #       x1 = 1,
-    #       xref = "paper",
-    #       y0 = hline,
-    #       y1 = hline,
-    #       line = list(color = hline_colour)
-    #     ))
-    # }
-    #
-    # if (!missing(hline_label)) {
-    #   base <- base %>% add_annotations(
-    #     text = hline_label,
-    #     x = min(df[[x]]),
-    #     y = hline,
-    #     showarrow = FALSE,
-    #     bgcolor = "white",
-    #     font = list(weight="bold")
-    #   )
-    # }
-    #
-    # if (y_percent) {
-    #   # Apply percentage formatting to y-axis labels (inline)
-    #   base <- base |>  layout(yaxis = list(ticksuffix  = "%"))
-    #
-    # }
+
     #
     # ## Legend settings
     #
@@ -659,7 +754,8 @@ print(params) ###
 
   ### PLOTLY END
 
-  }
+    }
+
 
 }
 
