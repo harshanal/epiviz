@@ -95,7 +95,7 @@ set_Arial <- function() {
 #' @param params List of input parameters.
 #' @param reference Character vector of expected parameters.
 #'
-#' @return
+#' @return Assigns parameter values in the parent environment
 #'
 #' @examples
 #' \dontrun{
@@ -129,7 +129,7 @@ param_assign <- function(params, reference) {
 #'
 #' @param x A text string
 #'
-#' @return
+#' @return A text string wrapped in <b> </b> for html bold font
 #'
 #' @examples
 #' \dontrun{

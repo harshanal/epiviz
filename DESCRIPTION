@@ -30,6 +30,7 @@ Imports:
     sf,
     leaflet,
     htmltools,
-    stringr
+    stringr,
+    scales
 Depends: 
     R (>= 2.10)

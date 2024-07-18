@@ -48,6 +48,8 @@
 #' @import assertthat
 #' @import grDevices
 #' @import scales
+#' @import plotly
+#' @rawNamespace import(ggplot2, except = last_plot)
 #'
 #' @return the final plot
 #' @export
@@ -473,6 +475,7 @@ print(params) ###
   } else {
 
   ##### PLOTLY START
+
   # Produce plotly object if 'dynamic' is set to TRUE
 
 
@@ -482,8 +485,7 @@ print(params) ###
     if (!is.null(base)) {
       base <- base
     } else {
-      base <- plot_ly() |>
-        layout(margin = list(r=10,t=30,b=30,l=3))   # set margin to match ggplot
+      base <- plot_ly()
     }
 
 
@@ -559,13 +561,19 @@ print(params) ###
 
 
 
-    ####### Grid lines and axes
+    ####### Set grid lines, axes, and graph margin
 
+    # Set margin to match ggplot
+    base <- base |>
+      layout(margin = list(r=10,t=30,b=30,l=3))
+
+    # Grid lines
     if (!show_gridlines) {
       base <- base |> layout(xaxis = list(showgrid = F),
                              yaxis = list(showgrid = F))
     }
 
+    # Axis lines
     if (show_axislines) {
       base <- base |> layout(
         xaxis = list(showline = TRUE,
@@ -611,22 +619,25 @@ print(params) ###
     # Add label
     if (!is.null(hline_label)) {
       base <- base |>
-        # add_annotations(
-        #   text = hline_label,
-        #   x = min(df[[x]]),
-        #   y = hline,
-        #   showarrow = FALSE,
-        #   bgcolor = "white",
-        #   font = list(weight="bold")
-        # )
-      add_text(showlegend = FALSE,
-               x = min(df[[x]]),
-               y = hline,
-               text = hline_label,
-               textposition = 'top right',
-               textfont = list(color = hline_colour,
-                               size = 12)
-               )
+        add_annotations(
+          text = hline_label,
+          x = min(df[[x]]),
+          y = hline,
+          xanchor = "left",
+          yanchor = "bottom",
+          showarrow = FALSE,
+          bgcolor = "#ffffff00",
+          font = list(color = hline_colour,
+                      size = 12)
+        )
+      # add_text(showlegend = FALSE,
+      #          x = min(df[[x]]),
+      #          y = hline,
+      #          text = hline_label,
+      #          textposition = 'top right',
+      #          textfont = list(color = hline_colour,
+      #                          size = 12)
+      #          )
     }
 
 
@@ -677,25 +688,20 @@ print(params) ###
           x = ~ df[[x]],
           y = ~ df[[y]],
           type = "scatter",
-          color = ~ df[[group_var]],
-          colors = ~ point_colours,
-          mode = 'markers',
+          mode = "markers",
           symbol = ~ df[[group_var]],
-          symbols = plotly_point_shapes
+          symbols = plotly_point_shapes,
+          color = ~ df[[group_var]],
+          colors = point_colours
         )
 
     }
 
+# legend
+# limits
+# breaks
+# axis reversal
 
-
-
-
-
-    #
-
-    #
-
-    #
 
     #
     # ## Legend settings
