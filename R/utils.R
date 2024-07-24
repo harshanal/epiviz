@@ -141,3 +141,45 @@ html_bold <- function(x) {
 
 
 
+
+#' Function to translate ggplot linetypes into plotly linetypes
+#'
+#' @param x A text string ggplot line type ("solid", "dotted", "dashed",
+#' "longdash", "dotdash")
+#'
+#' @return A text string plotly line type
+#'
+#' @examples
+#' \dontrun{
+#' plotly_line_style("dotdash")
+#' }
+plotly_line_style <- function(x) {
+
+  # Define valid line types
+  valid_line_types <-
+      c("solid", "dotted", "dashed", "longdash", "dotdash")
+
+  # resolve line style
+  if (!(x %in% valid_line_types)) {
+
+    stop(
+      "Invalid line type. Please provide one of the following line types:
+             solid, dotted, dashed, longdash, dotdash"
+    )
+
+  } else {
+
+    plotly_line_style <- switch(
+      x,
+      "solid" = "solid",
+      "dotted" = "dot",
+      "dashed" = "dash",
+      "longdash" = "longdash",
+      "dotdash" = "dashdot",
+      "solid"
+    )
+  }
+
+  return(plotly_line_style)
+
+}

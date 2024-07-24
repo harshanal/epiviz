@@ -613,7 +613,7 @@ print(params) ###
           y0 = hline,
           y1 = hline,
           line = list(color = hline_colour,
-                      dash = "dash",          ##d change to hline_type
+                      dash = plotly_line_style(hline_type),   # uses utils/plotly_line_style() function
                       width = hline_width)
         ))
     }
@@ -641,6 +641,25 @@ print(params) ###
       #                          size = 12)
       #          )
     }
+
+
+#     ##### Apply axis limits
+# print(x_limit_min)
+# print(max(df[[x]]))
+# print(c(x_limit_min,max(df[[x]])))
+# print(as.Date(c(x_limit_min,max(df[[x]]))))
+# print(c(x_limit_min,as.Date(max(df[[x]]))))
+# print(as.Date(as.character(c(x_limit_min,max(df[[x]])))))
+#
+#     base <- base |>
+#       layout(
+#         xaxis = list(
+#           #range=c(x_limit_min,x_limit_max)
+#           range=as.Date(c(x_limit_min,max(df[[x]])))
+#           #range=c(x_limit_min,'None')
+#         )
+#       )
+
 
 
     ##### POINT
@@ -815,7 +834,6 @@ print(params) ###
     }
 
 
-
     ##### Resolve point style
 
     # Create ggplot -> plotly point-shape key
@@ -895,8 +913,6 @@ print(params) ###
       }
 
     }
-
-
 
 
 
