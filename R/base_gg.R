@@ -169,12 +169,12 @@ base_gg <- function() {
     df[[y]] <- inv_scale_function(df[[y]], scale, shift)
   }
 
-  if (!is.null(lower)) {
-    df[[lower]] <- inv_scale_function(df[[lower]], scale, shift)
+  if (!is.null(ci_lower)) {
+    df[[ci_lower]] <- inv_scale_function(df[[ci_lower]], scale, shift)
   }
 
-  if (!is.null(upper)) {
-    df[[upper]] <- inv_scale_function(df[[upper]], scale, shift)
+  if (!is.null(ci_upper)) {
+    df[[ci_upper]] <- inv_scale_function(df[[ci_upper]], scale, shift)
   }
 
   if (!is.null(hline)) {

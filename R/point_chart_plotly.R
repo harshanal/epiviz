@@ -13,8 +13,8 @@
 #' @param y_axis y_axis
 #' @param ci indicator for using ribbon or error bar geom (if required),
 #' enter 'errorbar' for error bar, enter 'ribbon' for ribbon
-#' @param lower lower value for error \ ribbon geom (mandatory if ci argument passed)
-#' @param upper upper value for error \ ribbon geom (mandatory if ci argument passed)
+#' @param ci_lower ci_lower value for error \ ribbon geom (mandatory if ci argument passed)
+#' @param ci_upper ci_upper value for error \ ribbon geom (mandatory if ci argument passed)
 #' @param error_colours if not plotting by group this is the colour of the error
 #' bars or ribbon
 #' @param hline will display a horizontal line if valid inter passed
@@ -49,6 +49,8 @@
 #' @import grDevices
 #' @import scales
 #' @import plotly
+#' @import tidyr
+#' @import yarrr
 #' @rawNamespace import(ggplot2, except = last_plot)
 #'
 #' @return the final plot
@@ -60,8 +62,8 @@
 #' # labels showing
 #' # the plotted values that are vertically adjusted from the plotted points
 #' \dontrun{
-#' point_chart(df = plot_df, x = "age", y = "value", ci = "e", upper = "uppercl",
-#' lower = "lowercl", group_var = "ukborn", y_axis = "y2", y_label = "Value",
+#' point_chart(df = plot_df, x = "age", y = "value", ci = "e", ci_upper = "ci_uppercl",
+#' ci_lower = "ci_lowercl", group_var = "ukborn", y_axis = "y2", y_label = "Value",
 #' labels = "value", vjust = -3.5)
 #' }
 #'
@@ -75,8 +77,8 @@ point_chart_plotly <- function(
                           ci = NULL,
                           ci_legend = FALSE,
                           ci_legend_title = "Confidence interval",
-                          lower = NULL,
-                          upper = NULL,
+                          ci_lower = NULL,
+                          ci_upper = NULL,
                           error_colours = "red",
                           errorbar_width = NULL,
                           group_var = NULL,
@@ -203,8 +205,8 @@ print(params) ###
   #     parent environment, and allocates a value of 'NULL' to anything
   #     it can't find within the reference list.
   param_assign(params,
-               c("df","x","y","ci","ci_legend","ci_legend_title","lower",
-                 "upper","error_colours","errorbar_width","group_var","point_shape",
+               c("df","x","y","ci","ci_legend","ci_legend_title","ci_lower",
+                 "ci_upper","error_colours","errorbar_width","group_var","point_shape",
                  "point_colours","point_labels",
                  "point_labels_hjust","point_labels_vjust","point_labels_nudge_x",
                  "point_labels_nudge_y","y_sec_axis","y_sec_axis_no_shift","chart_title",
@@ -224,8 +226,8 @@ print(params) ###
   # }
   #
   # # Set any unused parameter values to NULL
-  # unused <- setdiff(c("df","x","y","ci","ci_legend","ci_legend_title","lower",
-  #                     "upper","error_colours","group_var","point_shape","point_colours","point_labels",
+  # unused <- setdiff(c("df","x","y","ci","ci_legend","ci_legend_title","ci_lower",
+  #                     "ci_upper","error_colours","group_var","point_shape","point_colours","point_labels",
   #                     "point_labels_hjust","point_labels_vjust","y_axis","y_sec_axis_no_shift","chart_title",
   #                     "chart_footer","x_label","x_label_angle","y_label","y_label_angle",
   #                     "y_percent","st_theme","x_labels_reverse","y_min_limit","y_max_limit",
@@ -270,10 +272,10 @@ print(params) ###
 
   # Apply before main point-plot so that points appear in front of bars / ribbons.
 
-  # Add conf intervals if arguments for ci and upper+lower bounds are provided.
+  # Add conf intervals if arguments for ci and ci_upper+ci_lower bounds are provided.
   if(!is.null(ci)) {
 
-    if(!is.null(lower) && !is.null(upper)) {
+    if(!is.null(ci_lower) && !is.null(ci_upper)) {
 
       # Add error bars or ribbon depending upon ci arguement
 
@@ -300,8 +302,8 @@ print(params) ###
               data = df,
               mapping = aes(
                 x = .data[[x]],
-                ymin = .data[[lower]],
-                ymax = .data[[upper]]
+                ymin = .data[[ci_lower]],
+                ymax = .data[[ci_upper]]
               ),
               colour = error_colours[[1]],
               width = errorbar_width,
@@ -316,8 +318,8 @@ print(params) ###
               data = df,
               mapping = aes(
                 x = .data[[x]],
-                ymin = .data[[lower]],
-                ymax = .data[[upper]],
+                ymin = .data[[ci_lower]],
+                ymax = .data[[ci_upper]],
                 fill = ci_legend_title,
                 group = 1
               ),
@@ -338,8 +340,8 @@ print(params) ###
               data = df,
               mapping = aes(
                 x = .data[[x]],
-                ymin = .data[[lower]],
-                ymax = .data[[upper]],
+                ymin = .data[[ci_lower]],
+                ymax = .data[[ci_upper]],
                 group = .data[[group_var]],
                 colour =  .data[[group_var]]
               ),
@@ -362,8 +364,8 @@ print(params) ###
               data = df,
               mapping = aes(
                 x = .data[[x]],
-                ymin = .data[[lower]],
-                ymax = .data[[upper]],
+                ymin = .data[[ci_lower]],
+                ymax = .data[[ci_upper]],
                 group = .data[[group_var]],
                 fill = .data[[group_var]]
               ),
@@ -381,9 +383,9 @@ print(params) ###
         }
       }
 
-      # Stop if upper and/or lower limit isn't provided
+      # Stop if ci_upper and/or ci_lower limit isn't provided
     } else {
-      stop("Please provide arguements for 'upper' and 'lower' when ci is specified.")
+      stop("Please provide arguements for 'ci_upper' and 'ci_lower' when ci is specified.")
     }
 
   }
@@ -643,6 +645,177 @@ print(params) ###
 
     ##### POINT
 
+
+    ##### Apply confidence intervals
+
+    # Apply before main point-plot so that points appear in front of bars / ribbons.
+
+    # Add conf intervals if arguments for ci and ci_upper+ci_lower bounds are provided.
+    if(!is.null(ci)) {
+
+      # Stop if ci_upper and/or ci_lower limit isn't provided
+      if(is.null(ci_lower) | is.null(ci_upper)) {
+        stop("Please provide arguements for 'ci_upper' and 'ci_lower' when ci is specified.")
+      }
+
+
+      # Plot for no group_var
+      if (is.null(group_var)) {
+
+        # Add error bars or ribbon depending upon ci arguement
+
+        # Add error bars without grouping variable
+        if(ci == 'errorbar') {
+
+          # Plotly error bars require upper and lower error divergence rather
+          #   than values, so calculate
+          df <- df |>
+            mutate(diff_ci_lower = get(y) - get(ci_lower),
+                   diff_ci_upper = get(ci_upper) - get(y))
+
+          # Add error bars as trace with invisible markers
+          base <- base |>
+            add_trace(
+              data = df,
+              x = ~ df[[x]],
+              y = ~ df[[y]],
+              type = 'scatter',
+              mode = 'markers',
+              showlegend = F,
+              marker = list(
+                color = '#ffffff00'
+              ),
+              error_y = list(
+                type = "data",
+                symmetric = FALSE,
+                color = error_colours,
+                thickness = 1,
+                arrayminus = ~ diff_ci_lower,
+                array = ~ diff_ci_upper
+              )
+            )
+
+          # Add ribbon without grouping variable
+        } else if (ci == 'ribbon') {
+
+          base <- base |>
+            add_ribbons(
+              x = ~ df[[x]],
+              ymin = ~ df[[ci_lower]],
+              ymax = ~ df[[ci_upper]],
+              #name = ???,
+              #fillcolor = error_colours,
+              fillcolor = yarrr::transparent(error_colours, trans.val = .5), # add transparency using 'yarrr' package
+              line = list(color = 'transparent')
+            )
+
+        }
+
+
+        # Plot for group_var provided
+      } else if (!is.null(group_var)) {
+
+        # Add error bars or ribbon depending upon ci arguement
+
+        # Add error bars with grouping variable
+        if(ci == 'errorbar') {
+
+          # Errorbar traces must be defined individually for each group
+
+          # Define unique groups
+          unique_groups <- unique(df[[group_var]])
+
+          # Iterate over each group
+          for (i in 1:length(unique_groups)) {
+
+            # Plotly error bars require upper and lower error divergence rather
+            #   than values, so create df for each group and calculate
+            df_group <- df |>
+              filter(get(group_var) == unique_groups[i]) |>
+              mutate(diff_ci_lower = get(y) - get(ci_lower),
+                     diff_ci_upper = get(ci_upper) - get(y))
+
+            # Add error bars as trace with invisible markers
+            base <- base |>
+              add_trace(
+                data = df_group,
+                x = df_group[[x]],
+                y = df_group[[y]],
+                type = 'scatter',
+                mode = 'markers',
+                name = unique_groups[[i]],
+                showlegend = F,
+                marker = list(
+                  color = '#ffffff00'
+                ),
+                error_y = list(
+                  type = "data",
+                  symmetric = FALSE,
+                  color = error_colours[[i]],
+                  thickness = 1,
+                  arrayminus = ~ diff_ci_lower,
+                  array = ~ diff_ci_upper
+                )
+              )
+          }
+
+        # Add ribbon with grouping variable
+        } else if (ci == 'ribbon') {
+
+          # Ribbons must be defined individually for each group
+
+          # Define unique groups
+          unique_groups <- unique(df[[group_var]])
+
+          # Iterate over each group
+          for (i in 1:length(unique_groups)) {
+
+            #df_group <- df[which(df[[group_var]]==unique_groups[[i]]), ]
+
+            # Need to construct polygon for each ribbon
+            #   -Points must be connected in order, so must go in positive direction
+            #    along upper limit and negative direction along lower limit. Define
+            #    separate dfs for each, reverse order of lower lim df, and bind together.
+            df_group_low <- df |>
+              filter(get(group_var) == unique_groups[i]) |>
+              select(x, ci_lower) |>
+              dplyr::rename("y_val" = 2)
+
+            df_group_up <- df |>
+              filter(get(group_var) == unique_groups[i]) |>
+              select(x, ci_upper) |>
+              dplyr::rename("y_val" = 2)
+
+            df_group_ribb <- rbind(df_group_low, (df_group_up %>% arrange(desc(row_number()))))
+
+
+            # Add separate ribbon for each group using df defined above
+            base <- base |>
+              add_trace(
+                data = df_group_ribb,
+                x = ~ df_group_ribb[[x]],
+                y = ~ y_val,
+                type = 'scatter',
+                mode = 'lines',
+                name = unique_groups[[i]],
+                line = list(color = 'transparent'),
+                fill = 'toself',
+                #fillcolor = paste0(error_colours[[i]],'80')
+                fillcolor = yarrr::transparent(error_colours[[i]], trans.val = .5) # add transparency using 'yarrr' package
+                # showlegend = FALSE,
+                # name = 'legend name'
+              )
+
+          }
+
+        }
+
+      }
+
+    }
+
+
+
     ##### Resolve point style
 
     # Create ggplot -> plotly point-shape key
@@ -682,25 +855,59 @@ print(params) ###
     } else {
 
       # Add plotly trace with groups
-      base <- base |>
-        add_trace(
-          df,
-          x = ~ df[[x]],
-          y = ~ df[[y]],
-          type = "scatter",
-          mode = "markers",
-          symbol = ~ df[[group_var]],
-          symbols = plotly_point_shapes,
-          color = ~ df[[group_var]],
-          colors = point_colours
-        )
+
+      # base <- base |>
+      #   add_trace(
+      #     df,
+      #     x = ~ df[[x]],
+      #     y = ~ df[[y]],
+      #     type = "scatter",
+      #     mode = "markers",
+      #     symbol = ~ df[[group_var]],
+      #     symbols = plotly_point_shapes,
+      #     color = ~ df[[group_var]],
+      #     colors = point_colours
+      #   )
+
+      # Define unique groups
+      unique_groups <- unique(df[[group_var]])
+
+      # Iterate over each group
+      for (i in 1:length(unique_groups)) {
+
+        df_group <- df |>
+          filter(get(group_var) == unique_groups[i])
+
+        base <- base |>
+          add_trace(
+            data = df_group,
+            x = df_group[[x]],
+            y = df_group[[y]],
+            type = 'scatter',
+            mode = 'markers',
+            name = unique_groups[[i]],
+            marker = list(
+              color = point_colours[[i]],
+              symbol = plotly_point_shapes[[i]]
+            )
+          )
+
+      }
 
     }
+
+
+
+
+
+
+
 
 # legend
 # limits
 # breaks
 # axis reversal
+# hover labels
 
 
     #
@@ -758,9 +965,7 @@ print(params) ###
   # return base plot
   return(base)
 
-  ### PLOTLY END
-
-    }
+    } ### PLOTLY END
 
 
 }
