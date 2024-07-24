@@ -643,22 +643,51 @@ print(params) ###
     }
 
 
-#     ##### Apply axis limits
-# print(x_limit_min)
-# print(max(df[[x]]))
-# print(c(x_limit_min,max(df[[x]])))
-# print(as.Date(c(x_limit_min,max(df[[x]]))))
-# print(c(x_limit_min,as.Date(max(df[[x]]))))
-# print(as.Date(as.character(c(x_limit_min,max(df[[x]])))))
-#
-#     base <- base |>
-#       layout(
-#         xaxis = list(
-#           #range=c(x_limit_min,x_limit_max)
-#           range=as.Date(c(x_limit_min,max(df[[x]])))
-#           #range=c(x_limit_min,'None')
-#         )
-#       )
+    ##### Apply axis limits
+
+    # Define base min/max x & y values for axis range
+    #   -Not possible to access plotly autorange values, so define a ggplot object
+    #    and use it's autoranges as a basis. This also keeps the formatting the same
+    #    as the static chart.
+    ggobj <- ggplot() + geom_point(data=df, aes(x=.data[[x]],y=.data[[y]])) + geom_hline(yintercept = hline)
+    x_min <- ggplot_build(ggobj)$layout$panel_params[[1]]$x.range[1]
+    x_max <- ggplot_build(ggobj)$layout$panel_params[[1]]$x.range[2]
+    y_min <- ggplot_build(ggobj)$layout$panel_params[[1]]$y.range[1]
+    y_max <- ggplot_build(ggobj)$layout$panel_params[[1]]$y.range[2]
+
+
+    # Handle dates converting to numeric when extracted from ggplot axis range
+    x_min <- if(is.Date(df[[x]])) {as.Date.numeric(x_min)} else {x_min}
+    x_max <- if(is.Date(df[[x]])) {as.Date.numeric(x_max)} else {x_max}
+    y_min <- if(is.Date(df[[y]])) {as.Date.numeric(y_min)} else {y_min}
+    y_max <- if(is.Date(df[[y]])) {as.Date.numeric(y_max)} else {y_max}
+
+
+    # Replace with user defined x / y limits if provided
+    if(!is.null(x_limit_min)) {x_min <- x_limit_min}
+    if(!is.null(x_limit_max)) {x_max <- x_limit_max}
+    if(!is.null(y_limit_min)) {y_min <- y_limit_min}
+    if(!is.null(y_limit_max)) {y_max <- y_limit_max}
+
+    # Convert dates to character so they aren't coerced to numeric when added to range vector
+    x_min <- if(is.Date(df[[x]])) {as.character(x_min)} else {x_min}
+    x_max <- if(is.Date(df[[x]])) {as.character(x_max)} else {x_max}
+    y_min <- if(is.Date(df[[y]])) {as.character(y_min)} else {y_min}
+    y_max <- if(is.Date(df[[y]])) {as.character(y_max)} else {y_max}
+
+
+    # Define x and y range vectors
+    x_range <- c(x_min, x_max)
+    y_range <- c(y_min, y_max)
+
+
+    # Apply axis ranges
+    base <- base |>
+      layout(
+        xaxis = list(range = x_range),
+        yaxis = list(range = y_range)
+      )
+
 
 
 
