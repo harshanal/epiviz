@@ -248,3 +248,63 @@ datebreak_to_d3 <- function(x) {
 
   }
 }
+
+
+
+
+
+#' Function to convert ggplot legend positions into list of
+#' parameters for plotly layout
+#'
+#' @param x A ggplot legend position ("top","bootom","right","left")
+#'
+#' @return A list of parameters for plotly layout.legend
+#'
+#' \dontrun{
+#' plotly_legend_pos("right")
+#' }
+plotly_legend_pos <- function(x) {
+
+    # Define plotly legend orientation
+    if (x %in% c("top", "bottom")) {
+      legend_orientation <- "h"
+    } else {
+      legend_orientation <- "v"
+    }
+
+    # Configure plotly legend settings
+    legend_settings <- switch(
+      x,
+      "left" = list(
+        x = -0.2,
+        y = 0.5,
+        xanchor = "right",
+        yanchor = "middle",
+        orientation = legend_orientation
+      ),
+      "top" = list(
+        x = 0.5,
+        y = 0.97,
+        xanchor = "center",
+        yanchor = "bottom",
+        orientation = legend_orientation
+      ),
+      "right" = list(
+        x = 1.1,
+        y = 0.5,
+        xanchor = "left",
+        yanchor = "middle",
+        orientation = legend_orientation
+      ),
+      "bottom" = list(
+        x = 0.5,
+        y = -0.2,
+        xanchor = "center",
+        yanchor = "top",
+        orientation = legend_orientation
+      )
+    )
+
+    return(legend_settings)
+
+}

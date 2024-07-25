@@ -516,6 +516,7 @@ print(params) ###
 
 
 
+
     ##### BASE
 
     ##### Create base plotly object
@@ -704,6 +705,9 @@ print(params) ###
     x_range <- c(x_min, x_max)
     y_range <- c(y_min, y_max)
 
+    #Reverse x-axis range if specified
+    if (x_labels_reverse == TRUE) {x_range <- rev(x_range)}
+
     # Apply axis ranges to chart
     base <- base |>
       layout(
@@ -806,11 +810,20 @@ print(params) ###
     }
 
     # Add label
+
     if (!is.null(hline_label)) {
+
+      # Define positiion of label depending on whether x axis is reversed
+      if (x_labels_reverse == FALSE) {
+        hline_xpos <- if(!is.null(x_limit_min)) {x_limit_min} else {min(df[[x]])}
+      } else {
+        hline_xpos <- if(!is.null(x_limit_max)) {x_limit_max} else {max(df[[x]])}
+      }
+
       base <- base |>
         add_annotations(
           text = hline_label,
-          x = if(!is.null(x_limit_min)) {x_limit_min} else {min(df[[x]])},
+          x = hline_xpos,
           y = hline,
           xanchor = "left",
           yanchor = "bottom",
@@ -1084,19 +1097,30 @@ print(params) ###
     }
 
 
+    ##### Apply point legend parameters
+
+    if (!is.null(legend_pos)) {
+
+      if (legend_pos!="none") {
+        base <- base |> layout(legend = plotly_legend_pos(legend_pos))  # use utils/plotly_legend_pos() function to switch between ggplot and plotly legend params
+      } else {
+        base <- base |> layout(showlegend = F)
+      }
+
+    }
 
 
-# legend
-# axis reversal
+
+# un-clash top/bottom legend with other chart elements
 # hover labels
 # y sec axis
-# chart_footer
+
 
 
     #
     # ## Legend settings
     #
-    # if (!missing(legend_position)) {
+    # if (!is.null(legend_pos)) {
     #
     #   legend_orientation <-
     #     if (legend_position %in% c("top", "bottom"))
