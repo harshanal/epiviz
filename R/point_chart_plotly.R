@@ -102,7 +102,7 @@ point_chart_plotly <- function(
                           x_label_angle = NULL,
                           y_label = NULL,
                           y_label_angle = NULL,
-                          y_percent = NULL,
+                          y_percent = FALSE,
                           st_theme = NULL,
                           x_labels_reverse = FALSE,    ##add to line_chart?
                           y_limit_min = NULL,         ##add to line_chart?
@@ -144,6 +144,7 @@ point_chart_plotly <- function(
   if(!exists('point_labels_nudge_x',where=params)) params$point_labels_nudge_x <- 0
   if(!exists('point_labels_nudge_y',where=params)) params$point_labels_nudge_y <- 0
   #if(!exists('y_axis',where=params)) params$y_axis <- "y1"
+  if(!exists('y_percent',where=params)) params$y_percent <- FALSE
   if(!exists('y_sec_axis',where=params)) params$y_sec_axis <- FALSE
   if(!exists('y_sec_axis_no_shift',where=params)) params$y_sec_axis_no_shift <- FALSE
   if(!exists('chart_title_size',where=params)) params$chart_title_size <- 12
@@ -666,7 +667,7 @@ print(params) ###
 
     ##### Apply y percentage axis
 
-    if (!is.null(y_percent)) {
+    if (y_percent == TRUE) {
       #base <- base |> layout(yaxis = list(ticksuffix  = "%"))
       base <- base |> layout(yaxis = list(tickformat  = ".0%"))
     }
@@ -904,8 +905,9 @@ print(params) ###
               x = ~ df[[x]],
               ymin = ~ df[[ci_lower]],
               ymax = ~ df[[ci_upper]],
+              legendgroup = 'ci',
+              legendgrouptitle = list(text = ci_legend_title),
               #name = ???,
-              #fillcolor = error_colours,
               fillcolor = yarrr::transparent(error_colours, trans.val = .5), # add transparency using 'yarrr' package
               line = list(color = 'transparent')
             )
@@ -1002,9 +1004,9 @@ print(params) ###
                 line = list(color = 'transparent'),
                 fill = 'toself',
                 #fillcolor = paste0(error_colours[[i]],'80')
-                fillcolor = yarrr::transparent(error_colours[[i]], trans.val = .5) # add transparency using 'yarrr' package
-                # showlegend = FALSE,
-                # name = 'legend name'
+                fillcolor = yarrr::transparent(error_colours[[i]], trans.val = .5), # add transparency using 'yarrr' package
+                legendgroup = 'ci',
+                legendgrouptitle = list(text = ci_legend_title)
               )
 
           }
@@ -1032,11 +1034,27 @@ print(params) ###
     }
 
 
+    ##### Define default hover labels
+
+    if (is.null(ci)) {
+        hoverlabels <- paste0('<b>%{x}</b>',
+                              '<br>%{y}')
+    } else {
+        hoverlabels <- paste0('<b>%{x}</b>',
+                              '<br>%{y}',
+                              '<br><i>Upper: %{text}</i>',
+                              '<br><i>Lower: %{customdata}</i>')
+    }
+
+
 
     ##### Create point chart
 
     # Build according to whether plotting variables are grouped or not
     if (is.null(group_var)) {
+
+      # Replace default hoverlabels if point_labels is defined
+      if(!is.null(point_labels)) {hoverlabels <- as.character(df[[point_labels]])}
 
       # Add plotly trace without groups
       base <- base |>
@@ -1049,7 +1067,14 @@ print(params) ###
           marker = list(
             color = point_colours,
             symbol = point_shapes_key[[point_shape]]
-            )
+            ),
+          legendgroup = 'data',
+          legendgrouptitle = list(text = legend_title),
+          # leverage 'text' and 'customdata' fields to include ci limits in default hover labels
+          #   Account for y_percent = TRUE
+          text = if(y_percent==TRUE) {scales::percent(df[[ci_upper]])} else {df[[ci_upper]]},
+          customdata = if(y_percent==TRUE) {scales::percent(df[[ci_lower]])} else {df[[ci_lower]]},
+          hovertemplate = paste0(hoverlabels,"<extra></extra>") # Remove tooltip for ungrouped data
         )
 
     } else {
@@ -1078,6 +1103,9 @@ print(params) ###
         df_group <- df |>
           filter(get(group_var) == unique_groups[i])
 
+        # Replace default hoverlabels if point_labels is defined
+        if(!is.null(point_labels)) {hoverlabels <- as.character(df_group[[point_labels]])}
+
         base <- base |>
           add_trace(
             data = df_group,
@@ -1089,7 +1117,14 @@ print(params) ###
             marker = list(
               color = point_colours[[i]],
               symbol = plotly_point_shapes[[i]]
-            )
+              ),
+            legendgroup = 'data',
+            # leverage 'text' and 'customdata' fields to include ci limits in default hover labels
+            #   Account for y_percent = TRUE
+            text = if(y_percent==TRUE) {scales::percent(df_group[[ci_upper]])} else {df_group[[ci_upper]]},
+            customdata = if(y_percent==TRUE) {scales::percent(df_group[[ci_lower]])} else {df_group[[ci_lower]]},
+            legendgrouptitle = list(text = legend_title),
+            hovertemplate = hoverlabels
           )
 
       }
@@ -1099,6 +1134,7 @@ print(params) ###
 
     ##### Apply point legend parameters
 
+    # Legend position
     if (!is.null(legend_pos)) {
 
       if (legend_pos!="none") {
@@ -1109,65 +1145,21 @@ print(params) ###
 
     }
 
+    # Legend font
+    base <- base |>
+      layout(
+        legend = list(
+          #traceorder = "grouped+reversed",
+          font=list(size=8)
+          )
+        )
 
 
-# un-clash top/bottom legend with other chart elements
-# hover labels
+
+
 # y sec axis
 
 
-
-    #
-    # ## Legend settings
-    #
-    # if (!is.null(legend_pos)) {
-    #
-    #   legend_orientation <-
-    #     if (legend_position %in% c("top", "bottom"))
-    #       "h"
-    #   else
-    #     "v"
-    #
-    #   # configure legend settings
-    #   legend_settings <- switch(
-    #     legend_position,
-    #     "left" = list(
-    #       x = -0.2,
-    #       y = 0.5,
-    #       xanchor = "right",
-    #       yanchor = "middle",
-    #       orientation = legend_orientation
-    #     ),
-    #     "top" = list(
-    #       x = 0.5,
-    #       y = 0.97,
-    #       xanchor = "center",
-    #       yanchor = "bottom",
-    #       orientation = legend_orientation
-    #     ),
-    #     "right" = list(
-    #       x = 1.1,
-    #       y = 0.5,
-    #       xanchor = "left",
-    #       yanchor = "middle",
-    #       orientation = legend_orientation
-    #     ),
-    #     "bottom" = list(
-    #       x = 0.5,
-    #       y = -0.2,
-    #       xanchor = "center",
-    #       yanchor = "top",
-    #       orientation = legend_orientation
-    #     )
-    #
-    #   )  # Move legend outside of the plot area)
-    #
-    #   if(legend_position!="none"){
-    #     base <- base |> layout(legend = legend_settings)
-    #   }else{
-    #     base <- base |> layout(showlegend = F)
-    #   }
-    # }
 
   # return base plot
   return(base)

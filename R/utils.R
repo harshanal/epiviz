@@ -290,7 +290,7 @@ plotly_legend_pos <- function(x) {
         orientation = legend_orientation
       ),
       "right" = list(
-        x = 1.1,
+        x = 1.02,
         y = 0.5,
         xanchor = "left",
         yanchor = "middle",
