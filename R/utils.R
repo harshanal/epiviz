@@ -183,3 +183,68 @@ plotly_line_style <- function(x) {
   return(plotly_line_style)
 
 }
+
+
+
+
+
+#' Function to convert ggplot scale_date(date_breaks) values to d3 date
+#' format for use in plotly dtick variable for date axis break setting.
+#'
+#' @param x A string giving the distance between breaks like "2 weeks",
+#' or "10 years". Valid specifications are 'sec', 'min', 'hour', 'day',
+#' 'week', 'month' or 'year', optionally followed by 's'.
+#' See https://ggplot2.tidyverse.org/reference/scale_date.html
+#'
+#' @return A string in a format appropriate for plotly dtick date break formatting.
+#'
+#'
+#' @examples
+#' \dontrun{
+#' datebreak_to_d3("2 months")
+#'
+#' datebreak_to_d3("1 week")
+#' }
+datebreak_to_d3 <- function(x) {
+
+  # Gather string elements
+  number <- stringr::word(x , 1)
+  interval <- stringr::word(x , 2)
+
+  # If 'day'/'days' selected; convert to milliseconds
+  if(interval %in% c('day', 'days')) {
+
+    return(as.numeric(number)*86400000.0)
+
+  # If 'week'/'weeks' selected; convert to multiples of 7-days in milliseconds
+  } else if (interval %in% c('week', 'weeks')) {
+
+    return(as.numeric(number)*7*86400000.0)
+
+  # If 'month'/'months' selected; convert to 'Mxxx' format
+  } else if (interval %in% c('month', 'months')) {
+
+    return(paste0("M",number))
+
+  # If 'year'/'years' selected; convert to 'Mxxx' format times 12
+  } else if (interval %in% c('year', 'years')) {
+
+    return(paste0("M",as.numeric(number)*12))
+
+  # If 'hour'/'hours' selected; convert to milliseconds
+  } else if (interval %in% c('hour', 'hours')) {
+
+    return(as.numeric(number)*60*60*1000)
+
+  # If 'minute'/'minutes' selected; convert to milliseconds
+  } else if (interval %in% c('minute', 'minutes')) {
+
+    return(as.numeric(number)*60*1000)
+
+  # If 'second'/'seconds' selected; convert to milliseconds
+  } else if (interval %in% c('second', 'seconds')) {
+
+    return(as.numeric(number)*1000)
+
+  }
+}

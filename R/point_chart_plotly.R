@@ -635,28 +635,16 @@ print(params) ###
     if(!is.null(y_limit_min)) {y_min <- y_limit_min}
     if(!is.null(y_limit_max)) {y_max <- y_limit_max}
 
-print(x_min)
-print(x_max)
-print(y_min)
-print(y_max)
-
     # Pad x-axis range in line with ggplot formatting (5% on each side)
     if (is.numeric(df[[x]])) {
       xpad <- (x_max-x_min)*0.05
-print(xpad)
       x_max <- x_max+xpad
       x_min <- x_min-xpad
     } else if (is.Date(df[[x]])) {
       xpad <- round(as.numeric(difftime(x_max, x_min, units="days"))*0.05, digits = 0)
-print(xpad)
       x_max <- as.Date(x_max)+xpad
       x_min <- as.Date(x_min)-xpad
     }
-
-print(x_min)
-print(x_max)
-print(y_min)
-print(y_max)
 
     # Convert dates to character so they aren't coerced to numeric when added to range vector
     x_min <- if(is.Date(df[[x]])) {as.character(x_min)} else {x_min}
@@ -675,6 +663,79 @@ print(y_max)
         yaxis = list(range = y_range)
       )
 
+
+
+
+    ##### Apply axis breaks
+
+    # x
+    if(!is.null(x_axis_break_labels)) {
+      base <- base |>
+        layout(
+          xaxis = list(
+            tickvals = as.list(x_axis_break_labels)
+            )
+        )
+    # use x_axis_date_breaks if provided
+    } else if (!is.null(x_axis_date_breaks)) {
+      base <- base |>
+        layout(
+          xaxis = list(
+            #dtick = "D7"
+            dtick = datebreak_to_d3(x_axis_date_breaks)  # use utils/datebreak_to_d3() function
+          )
+        )
+    }
+
+
+    # y
+    if(!is.null(y_axis_break_labels)) {
+      base <- base |>
+        layout(
+          yaxis = list(
+            tickvals = as.list(y_axis_break_labels)
+          )
+        )
+    }
+
+
+
+    ##### Axis tick formatting
+
+    # Set axis tick label angle
+    # (negative angle as ggplot and plotly use opposite rotations)
+
+    # x
+    if(!is.null(x_label_angle)) {x_tickangle <- -x_label_angle} else {x_tickangle <- 0}
+
+    base <- base |>
+      layout(
+        xaxis = list(
+          tickangle = x_tickangle
+        )
+      )
+
+    # y
+    if(!is.null(y_label_angle)) {y_tickangle <- -y_label_angle} else {y_tickangle <- 0}
+
+    base <- base |>
+      layout(
+        yaxis = list(
+          tickangle = y_tickangle
+        )
+      )
+
+
+    # Force x-axis date format to YYYY-MM-DD
+
+    if(is.Date(df[[x]])) {
+      base <- base |>
+        layout(
+          xaxis = list(
+            tickformat="%Y-%m-%d"
+          )
+        )
+    }
 
 
 
@@ -977,13 +1038,11 @@ print(y_max)
 
 
 
-
-
 # legend
-# limits
-# breaks
 # axis reversal
 # hover labels
+# y sec axis
+# chart_footer
 
 
     #
