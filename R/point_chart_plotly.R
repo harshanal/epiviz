@@ -93,7 +93,11 @@ point_chart_plotly <- function(
                           y_sec_axis = FALSE,
                           y_sec_axis_no_shift = FALSE,           ##add to line_chart?
                           chart_title = NULL,         # change to chart_title in line_chart
+                          chart_title_size = 13,
+                          chart_title_colour = "black",
                           chart_footer = NULL,        ##add to line_chart?
+                          chart_footer_size = 12,
+                          chart_footer_colour = "black",
                           x_label = NULL,
                           x_label_angle = NULL,
                           y_label = NULL,
@@ -142,6 +146,12 @@ point_chart_plotly <- function(
   #if(!exists('y_axis',where=params)) params$y_axis <- "y1"
   if(!exists('y_sec_axis',where=params)) params$y_sec_axis <- FALSE
   if(!exists('y_sec_axis_no_shift',where=params)) params$y_sec_axis_no_shift <- FALSE
+  if(!exists('chart_title_size',where=params)) params$chart_title_size <- 12
+  if(!exists('chart_title_colour',where=params)) params$chart_title_colour <- "black"
+  if(!exists('chart_footer_size',where=params)) params$chart_footer_size <- 10
+  if(!exists('chart_footer_colour',where=params)) params$chart_footer_colour <- "black"
+  if(!exists('x_label_angle',where=params)) params$x_label_angle <- 0
+  if(!exists('y_label_angle',where=params)) params$y_label_angle <- 0
   if(!exists('x_labels_reverse',where=params)) params$x_labels_reverse <- FALSE
   if(!exists('show_gridlines',where=params)) params$show_gridlines <- FALSE
   if(!exists('show_axislines',where=params)) params$show_axislines <- TRUE
@@ -210,7 +220,8 @@ print(params) ###
                  "point_colours","point_labels",
                  "point_labels_hjust","point_labels_vjust","point_labels_nudge_x",
                  "point_labels_nudge_y","y_sec_axis","y_sec_axis_no_shift","chart_title",
-                 "chart_footer","x_label","x_label_angle","y_label","y_label_angle",
+                 "chart_footer","chart_title_size","chart_title_colour","chart_footer_size",
+                 "chart_footer_colour","x_label","x_label_angle","y_label","y_label_angle",
                  "y_percent","st_theme","x_labels_reverse","y_limit_min","y_limit_max",
                  "x_limit_min","x_limit_max", "x_axis_break_labels", "y_axis_break_labels",
                  "x_axis_n_breaks", "y_axis_n_breaks", "x_axis_date_breaks",
@@ -515,13 +526,18 @@ print(params) ###
     }
 
 
-    ##### Titles and axis labels
+    ##### Apply title, footer, and axis labels
 
     # Define fonts
     title_font <- list(
       family = chart_font,
-      size = 12,
-      color = "black")
+      size = chart_title_size,
+      color = chart_title_colour)
+
+    footer_font <- list(
+      family = chart_font,
+      size = chart_footer_size,
+      color = chart_footer_colour)
 
     axis_label_font <- list(
       family = chart_font,
@@ -534,14 +550,42 @@ print(params) ###
       color = "black")
 
 
+    # Replace R linebreaks with html linebreaks for plotly
+    chart_title <- gsub("\\n","<br>",chart_title)
+    chart_footer <- gsub("\\n","<br>",chart_footer)
+
+
     # Add title
     if (!is.null(chart_title)) {
       base <- base |>
-        layout(title = list(text = chart_title,
-                            font = title_font))
+        layout(title = list(text = html_bold(chart_title), # utils/html_bold function used to apply <b> </b> tags to title text
+                            font = title_font,
+                            x = 0.5,
+                            xanchor = "centre",
+                            xref = 'paper', yref = 'paper'))
     }
 
-    #Note:- utils/html_bold function used to apply <b> </b> tags to axis titles for bold font
+    # Add footer
+    if (!is.null(chart_footer)) {
+      base <- base |>
+        layout(annotations =
+                 list(x = 1,
+                      y = -0.19-((sin(-x_label_angle))*0.12),  # scale y position according to x-label text angle
+                      text = chart_footer,
+                      xanchor='right',
+                      yanchor='middle',
+                      #yanchor='auto',
+                      xref='paper',
+                      yref='paper',
+                      showarrow = F,
+                      font = footer_font,
+                      align = "right"
+                      )
+        )
+    }
+
+
+    # Note:- utils/html_bold function used to apply <b> </b> tags to axis titles for bold font
 
     # Add x axis label
     if (!is.null(x_label)) {
@@ -587,11 +631,15 @@ print(params) ###
 
 
 
+
     ####### Set grid lines, axes, and graph margin
 
     # Set margin to match ggplot
     base <- base |>
-      layout(margin = list(r=10,t=30,b=30,l=3))
+      layout(margin = list(r=10,
+                           t=30,
+                           b = 60+((sin(-x_label_angle))*50), # scale bottom margin according to x-label text angle
+                           l=3))
 
     # Grid lines
     if (!show_gridlines) {
@@ -700,7 +748,7 @@ print(params) ###
 
 
 
-    ##### Axis tick formatting
+    ##### Apply axis tick formatting
 
     # Set axis tick label angle
     # (negative angle as ggplot and plotly use opposite rotations)

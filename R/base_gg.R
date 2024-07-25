@@ -36,15 +36,21 @@ base_gg <- function() {
     base <- base + ggplot2::labs(title = chart_title) +
       # Add title and axis base styling
       theme(plot.title = element_text(hjust = 0.5,
-                                      size = 12,
-                                      family = chart_font),
+                                      size = chart_title_size,
+                                      colour = chart_title_colour,
+                                      family = chart_font,
+                                      face = "bold"),
             axis.title.x = element_text(face = "bold"),
             axis.title.y = element_text(face = "bold"))
   }
 
   # Add footer
   if (!(is.null(chart_footer))) {
-    base  <- base  + ggplot2::labs(caption = chart_footer)
+    base  <- base  + ggplot2::labs(caption = chart_footer) +
+      # Add title and axis base styling
+      theme(plot.caption = element_text(size = chart_footer_size,
+                                        colour = chart_footer_colour,
+                                        family = chart_font))
 
   }
 
