@@ -55,26 +55,26 @@ base_gg <- function() {
   }
 
   # Apply x-axis label
-  if (!is.null(x_label)) {
-    base <- base + labs(x = x_label)
+  if (!is.null(x_axis_title)) {
+    base <- base + labs(x = x_axis_title)
   } else {
     base <- base + labs(x = x) # default to variable name if label not provided
   }
 
   # Apply y-axis label
-  if (!is.null(y_label) & (y_sec_axis == FALSE)) {
-    base <- base + labs(y = y_label)
+  if (!is.null(y_axis_title) & (y_sec_axis == FALSE)) {
+    base <- base + labs(y = y_axis_title)
   } else {
     base <- base + labs(y = y) # default to variable name if label not provided
   }
 
   # Rotate axis text
-  if (!is.null(x_label_angle)) {
-    base <- base + theme(axis.text.x = element_text(angle  = x_label_angle, vjust = 0.5))
+  if (!is.null(x_axis_label_angle)) {
+    base <- base + theme(axis.text.x = element_text(angle  = x_axis_label_angle, vjust = 0.5))
   }
 
-  if (!is.null(y_label_angle)) {
-    base <- base + theme(axis.text.y = element_text(angle  = y_label_angle, vjust = 0.5))
+  if (!is.null(y_axis_label_angle)) {
+    base <- base + theme(axis.text.y = element_text(angle  = y_axis_label_angle, vjust = 0.5))
   }
 
 
@@ -240,7 +240,7 @@ base_gg <- function() {
       # https://github.com/tidyverse/ggplot2/issues/4014
 
   # x-axis
-  if (x_labels_reverse == TRUE) {
+  if (x_axis_reverse == TRUE) {
 
     # Limits need to be inverted if axis is reversed
 
@@ -374,7 +374,7 @@ base_gg <- function() {
 
   ##### Change y-axis to percentage scale
 
-  if (!(is.null(y_percent))) {
+  if (y_percent == TRUE) {
 
     base <-
       base + scale_y_continuous(
@@ -390,19 +390,19 @@ base_gg <- function() {
 
   if (y_sec_axis == TRUE) {
     # apply percentage scale if invoked
-    if (is.null(y_percent)) {
+    if (y_percent == FALSE) {
       base <- base +
         # scale_y_continuous(sec.axis = sec_axis(~scale_function(., scale, shift),
-        #                                        name = y_label))
+        #                                        name = y_axis_title))
         scale_y_continuous(sec.axis = sec_axis(~ . * scale + shift,
-                                               name = y_label))
+                                               name = y_axis_title))
     } else {
       base <- base +
         # scale_y_continuous(sec.axis = sec_axis(~scale_function(., scale, shift),
-        #                                        name = y_label,
+        #                                        name = y_axis_title,
         #                                        labels = scales::label_percent()))
         scale_y_continuous(sec.axis = sec_axis(~ . * scale + shift,
-                                               name = y_label,
+                                               name = y_axis_title,
                                                labels = scales::label_percent()))
     }
   }

@@ -1,49 +1,113 @@
-#' Point chart
+#' point_chart
 #'
-#' The chart function has 3 mandatory arguments to plot, with additional
-#' arguments as described further below:
+#' @description A function for producing either static (ggplot) or dynamic (plotly)
+#' point charts.
+#'
+#' @param dynamic Logical indicating whether to produce a dynamic (plotly) output.
+#' Default is \code{FALSE}, which will return a static ggplot output.
+#' @param base A base ggplot or plotly object that the output will be applied to. If
+#' \code{dynamic = TRUE} then \code{base} must be a plotly object, and if \code{dynamic = FALSE}
+#' then \code{base} must be a ggplot object.
+#' @param params A named list containing arguements used to create the plot.
+#' ' \describe{
+#'    \item{df}{A data frame containing values used to create the point chart.}
+#'    \item{x}{Name of the variable in df used to populate the x-axis.}
+#'    \item{y}{Name of the variable in df used to populate the y-axis.}
+#'    \item{point_shape}{Shape of the plotted points. Permitted values of c('circle',
+#'    'triangle','square','plus','square cross','asterisk','diamond')}. When \code{group_var}
+#'    is provided, point shapes will be automatically assigned based on group.
+#'    \item{point_colours} {Colour of the points to be plotted (default = "blue").
+#'    When \code{group_var} is provided, \code{point_colours} can be set as a
+#'    character vector to define colours for each group.}
+#'    \item{point_labels} {Name of a variable in df containing text labels to plot against
+#'    each point on the chart. If not provided the no labels will be applied. If \code{dynamic
+#'    = TRUE} then \code{point_labels} will be applied as hover-labels, and \code{point_labels}
+#'    will accept html to format the output labels.}
+#'    \item{point_labels_hjust} {Horizontal justification of \code{point_labels} on output chart
+#'    when \code{dynamic = FALSE}. Permitted values = c(0, 0.5, 1) for left, centre,
+#'    and right justified respectively.}
+#'    \item{point_labels_vjust} {Vertical justification of \code{point_labels} on output chart
+#'    when \code{dynamic = FALSE}. Permitted values = c(0, 0.5, 1) for bottom, middle,
+#'    and top justified respectively.}
+#'    \item{point_labels_nudge_x} {Horizontal adjustment to nudge code{point_labels} by
+#'    when \code{dynamic = FALSE}. Useful for offsetting text from points.}
+#'    \item{point_labels_nudge_y} {Vertical adjustment to nudge code{point_labels} by
+#'    when \code{dynamic = FALSE}. Useful for offsetting text from points.}
+#'    \item{group_var}{Name of the variable in df used to define separate groups of points
+#'    in the chart.}
+#'    \item{ci} {Confidence interval. If \code{ci = "errorbar"} then confidence intervals be
+#'    be plotted with each point as errorbars, and if \code{ci = "ribbon"} then confidence
+#'    intervals will be added to the chart as a ribbon plot for each group. If \code{ci} is
+#'    provided, then \code{ci_upper} and \code{ci_lower} must also be provided.}
+#'    \item{ci_upper} {Name of the variable in df used as the upper confidence limit for
+#'    each point. Mandatory when \code{ci} is provided.}
+#'    \item{ci_lower} {Name of the variable in df used as the lower confidence limit for
+#'    each point. Mandatory when \code{ci} is provided.}
+#'    \item{ci_legend} {Logical indicating whether a separate legend should be included
+#'    in the chart for confidence interval parameters. Only applies when \code{group_var}
+#'    is provided. Defaults to \code{FALSE}.}
+#'    \item{ci_legend_title} {Text to use as title for separate legend when \code{ci_legend = TRUE}.}
+#'    \item{ci_colours} {Colour(s) used for plotting confidence intervals. When \code{ci =
+#'    "errorbar"} this will determine the colour of the plotted errorbars, when \code{ci =
+#'    "ribbon"} this will determine the colour of the plotted ribbons.}
+#'    \item{errorbar_width} {Horizontal width of the plotted error bars when \code{ci =
+#'    "errorbar"}.}
+#'    \item{y_sec_axis} {Logical to indicate whether data should be plotted on the
+#'    secondary (right) y-axis. Default = \code{FALSE}.}
+#'    \item{y_sec_axis_no_shift} {#######EXPAND###### Logical. Default = \code{FALSE}.}
+#'    \item{chart_title} {Text to use as chart title.}
+#'    \item{chart_title_size} {Font size of chart title.}
+#'    \item{chart_title_colour} {Font colour of chart title.}
+#'    \item{chart_footer} {Text to use as chart footer.}
+#'    \item{chart_footer_size} {Font size of chart footer.}
+#'    \item{chart_footer_colour} {Font colour of chart footer.}
+#'    \item{x_axis_title} {Text used for x-axis title. Defaults to name of x-variable if
+#'    not stated.}
+#'    \item{y_axis_title} {Text used for y-axis title. Defaults to name of y-variable if
+#'    not stated.}
+#'    \item{x_axis_label_angle} {Angle for x-axis label text.}
+#'    \item{y_axis_label_angle} {Angle for y-axis label text.}
+#'    \item{x_axis_reverse} {Reverses x-axis scale if \code{x_axis_reverse = TRUE}.}
+#'    \item{y_percent} {Converts y-axis to percentage scale if \code{y_percent = TRUE}.}
+#'    \item{x_limit_min} {Lower limit for the x-axis. Default used if not provided.}
+#'    \item{x_limit_max} {Upper limit for the x-axis. Default used if not provided.}
+#'    \item{y_limit_min} {Lower limit for the y-axis. Default used if not provided.}
+#'    \item{y_limit_max} {Upper limit for the y-axis. Default used if not provided.}
+#'    \item{x_axis_break_labels} {Vector of values to use for x-axis breaks. Defaults used if not provided.}
+#'    \item{y_axis_break_labels} {Vector of values to use for y-axis breaks. Defaults used if not provided.}
+#'    \item{x_axis_n_breaks} {Number of breaks for the x-axis. Cannot be provided
+#'    if \code{x_axis_break_labels} is provided.}
+#'    \item{y_axis_n_breaks} {Number of breaks for the y-axis. Cannot be used
+#'    if \code{y_axis_break_labels} is also provided.}
+#'    \item{x_axis_date_breaks} {A string giving the distance between breaks like "2 weeks", or "10 years".
+#'    Valid specifications are 'sec', 'min', 'hour', 'day', 'week', 'month' or 'year', optionally followed
+#'    by 's'. Matches ggplot scale_date() conventions (see https://ggplot2.tidyverse.org/reference/scale_date.html).
+#'    Cannot be used if \code{y_axis_break_labels} is also provided.}
+#'    \item{st_theme} {Name of a ggplot theme to be applied to a static plot. Can only be provided
+#'    when \code{dynamic = FALSE}}
+#'    \item{show_gridlines} {Logical to show chart gridlines. Default = \code{TRUE}.}
+#'    \item{show_axislines} {Logical to show chart axis lines. Default = \code{TRUE}.}
+#'    \item{legend_title} {Text used for legend title.}
+#'    \item{legend_pos} {Position of the legend. Permitted values = c("top","bootom","right","left")}
+#'    \item{hline} {Adds horizontal line across the chart at the corresponding y-value. Multiple
+#'    values may be provided as a vector to add multiple horizontal lines.}
+#'    \item{hline_colour} {Colour of the horizontal lines if \code{hline} is provided. A vector of colours
+#'    can be provided to colour individual hlines if multiple hlines have been provided.}
+#'    \item{hline_width} {Numerical width of the horizontal lines if \code{hline} is provided. A vector of numerical widths
+#'    can be provided for individual hlines if multiple hlines have been provided.}
+#'    \item{hline_type} {Line style of the horizontal lines if \code{hline} is provided. A vector of line styles
+#'    can be provided to style hlines if multiple hlines have been provided. Permitted values = c("solid", "dotted",
+#'    "dashed", "longdash", "dotdash").}
+#'    \item{hline_label} {Text to label the horizontal lines if \code{hline} is provided. A vector of text strings
+#'    can be provided to label individual hlines if multiple hlines have been provided.}
+#'    \item{hline_label_colour} {Colour of the horizontal line labels if \code{hline_labels} is provided.
+#'    A vector of colours can be provided to colour individual hline_labels if multiple hline_labels have been provided.}
 #'
 #'
-#' @param df name of data frame for plotting
-#' @param base base
-#' @param x name of x axis variable in data frame
-#' @param y name of y axis variable in data frame
-#' @param group_var name of group variable to generate multiple lines
-#' (if required) in data frame
-#' @param y_axis y_axis
-#' @param ci indicator for using ribbon or error bar geom (if required),
-#' enter 'errorbar' for error bar, enter 'ribbon' for ribbon
-#' @param ci_lower ci_lower value for error \ ribbon geom (mandatory if ci argument passed)
-#' @param ci_upper ci_upper value for error \ ribbon geom (mandatory if ci argument passed)
-#' @param error_colours if not plotting by group this is the colour of the error
-#' bars or ribbon
-#' @param hline will display a horizontal line if valid inter passed
-#' provided where multiple lines generated each will be of different type
-#' @param y_label for provision of an y axis label
-#' @param x_label for provision of an x axis label
-#' @param x_label_angle to adjust the x axis label by the degrees of the
-#' integer provided
-#' @param y_label_angle to adjust the y axis label by the degrees of the
-#' integer provided
-#' @param x_labels_reverse enter an argument of any value i.e. 'y' to reverse
-#' the x labeling order when using categorical data
-#' @param y_min_limit set the limit on the y axis scaling by proving an integer
-#' @param y_max_limit set the limit on the x axis scaling by proving an integer
-#' @param x_axis_breaks modify the x axis breaks by providing an integer
-#' @param legend_pos modify the position of the legend (where applicable) with
-#' appropriate value i.e. bottom (default position),
-#' top, right, left
-#' @param remove_gridlines enter an argument of any value i.e. 'y' to remove
-#' the grid lines
-#' @param y_percent enter an argument of any value i.e. 'y' to include the %
-#' symbol for y axis labels
-#' @param chart_footer enter text for a caption to appear below plot
-#' @param labels labels to display alongside the plotted geom_points
-#' @param labels_hjust the horizontal adjustment of the point labels
-#' @param labels_vjust the vertical adjustment of the point labels
-#' @param point_shape shape of the points to be plotted (only used when not plotting
-#' by group)
-#' @param y_sec_axis_no_shift If no shift should be applied to the secondary y-axis
+#'  }
+#'
+#'
+#'
 #'
 #' @import assertthat
 #' @import grDevices
@@ -53,7 +117,7 @@
 #' @import yarrr
 #' @rawNamespace import(ggplot2, except = last_plot)
 #'
-#' @return the final plot
+#' @return A ggplot or plotly object.
 #' @export
 #'
 #' @examples
@@ -63,7 +127,7 @@
 #' # the plotted values that are vertically adjusted from the plotted points
 #' \dontrun{
 #' point_chart(df = plot_df, x = "age", y = "value", ci = "e", ci_upper = "ci_uppercl",
-#' ci_lower = "ci_lowercl", group_var = "ukborn", y_axis = "y2", y_label = "Value",
+#' ci_lower = "ci_lowercl", group_var = "ukborn", y_axis = "y2", y_axis_title = "Value",
 #' labels = "value", vjust = -3.5)
 #' }
 #'
@@ -74,54 +138,53 @@ point_chart_plotly <- function(
                           df = NULL,
                           x = NULL,
                           y = NULL,
-                          ci = NULL,
-                          ci_legend = FALSE,
-                          ci_legend_title = "Confidence interval",
-                          ci_lower = NULL,
-                          ci_upper = NULL,
-                          error_colours = "red",
-                          errorbar_width = NULL,
-                          group_var = NULL,
                           point_shape = "triangle",
                           point_colours = "blue",
-                          point_labels = NULL,
+                          point_labels = NULL,         # note that this needs to reference a variable in df
                           point_labels_hjust = 0,
                           point_labels_vjust = 0,
                           point_labels_nudge_x = 0,
                           point_labels_nudge_y = 0,
-                          #y_axis = "y1",              ##add to line_chart?
+                          group_var = NULL,
+                          ci = NULL,
+                          ci_upper = NULL,
+                          ci_lower = NULL,
+                          ci_legend = FALSE,
+                          ci_legend_title = "Confidence interval",
+                          ci_colours = "red",
+                          errorbar_width = NULL,
                           y_sec_axis = FALSE,
-                          y_sec_axis_no_shift = FALSE,           ##add to line_chart?
-                          chart_title = NULL,         # change to chart_title in line_chart
+                          y_sec_axis_no_shift = FALSE,
+                          chart_title = NULL,
                           chart_title_size = 13,
                           chart_title_colour = "black",
-                          chart_footer = NULL,        ##add to line_chart?
+                          chart_footer = NULL,
                           chart_footer_size = 12,
                           chart_footer_colour = "black",
-                          x_label = NULL,
-                          x_label_angle = NULL,
-                          y_label = NULL,
-                          y_label_angle = NULL,
+                          x_axis_title = NULL,
+                          y_axis_title = NULL,
+                          x_axis_label_angle = NULL,
+                          y_axis_label_angle = NULL,
+                          x_axis_reverse = FALSE,
                           y_percent = FALSE,
-                          st_theme = NULL,
-                          x_labels_reverse = FALSE,    ##add to line_chart?
-                          y_limit_min = NULL,         ##add to line_chart?
-                          y_limit_max = NULL,          ##add to line_chart?
-                          x_limit_min = NULL,         ##add to line_chart?
-                          x_limit_max = NULL,          ##add to line_chart?
-                          x_axis_break_labels = NULL,       ##add to line_chart?
+                          x_limit_min = NULL,
+                          x_limit_max = NULL,
+                          y_limit_min = NULL,
+                          y_limit_max = NULL,
+                          x_axis_break_labels = NULL,
                           y_axis_break_labels = NULL,
                           x_axis_n_breaks = NULL,
                           y_axis_n_breaks = NULL,
                           x_axis_date_breaks = NULL,
+                          st_theme = NULL,
                           show_gridlines = FALSE,
                           show_axislines = TRUE,
                           legend_title = "",
-                          legend_pos = "bottom",      # change to legend_pos in line_chart
+                          legend_pos = "bottom",
                           hline = NULL,
                           hline_colour = "black",
-                          hline_width = 0.5,          ##add to line_chart?
-                          hline_type = "dashed",      ##add to line_chart?
+                          hline_width = 0.5,
+                          hline_type = "dashed",
                           hline_label = NULL,
                           hline_label_colour = "black"
                         )
@@ -135,7 +198,7 @@ point_chart_plotly <- function(
   # Assign any null default args to params list
   if(!exists('ci_legend',where=params)) params$ci_legend <- FALSE
   if(!exists('ci_legend_title',where=params)) params$ci_legend_title <- "Confidence interval"
-  if(!exists('error_colours',where=params)) params$error_colours <- "red"
+  if(!exists('ci_colours',where=params)) params$ci_colours <- "red"
   if(!exists('errorbar_width',where=params)) params$errorbar_width <- NULL
   if(!exists('point_shape',where=params)) params$point_shape <- "triangle"
   if(!exists('point_colours',where=params)) params$point_colours <- "blue"
@@ -151,9 +214,9 @@ point_chart_plotly <- function(
   if(!exists('chart_title_colour',where=params)) params$chart_title_colour <- "black"
   if(!exists('chart_footer_size',where=params)) params$chart_footer_size <- 10
   if(!exists('chart_footer_colour',where=params)) params$chart_footer_colour <- "black"
-  if(!exists('x_label_angle',where=params)) params$x_label_angle <- 0
-  if(!exists('y_label_angle',where=params)) params$y_label_angle <- 0
-  if(!exists('x_labels_reverse',where=params)) params$x_labels_reverse <- FALSE
+  if(!exists('x_axis_label_angle',where=params)) params$x_axis_label_angle <- 0
+  if(!exists('y_axis_label_angle',where=params)) params$y_axis_label_angle <- 0
+  if(!exists('x_axis_reverse',where=params)) params$x_axis_reverse <- FALSE
   if(!exists('show_gridlines',where=params)) params$show_gridlines <- FALSE
   if(!exists('show_axislines',where=params)) params$show_axislines <- TRUE
   if(!exists('legend_title',where=params)) params$legend_title <- ""
@@ -202,7 +265,7 @@ print(params) ###
            x_axis_break_labels OR x_axis_date_breaks")
 
   # Warn that x_axis_date_breaks cannot be used with a reversed x-axis
-  if ((params$x_labels_reverse == TRUE) & (!is.null(params$x_axis_date_breaks)))
+  if ((params$x_axis_reverse == TRUE) & (!is.null(params$x_axis_date_breaks)))
     warning("x_axis_date_breaks cannot be used with a reversed x-axis, consider using
               x_axis_break_labels instead")
 
@@ -217,13 +280,13 @@ print(params) ###
   #     it can't find within the reference list.
   param_assign(params,
                c("df","x","y","ci","ci_legend","ci_legend_title","ci_lower",
-                 "ci_upper","error_colours","errorbar_width","group_var","point_shape",
+                 "ci_upper","ci_colours","errorbar_width","group_var","point_shape",
                  "point_colours","point_labels",
                  "point_labels_hjust","point_labels_vjust","point_labels_nudge_x",
                  "point_labels_nudge_y","y_sec_axis","y_sec_axis_no_shift","chart_title",
                  "chart_footer","chart_title_size","chart_title_colour","chart_footer_size",
-                 "chart_footer_colour","x_label","x_label_angle","y_label","y_label_angle",
-                 "y_percent","st_theme","x_labels_reverse","y_limit_min","y_limit_max",
+                 "chart_footer_colour","x_axis_title","x_axis_label_angle","y_axis_title","y_axis_label_angle",
+                 "y_percent","st_theme","x_axis_reverse","y_limit_min","y_limit_max",
                  "x_limit_min","x_limit_max", "x_axis_break_labels", "y_axis_break_labels",
                  "x_axis_n_breaks", "y_axis_n_breaks", "x_axis_date_breaks",
                  "show_gridlines","show_axislines", "legend_title","legend_pos",
@@ -239,10 +302,10 @@ print(params) ###
   #
   # # Set any unused parameter values to NULL
   # unused <- setdiff(c("df","x","y","ci","ci_legend","ci_legend_title","ci_lower",
-  #                     "ci_upper","error_colours","group_var","point_shape","point_colours","point_labels",
+  #                     "ci_upper","ci_colours","group_var","point_shape","point_colours","point_labels",
   #                     "point_labels_hjust","point_labels_vjust","y_axis","y_sec_axis_no_shift","chart_title",
-  #                     "chart_footer","x_label","x_label_angle","y_label","y_label_angle",
-  #                     "y_percent","st_theme","x_labels_reverse","y_min_limit","y_max_limit",
+  #                     "chart_footer","x_axis_title","x_axis_label_angle","y_axis_title","y_axis_label_angle",
+  #                     "y_percent","st_theme","x_axis_reverse","y_min_limit","y_max_limit",
   #                     "x_axis_breaks","show_gridlines","show_axislines","legend_title","legend_pos",
   #                     "hline","hline_colour","hline_width","hline_type","hline_label"),
   #                   names(params))
@@ -317,7 +380,7 @@ print(params) ###
                 ymin = .data[[ci_lower]],
                 ymax = .data[[ci_upper]]
               ),
-              colour = error_colours[[1]],
+              colour = ci_colours[[1]],
               width = errorbar_width,
               linewidth = 0.5
             )
@@ -338,7 +401,7 @@ print(params) ###
               alpha = .5,
               show.legend = show_ci_leg
             ) +
-            scale_fill_manual("",values=error_colours[[1]])
+            scale_fill_manual("",values=ci_colours[[1]])
         }
 
       # Plot for group_var provided
@@ -361,10 +424,10 @@ print(params) ###
               linewidth = .5
             )
 
-          # Add error_colours if provided
-          if (length(error_colours) > 1) {
+          # Add ci_colours if provided
+          if (length(ci_colours) > 1) {
             base <- base +
-              scale_colour_manual(values = error_colours)
+              scale_colour_manual(values = ci_colours)
           }
 
         # Add ribbon with grouping variable
@@ -386,10 +449,10 @@ print(params) ###
             ) +
             labs(fill = ci_legend_title)
 
-            # Add error_colours if provided
-            if (length(error_colours) > 1) {
+            # Add ci_colours if provided
+            if (length(ci_colours) > 1) {
               base <- base +
-                scale_fill_manual(values = error_colours)
+                scale_fill_manual(values = ci_colours)
             }
 
         }
@@ -572,7 +635,7 @@ print(params) ###
       base <- base |>
         layout(annotations =
                  list(x = 1,
-                      y = -0.19-((sin(-x_label_angle))*0.12),  # scale y position according to x-label text angle
+                      y = -0.19-abs((sin(-x_axis_label_angle))*0.12),  # scale y position according to x-label text angle
                       text = chart_footer,
                       xanchor='right',
                       yanchor='middle',
@@ -590,10 +653,10 @@ print(params) ###
     # Note:- utils/html_bold function used to apply <b> </b> tags to axis titles for bold font
 
     # Add x axis label
-    if (!is.null(x_label)) {
+    if (!is.null(x_axis_title)) {
       base <- base |>
         layout(xaxis = list(title =
-                              list(text = html_bold(x_label),
+                              list(text = html_bold(x_axis_title),
                                    font = axis_label_font)))
     } else {
       base <- base |>
@@ -603,10 +666,10 @@ print(params) ###
     }
 
     # Add y axis label
-    if (!is.null(y_label)) {
+    if (!is.null(y_axis_title)) {
       base <- base |>
         layout(yaxis = list(title =
-                              list(text = html_bold(y_label),
+                              list(text = html_bold(y_axis_title),
                                    font = axis_label_font)))
     } else {
       base <- base |>
@@ -620,15 +683,15 @@ print(params) ###
     base <- base |> layout(font = axis_break_font)
 
     # Change x axis text angle
-    if (!is.null(x_label_angle)){
+    if (!is.null(x_axis_label_angle)){
       # angle negated as this function following ggplot rotation direction
-      base <- base |> layout(xaxis = list(tickangle = -x_label_angle))
+      base <- base |> layout(xaxis = list(tickangle = -x_axis_label_angle))
     }
 
     # Change y axis text angle
-    if (!is.null(y_label_angle)){
+    if (!is.null(y_axis_label_angle)){
       # angle negated as this function following ggplot rotation direction
-      base <- base |> layout(yaxis = list(tickangle = -y_label_angle))
+      base <- base |> layout(yaxis = list(tickangle = -y_axis_label_angle))
     }
 
 
@@ -640,7 +703,7 @@ print(params) ###
     base <- base |>
       layout(margin = list(r=10,
                            t=30,
-                           b = 60+((sin(-x_label_angle))*50), # scale bottom margin according to x-label text angle
+                           b = 60+abs((sin(-x_axis_label_angle))*50), # scale bottom margin according to x-label text angle
                            l=3))
 
     # Grid lines
@@ -707,7 +770,7 @@ print(params) ###
     y_range <- c(y_min, y_max)
 
     #Reverse x-axis range if specified
-    if (x_labels_reverse == TRUE) {x_range <- rev(x_range)}
+    if (x_axis_reverse == TRUE) {x_range <- rev(x_range)}
 
     # Apply axis ranges to chart
     base <- base |>
@@ -759,7 +822,7 @@ print(params) ###
     # (negative angle as ggplot and plotly use opposite rotations)
 
     # x
-    if(!is.null(x_label_angle)) {x_tickangle <- -x_label_angle} else {x_tickangle <- 0}
+    if(!is.null(x_axis_label_angle)) {x_tickangle <- -x_axis_label_angle} else {x_tickangle <- 0}
 
     base <- base |>
       layout(
@@ -769,7 +832,7 @@ print(params) ###
       )
 
     # y
-    if(!is.null(y_label_angle)) {y_tickangle <- -y_label_angle} else {y_tickangle <- 0}
+    if(!is.null(y_axis_label_angle)) {y_tickangle <- -y_axis_label_angle} else {y_tickangle <- 0}
 
     base <- base |>
       layout(
@@ -815,7 +878,7 @@ print(params) ###
     if (!is.null(hline_label)) {
 
       # Define positiion of label depending on whether x axis is reversed
-      if (x_labels_reverse == FALSE) {
+      if (x_axis_reverse == FALSE) {
         hline_xpos <- if(!is.null(x_limit_min)) {x_limit_min} else {min(df[[x]])}
       } else {
         hline_xpos <- if(!is.null(x_limit_max)) {x_limit_max} else {max(df[[x]])}
@@ -890,7 +953,7 @@ print(params) ###
               error_y = list(
                 type = "data",
                 symmetric = FALSE,
-                color = error_colours,
+                color = ci_colours,
                 thickness = 1,
                 arrayminus = ~ diff_ci_lower,
                 array = ~ diff_ci_upper
@@ -908,7 +971,7 @@ print(params) ###
               legendgroup = 'ci',
               legendgrouptitle = list(text = ci_legend_title),
               #name = ???,
-              fillcolor = yarrr::transparent(error_colours, trans.val = .5), # add transparency using 'yarrr' package
+              fillcolor = yarrr::transparent(ci_colours, trans.val = .5), # add transparency using 'yarrr' package
               line = list(color = 'transparent')
             )
 
@@ -954,7 +1017,7 @@ print(params) ###
                 error_y = list(
                   type = "data",
                   symmetric = FALSE,
-                  color = error_colours[[i]],
+                  color = ci_colours[[i]],
                   thickness = 1,
                   arrayminus = ~ diff_ci_lower,
                   array = ~ diff_ci_upper
@@ -1003,8 +1066,8 @@ print(params) ###
                 name = unique_groups[[i]],
                 line = list(color = 'transparent'),
                 fill = 'toself',
-                #fillcolor = paste0(error_colours[[i]],'80')
-                fillcolor = yarrr::transparent(error_colours[[i]], trans.val = .5), # add transparency using 'yarrr' package
+                #fillcolor = paste0(ci_colours[[i]],'80')
+                fillcolor = yarrr::transparent(ci_colours[[i]], trans.val = .5), # add transparency using 'yarrr' package
                 legendgroup = 'ci',
                 legendgrouptitle = list(text = ci_legend_title)
               )
@@ -1154,10 +1217,6 @@ print(params) ###
           )
         )
 
-
-
-
-# y sec axis
 
 
 
