@@ -16,6 +16,7 @@
 #'    \item{point_shape}{Shape of the plotted points. Permitted values of c('circle',
 #'    'triangle','square','plus','square cross','asterisk','diamond')}. When \code{group_var}
 #'    is provided, point shapes will be automatically assigned based on group.
+#'    \item{point_size} {########## EXPAND #################}
 #'    \item{point_colours} {Colour of the points to be plotted (default = "blue").
 #'    When \code{group_var} is provided, \code{point_colours} can be set as a
 #'    character vector to define colours for each group.}
@@ -54,7 +55,7 @@
 #'    "errorbar"}.}
 #'    \item{y_sec_axis} {Logical to indicate whether data should be plotted on the
 #'    secondary (right) y-axis. Default = \code{FALSE}.}
-#'    \item{y_sec_axis_no_shift} {#######EXPAND###### Logical. Default = \code{FALSE}.}
+#'    \item{y_sec_axis_no_shift} {####### EXPAND ###### Logical. Default = \code{FALSE}.}
 #'    \item{chart_title} {Text to use as chart title.}
 #'    \item{chart_title_size} {Font size of chart title.}
 #'    \item{chart_title_colour} {Font colour of chart title.}
@@ -89,6 +90,8 @@
 #'    \item{show_axislines} {Logical to show chart axis lines. Default = \code{TRUE}.}
 #'    \item{legend_title} {Text used for legend title.}
 #'    \item{legend_pos} {Position of the legend. Permitted values = c("top","bootom","right","left")}
+#'    \item{point_size_legend} {Include a legend for \code{point_size}. Default = \code{TRUE}}
+#'    \item{point_size_legend_title} {Text used for point legend title.}
 #'    \item{hline} {Adds horizontal line across the chart at the corresponding y-value. Multiple
 #'    values may be provided as a vector to add multiple horizontal lines.}
 #'    \item{hline_colour} {Colour of the horizontal lines if \code{hline} is provided. A vector of colours
@@ -139,6 +142,7 @@ point_chart_plotly <- function(
                           x = NULL,
                           y = NULL,
                           point_shape = "triangle",
+                          point_size = 1.5,
                           point_colours = "blue",
                           point_labels = NULL,         # note that this needs to reference a variable in df
                           point_labels_hjust = 0,
@@ -181,6 +185,8 @@ point_chart_plotly <- function(
                           show_axislines = TRUE,
                           legend_title = "",
                           legend_pos = "bottom",
+                          point_size_legend = TRUE,
+                          point_size_legend_title = "",
                           hline = NULL,
                           hline_colour = "black",
                           hline_width = 0.5,
@@ -201,6 +207,7 @@ point_chart_plotly <- function(
   if(!exists('ci_colours',where=params)) params$ci_colours <- "red"
   if(!exists('errorbar_width',where=params)) params$errorbar_width <- NULL
   if(!exists('point_shape',where=params)) params$point_shape <- "triangle"
+  if(!exists('point_size',where=params)) params$point_size <- 1.5
   if(!exists('point_colours',where=params)) params$point_colours <- "blue"
   if(!exists('point_labels_hjust',where=params)) params$point_labels_hjust <- 0
   if(!exists('point_labels_vjust',where=params)) params$point_labels_vjust <- 0
@@ -220,6 +227,8 @@ point_chart_plotly <- function(
   if(!exists('show_gridlines',where=params)) params$show_gridlines <- FALSE
   if(!exists('show_axislines',where=params)) params$show_axislines <- TRUE
   if(!exists('legend_title',where=params)) params$legend_title <- ""
+  if(!exists('point_size_legend',where=params)) params$point_size_legend <- TRUE
+  if(!exists('point_size_legend_title',where=params)) params$point_size_legend_title <- ""
   if(!exists('legend_pos',where=params)) params$legend_pos <- "bottom"
   if(!exists('hline_colour',where=params)) params$hline_colour <- "black"
   if(!exists('hline_width',where=params)) params$hline_width <- 0.5
@@ -269,6 +278,8 @@ print(params) ###
     warning("x_axis_date_breaks cannot be used with a reversed x-axis, consider using
               x_axis_break_labels instead")
 
+  # Warn that point_size_legend is not available for dynamic plot
+
 
 
   ### Parameter assignment
@@ -281,7 +292,7 @@ print(params) ###
   param_assign(params,
                c("df","x","y","ci","ci_legend","ci_legend_title","ci_lower",
                  "ci_upper","ci_colours","errorbar_width","group_var","point_shape",
-                 "point_colours","point_labels",
+                 "point_size","point_colours","point_labels",
                  "point_labels_hjust","point_labels_vjust","point_labels_nudge_x",
                  "point_labels_nudge_y","y_sec_axis","y_sec_axis_no_shift","chart_title",
                  "chart_footer","chart_title_size","chart_title_colour","chart_footer_size",
@@ -289,9 +300,9 @@ print(params) ###
                  "y_percent","st_theme","x_axis_reverse","y_limit_min","y_limit_max",
                  "x_limit_min","x_limit_max", "x_axis_break_labels", "y_axis_break_labels",
                  "x_axis_n_breaks", "y_axis_n_breaks", "x_axis_date_breaks",
-                 "show_gridlines","show_axislines", "legend_title","legend_pos",
-                 "hline","hline_colour","hline_width", "hline_type","hline_label",
-                 "hline_label_colour"))
+                 "show_gridlines","show_axislines", "legend_title","point_size_legend",
+                 "point_size_legend_title","legend_pos","hline","hline_colour","hline_width",
+                 "hline_type","hline_label","hline_label_colour"))
 
 
 
@@ -472,30 +483,78 @@ print(params) ###
   # Build according to whether plotting variables are grouped or not
   if(is.null(group_var)) {
 
-    # create base point chart without groups
-    base <-
-      base + ggplot2::geom_point(
-        data = df,
-        mapping = aes(x = .data[[x]],
-            y = .data[[y]]),
-        color = point_colours[[1]],
-        shape = point_shape
-      )
+    # Create base point chart without groups
+
+    # Take into account user-defined point size
+    if (is.numeric(point_size) & length(point_size) ==1) {
+
+      # point_size specified as fixed numeric size (or unspecified and left as default)
+      base <-
+        base + ggplot2::geom_point(
+          data = df,
+          mapping = aes(x = .data[[x]],
+                        y = .data[[y]]
+                        ),
+          color = point_colours[[1]],
+          shape = point_shape,
+          size = point_size
+        )
+
+    } else {
+
+      # point_size specified as variable
+      base <-
+        base + ggplot2::geom_point(
+          data = df,
+          mapping = aes(x = .data[[x]],
+                        y = .data[[y]],
+                        size = .data[[point_size]]
+                        ),
+          color = point_colours[[1]],
+          shape = point_shape
+        )
+
+
+    }
 
   } else {
 
     # creating base point chart with groups
-    base <-
-      base + ggplot2::geom_point(
-        data = df,
-        mapping = aes(
-          x = .data[[x]],
-          y = .data[[y]],
-          group = factor(.data[[group_var]]),
-          colour = factor(.data[[group_var]]),
-          shape = factor(.data[[group_var]])
+
+    # Take into account user-defined point size
+    if (is.numeric(point_size) & length(point_size) ==1) {
+
+      # point_size specified as fixed numeric size (or unspecified and left as default)
+      base <-
+        base + ggplot2::geom_point(
+          data = df,
+          mapping = aes(
+            x = .data[[x]],
+            y = .data[[y]],
+            group = factor(.data[[group_var]]),
+            colour = factor(.data[[group_var]]),
+            shape = factor(.data[[group_var]]),
+          ),
+          size = point_size
         )
-      )
+
+    } else {
+
+      # point_size specified as variable
+      base <-
+        base + ggplot2::geom_point(
+          data = df,
+          mapping = aes(
+            x = .data[[x]],
+            y = .data[[y]],
+            group = factor(.data[[group_var]]),
+            colour = factor(.data[[group_var]]),
+            shape = factor(.data[[group_var]]),
+            size = .data[[point_size]]
+          )
+        )
+
+    }
 
     # Add point_colours if provided
     if (length(point_colours) > 1) {
@@ -504,18 +563,37 @@ print(params) ###
     }
 
 
-    ##### Apply point legend parameters
+    ##### Apply point colour / shape legend parameters
 
+    # Base legend title
     if (!is.null(legend_title)) {
       base <-  base + labs(name = legend_title,
                            colour = legend_title,
-                           shape = legend_title)
+                           shape = legend_title,
+                           size = legend_title)
     }
 
+
+    # Legend position
     if (!is.null(legend_pos)) {
       base <-  base + theme(legend.position = legend_pos)
     }
 
+  }
+
+
+  ##### Apply point size legend parameters
+
+  # Point size legend title
+  if (!is.null(point_size_legend_title)) {
+    base <-  base +
+      scale_size(name = point_size_legend_title) +
+      guides(size=guide_legend(override.aes=list(colour=point_colours[1]))) # override default black point size legend colour
+  }
+
+  # Suppress point size legend if specified
+  if (point_size_legend == FALSE) {
+    base <-  base + scale_size(guide = 'none')
   }
 
 
@@ -784,6 +862,7 @@ print(params) ###
 
     ##### Apply axis breaks
 
+    # Apply user specified axis breaks
     # x
     if(!is.null(x_axis_break_labels)) {
       base <- base |>
@@ -803,13 +882,36 @@ print(params) ###
         )
     }
 
-
     # y
     if(!is.null(y_axis_break_labels)) {
       base <- base |>
         layout(
           yaxis = list(
             tickvals = as.list(y_axis_break_labels)
+          )
+        )
+    }
+
+
+    # Apply axis_n_breaks if provided
+    #    Note:- axis_break_labels and x_axis_date_breaks take priority
+
+    # x
+    if(is.null(x_axis_break_labels) & !is.null(x_axis_n_breaks)) {
+      base <- base |>
+        layout(
+          xaxis = list(
+            nticks = x_axis_n_breaks
+          )
+        )
+    }
+
+    # y
+    if(is.null(y_axis_break_labels) & !is.null(y_axis_n_breaks)) {
+      base <- base |>
+        layout(
+          yaxis = list(
+            nticks = y_axis_n_breaks
           )
         )
     }
@@ -968,6 +1070,7 @@ print(params) ###
               x = ~ df[[x]],
               ymin = ~ df[[ci_lower]],
               ymax = ~ df[[ci_upper]],
+              showlegend = ci_legend,
               legendgroup = 'ci',
               legendgrouptitle = list(text = ci_legend_title),
               #name = ???,
@@ -1068,6 +1171,7 @@ print(params) ###
                 fill = 'toself',
                 #fillcolor = paste0(ci_colours[[i]],'80')
                 fillcolor = yarrr::transparent(ci_colours[[i]], trans.val = .5), # add transparency using 'yarrr' package
+                showlegend = ci_legend,
                 legendgroup = 'ci',
                 legendgrouptitle = list(text = ci_legend_title)
               )
@@ -1082,6 +1186,8 @@ print(params) ###
 
 
     ##### Resolve point style
+
+    # Note:- Limited to 7 at present; expand
 
     # Create ggplot -> plotly point-shape key
     ggplot_point_shapes <- c('circle','triangle','square','plus','square cross','asterisk','diamond')
@@ -1119,6 +1225,25 @@ print(params) ###
       # Replace default hoverlabels if point_labels is defined
       if(!is.null(point_labels)) {hoverlabels <- as.character(df[[point_labels]])}
 
+      # Take into account user-defined point size
+
+        # If point size is a fixed number, define a vector containing that number
+        if (is.numeric(point_size) & length(point_size) ==1) {
+
+          plotly_point_sizes <- rep(point_size*3, nrow(df))   # *3 to scale ggplot to plotly (approx)
+
+        } else {
+        # If point size is a variable
+
+            # Define ggplot geom_point object to harvest point sizes from so that this can
+            #   be fed into the plotly chart.
+            ggsizeobj <- ggplot() +
+              geom_point(data = df, aes(x = .data[[x]], y = .data[[y]], size = .data[[point_size]]))
+
+            plotly_point_sizes <- (ggplot_build(ggsizeobj)$data[[1]]$size)*3   # *3 to scale ggplot to plotly (approx)
+        }
+
+
       # Add plotly trace without groups
       base <- base |>
         add_trace(
@@ -1129,7 +1254,8 @@ print(params) ###
           mode = 'markers',
           marker = list(
             color = point_colours,
-            symbol = point_shapes_key[[point_shape]]
+            symbol = point_shapes_key[[point_shape]],
+            size = plotly_point_sizes
             ),
           legendgroup = 'data',
           legendgrouptitle = list(text = legend_title),
@@ -1169,6 +1295,24 @@ print(params) ###
         # Replace default hoverlabels if point_labels is defined
         if(!is.null(point_labels)) {hoverlabels <- as.character(df_group[[point_labels]])}
 
+        # Take into account user-defined point size
+
+          # If point size is a fixed number, define a vector containing that number
+          if (is.numeric(point_size) & length(point_size) ==1) {
+
+            plotly_point_sizes_group <- rep(point_size*3, nrow(df_group))   # *3 to scale ggplot to plotly (approx)
+
+          } else {
+            # If point size is a variable
+
+            # Define ggplot geom_point object to harvest point sizes from so that this can
+            #   be fed into the plotly chart.
+            ggsizeobj <- ggplot() +
+              geom_point(data = df_group, aes(x = .data[[x]], y = .data[[y]], size = .data[[point_size]]))
+
+            plotly_point_sizes_group <- (ggplot_build(ggsizeobj)$data[[1]]$size)*3   # *3 to scale ggplot to plotly (approx)
+          }
+
         base <- base |>
           add_trace(
             data = df_group,
@@ -1179,7 +1323,9 @@ print(params) ###
             name = unique_groups[[i]],
             marker = list(
               color = point_colours[[i]],
-              symbol = plotly_point_shapes[[i]]
+              symbol = plotly_point_shapes[[i]],
+              size = plotly_point_sizes_group,
+              line = list(color = '#ffffff00')
               ),
             legendgroup = 'data',
             # leverage 'text' and 'customdata' fields to include ci limits in default hover labels
