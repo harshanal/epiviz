@@ -3,21 +3,22 @@
 \name{base_gg}
 \alias{base_gg}
 \title{Creates base ggplot object for use across other functions.
-Parameters are not passed explicitely to the function, so
+Parameters are not passed explicitly to the function, so
 function call needs to be proceeded by environment(base_gg) <- environment()}
 \usage{
 base_gg()
 }
 \value{
 ggplot object
-
+}
+\description{
+Creates base ggplot object for use across other functions.
+Parameters are not passed explicitly to the function, so
+function call needs to be proceeded by environment(base_gg) <- environment()
+}
+\examples{
 \dontrun{
 environment(base_gg) <- environment()
 base <- base_gg()
 }
-}
-\description{
-Creates base ggplot object for use across other functions.
-Parameters are not passed explicitely to the function, so
-function call needs to be proceeded by environment(base_gg) <- environment()
 }

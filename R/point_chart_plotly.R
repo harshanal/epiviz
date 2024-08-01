@@ -77,9 +77,9 @@
 #'    \item{y_limit_max} {Upper limit for the y-axis. Default used if not provided.}
 #'    \item{x_axis_break_labels} {Vector of values to use for x-axis breaks. Defaults used if not provided.}
 #'    \item{y_axis_break_labels} {Vector of values to use for y-axis breaks. Defaults used if not provided.}
-#'    \item{x_axis_n_breaks} {Number of breaks for the x-axis. Cannot be provided
+#'    \item{x_axis_n_breaks} {Scales x-axis with approximately n breaks. Cannot be provided
 #'    if \code{x_axis_break_labels} is provided.}
-#'    \item{y_axis_n_breaks} {Number of breaks for the y-axis. Cannot be used
+#'    \item{y_axis_n_breaks} {Scales y-axis with approximately n breaks. Cannot be used
 #'    if \code{y_axis_break_labels} is also provided.}
 #'    \item{x_axis_date_breaks} {A string giving the distance between breaks like "2 weeks", or "10 years".
 #'    Valid specifications are 'sec', 'min', 'hour', 'day', 'week', 'month' or 'year', optionally followed
@@ -202,7 +202,7 @@ point_chart_plotly <- function(
   set_Arial()
 
 
-  # Assign any null default args to params list
+  # Where relevant, assign defaults to any parameters not specified by the user
   if(!exists('ci_legend',where=params)) params$ci_legend <- FALSE
   if(!exists('ci_legend_title',where=params)) params$ci_legend_title <- "Confidence interval"
   if(!exists('ci_colours',where=params)) params$ci_colours <- "red"
@@ -214,7 +214,6 @@ point_chart_plotly <- function(
   if(!exists('point_labels_vjust',where=params)) params$point_labels_vjust <- 0
   if(!exists('point_labels_nudge_x',where=params)) params$point_labels_nudge_x <- 0
   if(!exists('point_labels_nudge_y',where=params)) params$point_labels_nudge_y <- 0
-  #if(!exists('y_axis',where=params)) params$y_axis <- "y1"
   if(!exists('y_percent',where=params)) params$y_percent <- FALSE
   if(!exists('y_sec_axis',where=params)) params$y_sec_axis <- FALSE
   if(!exists('y_sec_axis_no_shift',where=params)) params$y_sec_axis_no_shift <- TRUE
@@ -247,7 +246,10 @@ print(params) ###
   if (!exists('df',where=params)) stop("A data frame argument is required")
 
   # Check df is a df class
-  if(!is.data.frame(params$df)) stop("Argument df is not a data frame object")
+  if(!is.data.frame(params$df)) stop("df is not a data frame object")
+
+  # Check df is empty
+  if(!not_empty(params$df)) stop("df is empty")
 
   # Check if x argument is is.null
   if ((is.null(params$x)) | !exists('x',where=params))
@@ -257,9 +259,29 @@ print(params) ###
   if ((is.null(params$y)) | !exists('y',where=params))
     stop("Please include a variable from df for y, i.e. y = \"variable_name\"")
 
-  # Check if number of groups and number of line colours the same
+  # Check if x is in df
+  if (!params$x %in% colnames(params$df))
+    stop("x not found within df. Please include a variable from df for x, i.e. x = \"variable_name\"")
 
-  # Warn that multiple colours have been provided but group var absent
+  # Check if y is in df
+  if (!params$y %in% colnames(params$df))
+    stop("y not found within df. Please include a variable from df for y, i.e. y = \"variable_name\"")
+
+  # Check if number of groups and number of point colours the same
+  if (exists('group_var', where=params)) {
+      if (length(params$point_colours) != length(unique(params$df[[params$group_var]])))
+        stop("The number of point_colours provided must equal the number of unique groups in group_var")
+  }
+
+  # Check if number of groups and number of error colours the same
+  if (exists('group_var', where=params) & exists('ci_colours', where=params)) {
+      if (length(params$ci_colours) != length(unique(params$df[[params$group_var]])))
+        stop("The number of error_colours provided must equal the number of unique groups in group_var")
+  }
+
+  # Warn that multiple colours have been provided but group_var absent
+  if (length(params$point_colours) >1 & !exists('group_var',where=params))
+    warning("Multiple point_colours have been provided but group_var is absent")
 
   # Allow axis_break_labels or axis_n_breaks
   if ((!is.null(params$x_axis_break_labels)) & (!is.null(params$x_axis_n_breaks)))
@@ -280,16 +302,31 @@ print(params) ###
               x_axis_break_labels instead")
 
   # Warn that point_size_legend is not available for dynamic plot
+  if (!is.null(params$point_size_legend) & dynamic == TRUE) {
+    warning("point_size_legend is not available for dynamic plots")
+  }
 
   # Error that base must be provided if sec_axis = TRUE
+  if ((params$y_sec_axis == TRUE) & is.null(base)) {
+    stop("base must be provided if y_sec_axis = TRUE")
+  }
 
-  # Error if sec_axis = TRUE on base plot then sec_axis must be TRUE on applied plot
+  # Error that base must align with output type
+  #   i.e. if dynamic = TRUE then base must be a plotly object
+  if (!is.null(base)) {
+      # dynamic
+      if ((dynamic == TRUE) & !("plotly" %in% class(base))) {
+        stop("base must be a plotly object if dynamic = TRUE")
+      }
+      # static
+      if ((dynamic == FALSE) & !(is.ggplot(base))) {
+        stop("base must be a ggplot object if dynamic = FALSE")
+      }
+  }
 
-  # Error that base must align with output type, e.g. if dynamic = TRUE then base must be a pplotly object
 
 
-
-  ### Parameter assignment
+  ##### Parameter assignment
 
   # Define parameters as variables using utils/param_assign() function
   #   -Takes input list, compares it ro a reference vector of expected
@@ -312,10 +349,6 @@ print(params) ###
                  "hline_type","hline_label","hline_label_colour"))
 
 
-
-
-  # Check that the data frame provided is not empty, else stop
-  assertthat::assert_that(not_empty(df))
 
 
 

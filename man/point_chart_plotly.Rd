@@ -12,7 +12,7 @@ point_chart_plotly(
     point_labels_vjust = 0, point_labels_nudge_x = 0, point_labels_nudge_y = 0, group_var
     = NULL, ci = NULL, ci_upper = NULL, ci_lower = NULL, ci_legend = FALSE,
     ci_legend_title = "Confidence interval", ci_colours = "red", errorbar_width = NULL,
-    y_sec_axis = FALSE, y_sec_axis_no_shift = FALSE, chart_title = NULL, chart_title_size
+    y_sec_axis = FALSE, y_sec_axis_no_shift = TRUE, chart_title = NULL, chart_title_size
     = 13, chart_title_colour = "black", 
      chart_footer = NULL, chart_footer_size =
     12, chart_footer_colour = "black", x_axis_title = NULL, y_axis_title = NULL,
@@ -104,9 +104,9 @@ not stated.}
 \item{y_limit_max} {Upper limit for the y-axis. Default used if not provided.}
 \item{x_axis_break_labels} {Vector of values to use for x-axis breaks. Defaults used if not provided.}
 \item{y_axis_break_labels} {Vector of values to use for y-axis breaks. Defaults used if not provided.}
-\item{x_axis_n_breaks} {Number of breaks for the x-axis. Cannot be provided
+\item{x_axis_n_breaks} {Scales x-axis with approximately n breaks. Cannot be provided
 if \code{x_axis_break_labels} is provided.}
-\item{y_axis_n_breaks} {Number of breaks for the y-axis. Cannot be used
+\item{y_axis_n_breaks} {Scales y-axis with approximately n breaks. Cannot be used
 if \code{y_axis_break_labels} is also provided.}
 \item{x_axis_date_breaks} {A string giving the distance between breaks like "2 weeks", or "10 years".
 Valid specifications are 'sec', 'min', 'hour', 'day', 'week', 'month' or 'year', optionally followed
