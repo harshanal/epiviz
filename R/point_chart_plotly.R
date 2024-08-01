@@ -55,7 +55,8 @@
 #'    "errorbar"}.}
 #'    \item{y_sec_axis} {Logical to indicate whether data should be plotted on the
 #'    secondary (right) y-axis. Default = \code{FALSE}.}
-#'    \item{y_sec_axis_no_shift} {####### EXPAND ###### Logical. Default = \code{FALSE}.}
+#'    \item{y_sec_axis_no_shift} {Forces the secondary y-axis scale to begin at 0. Default =
+#'    \code{TRUE}.}
 #'    \item{chart_title} {Text to use as chart title.}
 #'    \item{chart_title_size} {Font size of chart title.}
 #'    \item{chart_title_colour} {Font colour of chart title.}
@@ -158,7 +159,7 @@ point_chart_plotly <- function(
                           ci_colours = "red",
                           errorbar_width = NULL,
                           y_sec_axis = FALSE,
-                          y_sec_axis_no_shift = FALSE,
+                          y_sec_axis_no_shift = TRUE,
                           chart_title = NULL,
                           chart_title_size = 13,
                           chart_title_colour = "black",
@@ -216,7 +217,7 @@ point_chart_plotly <- function(
   #if(!exists('y_axis',where=params)) params$y_axis <- "y1"
   if(!exists('y_percent',where=params)) params$y_percent <- FALSE
   if(!exists('y_sec_axis',where=params)) params$y_sec_axis <- FALSE
-  if(!exists('y_sec_axis_no_shift',where=params)) params$y_sec_axis_no_shift <- FALSE
+  if(!exists('y_sec_axis_no_shift',where=params)) params$y_sec_axis_no_shift <- TRUE
   if(!exists('chart_title_size',where=params)) params$chart_title_size <- 12
   if(!exists('chart_title_colour',where=params)) params$chart_title_colour <- "black"
   if(!exists('chart_footer_size',where=params)) params$chart_footer_size <- 10
@@ -280,6 +281,12 @@ print(params) ###
 
   # Warn that point_size_legend is not available for dynamic plot
 
+  # Error that base must be provided if sec_axis = TRUE
+
+  # Error if sec_axis = TRUE on base plot then sec_axis must be TRUE on applied plot
+
+  # Error that base must align with output type, e.g. if dynamic = TRUE then base must be a pplotly object
+
 
 
   ### Parameter assignment
@@ -306,28 +313,6 @@ print(params) ###
 
 
 
-  # # Define parameters from params list
-  # for(i in 1:length(params)) {
-  #   assign(names(params)[i], params[[i]])
-  # }
-  #
-  # # Set any unused parameter values to NULL
-  # unused <- setdiff(c("df","x","y","ci","ci_legend","ci_legend_title","ci_lower",
-  #                     "ci_upper","ci_colours","group_var","point_shape","point_colours","point_labels",
-  #                     "point_labels_hjust","point_labels_vjust","y_axis","y_sec_axis_no_shift","chart_title",
-  #                     "chart_footer","x_axis_title","x_axis_label_angle","y_axis_title","y_axis_label_angle",
-  #                     "y_percent","st_theme","x_axis_reverse","y_min_limit","y_max_limit",
-  #                     "x_axis_breaks","show_gridlines","show_axislines","legend_title","legend_pos",
-  #                     "hline","hline_colour","hline_width","hline_type","hline_label"),
-  #                   names(params))
-  #
-  # if (length(unused) > 0) {
-  #   for(i in 1:length(unused)) {
-  #     assign(unused[i], NULL)
-  #   }
-  # }
-
-
 
   # Check that the data frame provided is not empty, else stop
   assertthat::assert_that(not_empty(df))
@@ -337,9 +322,14 @@ print(params) ###
 
   #################### POINT CHART #################################
 
+  ##### CREATE STATIC CHART
+
   if (!dynamic) {
     # produce ggplot object if 'dynamic' is set to FALSE
 
+
+
+  ##### Create base ggplot object
 
   # Define base ggplot object using R/base_gg() function
   #    -Force base_gg() to run in calling environment so it can find variables
@@ -616,30 +606,26 @@ print(params) ###
   }
 
 
-  ##### Add default axis labels if not provided
-
-
-
   ##### Return final output
   return(base)
 
-  ### GGPLOT END
+  ### STATIC CHART END
 
 
 
   } else {
 
-  ##### PLOTLY START
+  ##### CREATE DYNAMIC CHART
 
   # Produce plotly object if 'dynamic' is set to TRUE
 
 
     ##### Define base min/max x & y values for axis ranges
 
-    #   -It is not currently possible to access plotly autorange values, so
-    #      define a ggplot object showing the same information and use it's
-    #      autoranges as a basis. This also keeps the formatting the same as
-    #      the static chart.
+    #   -It is not currently possible to access range/autorange values from
+    #    a plotly object, so define a ggplot object showing the same information
+    #    and use it's autoranges as a basis. This also keeps the formatting the
+    #    same as the static chart.
     #   -Must be done outside of base_plotly(), as the ggplot geoms will be
     #      different depending upon the nature of the chart
 
@@ -658,359 +644,21 @@ print(params) ###
 
 
 
-
-    ##### BASE
-
     ##### Create base plotly object
-    if (!is.null(base)) {
-      base <- base
-    } else {
-      base <- plot_ly()
-    }
 
+    # Define base plotly object using R/base_plotly() function
+    #    -Force base_plotly() to run in calling environment so it can find variables
+    #     (lexical scoping will cause it to look for unfound variables in /R where
+    #     it's stored rather than within the calling function's environment)
+    environment(base_plotly) <- environment()
+    base_return <- base_plotly()
 
-    ##### Apply title, footer, and axis labels
+    # base_plotly() returns a list containing base, df, and the y_axis_choice variable; extract here
+    base <- base_return$base
+    df <- base_return$df
+    y_axis_choice <- base_return$y_axis_choice
 
-    # Define fonts
-    title_font <- list(
-      family = chart_font,
-      size = chart_title_size,
-      color = chart_title_colour)
 
-    footer_font <- list(
-      family = chart_font,
-      size = chart_footer_size,
-      color = chart_footer_colour)
-
-    axis_label_font <- list(
-      family = chart_font,
-      size = 11,
-      color = "black")
-
-    axis_break_font <- list(
-      family = chart_font,
-      size = 10,
-      color = "black")
-
-
-    # Replace R linebreaks with html linebreaks for plotly
-    chart_title <- gsub("\\n","<br>",chart_title)
-    chart_footer <- gsub("\\n","<br>",chart_footer)
-
-
-    # Add title
-    if (!is.null(chart_title)) {
-      base <- base |>
-        layout(title = list(text = html_bold(chart_title), # utils/html_bold function used to apply <b> </b> tags to title text
-                            font = title_font,
-                            x = 0.5,
-                            xanchor = "centre",
-                            xref = 'paper', yref = 'paper'))
-    }
-
-    # Add footer
-    if (!is.null(chart_footer)) {
-      base <- base |>
-        layout(annotations =
-                 list(x = 1,
-                      y = -0.19-abs((sin(-x_axis_label_angle))*0.12),  # scale y position according to x-label text angle
-                      text = chart_footer,
-                      xanchor='right',
-                      yanchor='middle',
-                      #yanchor='auto',
-                      xref='paper',
-                      yref='paper',
-                      showarrow = F,
-                      font = footer_font,
-                      align = "right"
-                      )
-        )
-    }
-
-
-    # Note:- utils/html_bold function used to apply <b> </b> tags to axis titles for bold font
-
-    # Add x axis label
-    if (!is.null(x_axis_title)) {
-      base <- base |>
-        layout(xaxis = list(title =
-                              list(text = html_bold(x_axis_title),
-                                   font = axis_label_font)))
-    } else {
-      base <- base |>
-        layout(xaxis = list(title =
-                              list(text = html_bold(x),
-                                   font = axis_label_font)))
-    }
-
-    # Add y axis label
-    if (!is.null(y_axis_title)) {
-      base <- base |>
-        layout(yaxis = list(title =
-                              list(text = html_bold(y_axis_title),
-                                   font = axis_label_font)))
-    } else {
-      base <- base |>
-        layout(yaxis = list(title =
-                              list(text = html_bold(y),
-                                   font = axis_label_font)))
-    }
-
-
-    # Set font for axis break text
-    base <- base |> layout(font = axis_break_font)
-
-    # Change x axis text angle
-    if (!is.null(x_axis_label_angle)){
-      # angle negated as this function following ggplot rotation direction
-      base <- base |> layout(xaxis = list(tickangle = -x_axis_label_angle))
-    }
-
-    # Change y axis text angle
-    if (!is.null(y_axis_label_angle)){
-      # angle negated as this function following ggplot rotation direction
-      base <- base |> layout(yaxis = list(tickangle = -y_axis_label_angle))
-    }
-
-
-
-
-    ####### Set grid lines, axes, and graph margin
-
-    # Set margin to match ggplot
-    base <- base |>
-      layout(margin = list(r=10,
-                           t=30,
-                           b = 60+abs((sin(-x_axis_label_angle))*50), # scale bottom margin according to x-label text angle
-                           l=3))
-
-    # Grid lines
-    if (!show_gridlines) {
-      base <- base |> layout(xaxis = list(showgrid = F),
-                             yaxis = list(showgrid = F))
-    }
-
-    # Axis lines
-    if (show_axislines) {
-      base <- base |> layout(
-        xaxis = list(showline = TRUE,
-                     linewidth = 1,
-                     ticks="outside",
-                     ticklen=3),
-        yaxis = list(showline = TRUE,
-                     zeroline = FALSE,
-                     linewidth = 1,
-                     ticks="outside",
-                     ticklen=3)
-      )
-    }
-
-
-    ##### Apply y percentage axis
-
-    if (y_percent == TRUE) {
-      #base <- base |> layout(yaxis = list(ticksuffix  = "%"))
-      base <- base |> layout(yaxis = list(tickformat  = ".0%"))
-    }
-
-
-
-
-    ##### Apply axis limits
-
-    # Uses x_min, x_max, y_min, y_max variables derived from ggobj outside of base_plotly()
-
-    # Replace existing limits with user defined x / y limits if provided
-    if(!is.null(x_limit_min)) {x_min <- x_limit_min}
-    if(!is.null(x_limit_max)) {x_max <- x_limit_max}
-    if(!is.null(y_limit_min)) {y_min <- y_limit_min}
-    if(!is.null(y_limit_max)) {y_max <- y_limit_max}
-
-    # Pad x-axis range in line with ggplot formatting (5% on each side)
-    if (is.numeric(df[[x]])) {
-      xpad <- (x_max-x_min)*0.05
-      x_max <- x_max+xpad
-      x_min <- x_min-xpad
-    } else if (is.Date(df[[x]])) {
-      xpad <- round(as.numeric(difftime(x_max, x_min, units="days"))*0.05, digits = 0)
-      x_max <- as.Date(x_max)+xpad
-      x_min <- as.Date(x_min)-xpad
-    }
-
-    # Convert dates to character so they aren't coerced to numeric when added to range vector
-    x_min <- if(is.Date(df[[x]])) {as.character(x_min)} else {x_min}
-    x_max <- if(is.Date(df[[x]])) {as.character(x_max)} else {x_max}
-    y_min <- if(is.Date(df[[y]])) {as.character(y_min)} else {y_min}
-    y_max <- if(is.Date(df[[y]])) {as.character(y_max)} else {y_max}
-
-    # Define x and y range vectors
-    x_range <- c(x_min, x_max)
-    y_range <- c(y_min, y_max)
-
-    #Reverse x-axis range if specified
-    if (x_axis_reverse == TRUE) {x_range <- rev(x_range)}
-
-    # Apply axis ranges to chart
-    base <- base |>
-      layout(
-        xaxis = list(range = x_range),
-        yaxis = list(range = y_range)
-      )
-
-
-
-
-    ##### Apply axis breaks
-
-    # Apply user specified axis breaks
-    # x
-    if(!is.null(x_axis_break_labels)) {
-      base <- base |>
-        layout(
-          xaxis = list(
-            tickvals = as.list(x_axis_break_labels)
-            )
-        )
-    # use x_axis_date_breaks if provided
-    } else if (!is.null(x_axis_date_breaks)) {
-      base <- base |>
-        layout(
-          xaxis = list(
-            #dtick = "D7"
-            dtick = datebreak_to_d3(x_axis_date_breaks)  # use utils/datebreak_to_d3() function
-          )
-        )
-    }
-
-    # y
-    if(!is.null(y_axis_break_labels)) {
-      base <- base |>
-        layout(
-          yaxis = list(
-            tickvals = as.list(y_axis_break_labels)
-          )
-        )
-    }
-
-
-    # Apply axis_n_breaks if provided
-    #    Note:- axis_break_labels and x_axis_date_breaks take priority
-
-    # x
-    if(is.null(x_axis_break_labels) & !is.null(x_axis_n_breaks)) {
-      base <- base |>
-        layout(
-          xaxis = list(
-            nticks = x_axis_n_breaks
-          )
-        )
-    }
-
-    # y
-    if(is.null(y_axis_break_labels) & !is.null(y_axis_n_breaks)) {
-      base <- base |>
-        layout(
-          yaxis = list(
-            nticks = y_axis_n_breaks
-          )
-        )
-    }
-
-
-
-    ##### Apply axis tick formatting
-
-    # Set axis tick label angle
-    # (negative angle as ggplot and plotly use opposite rotations)
-
-    # x
-    if(!is.null(x_axis_label_angle)) {x_tickangle <- -x_axis_label_angle} else {x_tickangle <- 0}
-
-    base <- base |>
-      layout(
-        xaxis = list(
-          tickangle = x_tickangle
-        )
-      )
-
-    # y
-    if(!is.null(y_axis_label_angle)) {y_tickangle <- -y_axis_label_angle} else {y_tickangle <- 0}
-
-    base <- base |>
-      layout(
-        yaxis = list(
-          tickangle = y_tickangle
-        )
-      )
-
-
-    # Force x-axis date format to YYYY-MM-DD
-
-    if(is.Date(df[[x]])) {
-      base <- base |>
-        layout(
-          xaxis = list(
-            tickformat="%Y-%m-%d"
-          )
-        )
-    }
-
-
-
-    ##### Apply hline
-
-    # Draw line
-    if (!is.null(hline)) {
-      base <- base |>
-        layout(shapes = list(
-          type = "line",
-          x0 = 0,
-          x1 = 1,
-          xref = "paper",
-          y0 = hline,
-          y1 = hline,
-          line = list(color = hline_colour,
-                      dash = plotly_line_style(hline_type),   # uses utils/plotly_line_style() function
-                      width = hline_width)
-        ))
-    }
-
-    # Add label
-
-    if (!is.null(hline_label)) {
-
-      # Define positiion of label depending on whether x axis is reversed
-      if (x_axis_reverse == FALSE) {
-        hline_xpos <- if(!is.null(x_limit_min)) {x_limit_min} else {min(df[[x]])}
-      } else {
-        hline_xpos <- if(!is.null(x_limit_max)) {x_limit_max} else {max(df[[x]])}
-      }
-
-      base <- base |>
-        add_annotations(
-          text = hline_label,
-          x = hline_xpos,
-          y = hline,
-          xanchor = "left",
-          yanchor = "bottom",
-          showarrow = FALSE,
-          bgcolor = "#ffffff00",
-          font = list(color = hline_colour,
-                      size = 12)
-        )
-      # add_text(showlegend = FALSE,
-      #          x = min(df[[x]]),
-      #          y = hline,
-      #          text = hline_label,
-      #          textposition = 'top right',
-      #          textfont = list(color = hline_colour,
-      #                          size = 12)
-      #          )
-    }
-
-
-
-    ##### POINT
 
 
     ##### Apply confidence intervals
@@ -1048,6 +696,7 @@ print(params) ###
               y = ~ df[[y]],
               type = 'scatter',
               mode = 'markers',
+              yaxis = y_axis_choice,
               showlegend = F,
               marker = list(
                 color = '#ffffff00'
@@ -1070,6 +719,7 @@ print(params) ###
               x = ~ df[[x]],
               ymin = ~ df[[ci_lower]],
               ymax = ~ df[[ci_upper]],
+              yaxis = y_axis_choice,
               showlegend = ci_legend,
               legendgroup = 'ci',
               legendgrouptitle = list(text = ci_legend_title),
@@ -1112,6 +762,7 @@ print(params) ###
                 y = df_group[[y]],
                 type = 'scatter',
                 mode = 'markers',
+                yaxis = y_axis_choice,
                 name = unique_groups[[i]],
                 showlegend = F,
                 marker = list(
@@ -1166,6 +817,7 @@ print(params) ###
                 y = ~ y_val,
                 type = 'scatter',
                 mode = 'lines',
+                yaxis = y_axis_choice,
                 name = unique_groups[[i]],
                 line = list(color = 'transparent'),
                 fill = 'toself',
@@ -1183,6 +835,7 @@ print(params) ###
       }
 
     }
+
 
 
     ##### Resolve point style
@@ -1252,6 +905,7 @@ print(params) ###
           y = ~ df[[y]],
           type = 'scatter',
           mode = 'markers',
+          yaxis = y_axis_choice,
           marker = list(
             color = point_colours,
             symbol = point_shapes_key[[point_shape]],
@@ -1320,6 +974,7 @@ print(params) ###
             y = df_group[[y]],
             type = 'scatter',
             mode = 'markers',
+            yaxis = y_axis_choice,
             name = unique_groups[[i]],
             marker = list(
               color = point_colours[[i]],
@@ -1365,11 +1020,10 @@ print(params) ###
 
 
 
-
   # return base plot
   return(base)
 
-    } ### PLOTLY END
+    } ### DYNAMIC CHART END
 
 
 }

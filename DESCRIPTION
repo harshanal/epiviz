@@ -31,6 +31,8 @@ Imports:
     leaflet,
     htmltools,
     stringr,
-    scales
+    scales,
+    tidyr,
+    yarrr
 Depends: 
     R (>= 2.10)

@@ -1,10 +1,11 @@
 
 #' Creates base ggplot object for use across other functions.
-#' Parameters are not passed explicitely to the function, so
+#' Parameters are not passed explicitly to the function, so
 #' function call needs to be proceeded by environment(base_gg) <- environment()
 #'
 #' @return ggplot object
 #'
+#' @examples
 #' \dontrun{
 #' environment(base_gg) <- environment()
 #' base <- base_gg()
@@ -119,7 +120,8 @@ base_gg <- function() {
   # If user wants to plot on the secondary y-axis
   if (y_sec_axis == TRUE) {
 
-    # Get limits of current plotted data (returns -Inf if no data currently plotted)
+    # Get limits of current plotted data (i.e. if 'base' was provided with function
+    # call, returns -Inf if 'base' not provided and thus no data currently plotted)
     current_plotted_data_max <-
       max(layer_scales(base)$y$range$range)
     current_plotted_data_min <-
@@ -128,9 +130,8 @@ base_gg <- function() {
     y2_max <- max(df[[y]])
     y2_min <- min(df[[y]])
 
-
     # If no secondary y data has been plotted yet
-    if (is.null(base$secondary_y_shift) &
+    if ((is.null(base$secondary_y_shift) | base$secondary_y_shift == 0) &
         is.null(base$secondary_y_scale)) {
 
       if (is.finite(current_plotted_data_max)) {
@@ -185,6 +186,29 @@ base_gg <- function() {
 
   if (!is.null(hline)) {
     hline <- inv_scale_function(hline, scale, shift)
+  }
+
+
+
+  ##### Stop if 'base' x-axis is reversed but x_axis_reverse = FALSE
+
+  # Axis direction of 'base' and over-drawn plot must be the same
+
+  # If statement identifies existence of base plot;
+  #   -If base plot not present then axis limits = NULL (if base plot is present without
+  #    axis limits then limits = (NA, NA) ).
+  if (!is.null(base$coordinates$limits$x)) {
+
+    # Gather axis range of 'base'
+    base_x_min <- abs((ggplot_build(base)$layout$panel_scales_x[[1]]$range$range)[1]) #(base$coordinates$limits$x)[1]
+    base_x_max <- abs((ggplot_build(base)$layout$panel_scales_x[[1]]$range$range)[2]) #(base$coordinates$limits$x)[2]
+
+    # If base x-axis minimum range greater than maximum, and x_axis_reverse = FALSE, then stop
+    if ((base_x_min > base_x_max) & (x_axis_reverse == FALSE)) {
+        stop("If the x-axis of the base plot is reversed, then x_axis_reverse must equal 'TRUE'
+              (i.e. the x-axis of the base plot and over-drawn plot must be in the same direction)")
+    }
+
   }
 
 
@@ -347,11 +371,12 @@ base_gg <- function() {
   if (!is.null(hline) && !is.null(hline_label)) {
 
     # Define x-position of hline label
-    # If lower x-axis limit present use that, else use min value of x
+    # If lower x-axis limit present use that
     if (!is.na(base$coordinates$limits$x[[1]])) {
       hline_xpos <- base$coordinates$limits$x[[1]]
     } else {
-      hline_xpos <- min(df[[x]])
+      # else use min value of x, or max if values reversed
+      hline_xpos <- if (x_axis_reverse == TRUE) {max(df[[x]])} else {min(df[[x]])}
     }
 
     # Apply hline label to plot
