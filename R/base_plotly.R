@@ -183,17 +183,17 @@ base_plotly <- function() {
       xpad <- (x_max-x_min)*0.05
       x_max <- x_max+xpad
       x_min <- x_min-xpad
-    } else if (is.Date(df[[x]])) {
+    } else if (lubridate::is.Date(df[[x]])) {
       xpad <- round(as.numeric(difftime(x_max, x_min, units="days"))*0.05, digits = 0)
       x_max <- as.Date(x_max)+xpad
       x_min <- as.Date(x_min)-xpad
     }
 
     # Convert dates to character so they aren't coerced to numeric when added to range vector
-    x_min <- if(is.Date(df[[x]])) {as.character(x_min)} else {x_min}
-    x_max <- if(is.Date(df[[x]])) {as.character(x_max)} else {x_max}
-    y_min <- if(is.Date(df[[y]])) {as.character(y_min)} else {y_min}
-    y_max <- if(is.Date(df[[y]])) {as.character(y_max)} else {y_max}
+    x_min <- if(lubridate::is.Date(df[[x]])) {as.character(x_min)} else {x_min}
+    x_max <- if(lubridate::is.Date(df[[x]])) {as.character(x_max)} else {x_max}
+    y_min <- if(lubridate::is.Date(df[[y]])) {as.character(y_min)} else {y_min}
+    y_max <- if(lubridate::is.Date(df[[y]])) {as.character(y_max)} else {y_max}
 
     # Define x and y range vectors
     x_range <- c(x_min, x_max)
@@ -298,7 +298,7 @@ base_plotly <- function() {
 
     # Force x-axis date format to YYYY-MM-DD
 
-    if(is.Date(df[[x]])) {
+    if(lubridate::is.Date(df[[x]])) {
       base <- base |>
         layout(
           xaxis = list(
@@ -400,60 +400,71 @@ base_plotly <- function() {
 
 
 
-    ##### Apply hline
+    ##### Apply hline(s)
 
-    # Draw line
     if (!is.null(hline)) {
-      base <- base |>
-        layout(shapes = list(
-          type = "line",
-          x0 = 0,
-          x1 = 1,
-          xref = "paper",
-          yref = y_axis_choice,
-          y0 = hline,
-          y1 = hline,
-          line = list(color = hline_colour,
-                      dash = plotly_line_style(hline_type),   # uses utils/plotly_line_style() function
-                      width = hline_width)
-        ))
-    }
 
-    # Add label
+      # Each hline requires a separate list of values
+      # Plotly then requires a list of lists to apply multiple hlines
+      #    https://www.geeksforgeeks.org/add-horizontal-or-vertical-line-in-plotly-using-r/
 
-    if (!is.null(hline_label)) {
 
-      # Define positiion of label depending on whether x axis is reversed
-      if (x_axis_reverse == FALSE) {
-        hline_xpos <- if(!is.null(x_limit_min)) {x_limit_min} else {min(df[[x]])}
-      } else {
-        hline_xpos <- if(!is.null(x_limit_max)) {x_limit_max} else {max(df[[x]])}
+      # Define base hline list
+      hlines_list <- list()
+
+      # create each sub-list iteratively
+      for (i in 1:length(hline)) {
+
+        hline_sublist <- list(
+              type = "line",
+              x0 = 0,
+              x1 = 1,
+              xref = "paper",
+              yref = y_axis_choice,
+              y0 = hline[i],
+              y1 = hline[i],
+              line = list(color = if (length(hline_colour)>1) {hline_colour[i]} else {hline_colour},
+                          dash = if (length(hline_type)>1) {plotly_line_style(hline_type[i])} else {plotly_line_style(hline_type)},   # uses utils/plotly_line_style() function
+                          width = if (length(hline_width)>1) {hline_width[i]} else {hline_width})
+            )
+
+        # Append sublist to main list
+        hlines_list[[length(hlines_list)+1]] <- hline_sublist
+
+
+        # Add hline labels with each iteration as this doesn't have to be done via lists-of-lists
+        if (!is.null(hline_label)) {
+
+          # Define positiion of label depending on whether x axis is reversed
+          if (x_axis_reverse == FALSE) {
+            hline_xpos <- if(!is.null(x_limit_min)) {x_limit_min} else {min(df[[x]])}
+          } else {
+            hline_xpos <- if(!is.null(x_limit_max)) {x_limit_max} else {max(df[[x]])}
+          }
+
+          base <- base |>
+            add_annotations(
+              text = hline_label[i],
+              x = hline_xpos,
+              y = hline[i],
+              #yaxis = y_axis_choice,
+              yref = y_axis_choice,
+              xanchor = "left",
+              yanchor = "bottom",
+              showarrow = FALSE,
+              bgcolor = "#ffffff00",
+              font = list(color = if (length(hline_colour)>1) {hline_colour[i]} else {hline_colour},
+                          size = 12)
+            )
+        }
       }
 
-      base <- base |>
-        add_annotations(
-          text = hline_label,
-          x = hline_xpos,
-          y = hline,
-          #yaxis = y_axis_choice,
-          yref = y_axis_choice,
-          xanchor = "left",
-          yanchor = "bottom",
-          showarrow = FALSE,
-          bgcolor = "#ffffff00",
-          font = list(color = hline_colour,
-                      size = 12)
-        )
+      # Draw hlines outside of iterative loop
+        base <- base |>
+          layout(shapes = hlines_list)
 
-      # add_text(showlegend = FALSE,
-      #          x = min(df[[x]]),
-      #          y = hline,
-      #          text = hline_label,
-      #          textposition = 'top right',
-      #          textfont = list(color = hline_colour,
-      #                          size = 12)
-      #          )
     }
+
 
 
     ##### Return both df and base

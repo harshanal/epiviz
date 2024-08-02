@@ -127,8 +127,9 @@ base_gg <- function() {
     current_plotted_data_min <-
       min(layer_scales(base)$y$range$range)
     # Get limits of new data to plot
-    y2_max <- max(df[[y]])
-    y2_min <- min(df[[y]])
+    y2_max <- max(df[[y]], na.rm=T)
+    y2_min <- min(df[[y]], na.rm=T)
+
 
     # If no secondary y data has been plotted yet
     if ((is.null(base$secondary_y_shift) | base$secondary_y_shift == 0) &
@@ -137,7 +138,8 @@ base_gg <- function() {
       if (is.finite(current_plotted_data_max)) {
         # If data has already been plotted on y1;
         #   Scale and shift variables calculated based on desired mins and maxes
-        scale = (y2_max - y2_min) / (current_plotted_data_max - current_plotted_data_min)
+        #scale = (y2_max - y2_min) / (current_plotted_data_max - current_plotted_data_min)
+        scale = y2_max / current_plotted_data_max
         shift = current_plotted_data_min - y2_min
         # Add variables to chart "metadata"
         base$secondary_y_shift <- shift
@@ -190,6 +192,7 @@ base_gg <- function() {
 
 
 
+
   ##### Stop if 'base' x-axis is reversed but x_axis_reverse = FALSE
 
   # Axis direction of 'base' and over-drawn plot must be the same
@@ -231,7 +234,7 @@ base_gg <- function() {
 
   if (!is.null(x_axis_n_breaks)) {
     # n.breaks will not work for dates, ignore arguement and issue warning
-    if (is.Date(df[[x]])) {
+    if (lubridate::is.Date(df[[x]])) {
       warning("x_axis_n_breaks will be ignored if x is a date variable, consider using
               x_axis_date_breaks or x_axis_break_labels instead")
     } else {
@@ -248,7 +251,7 @@ base_gg <- function() {
 
   if (!is.null(x_axis_date_breaks)) {
     # Ignore arguement and issue warning if x is not a date variable
-    if (!is.Date(df[[x]])) {
+    if (!lubridate::is.Date(df[[x]])) {
       warning("x is not a date variable, x_axis_date_breaks will be ignored")
     } else {
       base <- base + scale_x_date(date_breaks = x_axis_date_breaks)
@@ -284,12 +287,12 @@ base_gg <- function() {
     x_limit_min <- x_limit_max_start
 
     # 4) Convert to dates if needed
-    x_limit_max <- if (is.Date(df[[x]]) & !is.null(x_limit_max)) {as.Date(x_limit_max)} else {x_limit_max}
-    x_limit_min <- if (is.Date(df[[x]]) & !is.null(x_limit_min)) {as.Date(x_limit_min)} else {x_limit_min}
+    x_limit_max <- if (lubridate::is.Date(df[[x]]) & !is.null(x_limit_max)) {as.Date(x_limit_max)} else {x_limit_max}
+    x_limit_min <- if (lubridate::is.Date(df[[x]]) & !is.null(x_limit_min)) {as.Date(x_limit_min)} else {x_limit_min}
 
 
     # Apply axis reversal
-    if (is.Date(df[[x]])) {
+    if (lubridate::is.Date(df[[x]])) {
       # Handle date axes
         if (!is.null(x_axis_break_labels)) { # take into account x_axis_break_labels if provided
           base <- base + scale_x_continuous(trans = c("date", "reverse"), breaks = x_axis_break_labels)
@@ -339,8 +342,8 @@ base_gg <- function() {
   }
 
   # Convert any date axis limits to dates if necessary
-  if (is.Date(df[[y]]) & !is.null(ylim)) {ylim <- as.Date(ylim)}
-  if (is.Date(df[[x]]) & !is.null(xlim)) {xlim <- as.Date(xlim)}
+  if (lubridate::is.Date(df[[y]]) & !is.null(ylim)) {ylim <- as.Date(ylim)}
+  if (lubridate::is.Date(df[[x]]) & !is.null(xlim)) {xlim <- as.Date(xlim)}
 
   # Apply axis limits to base plot
   if (!is.null(ylim) & is.null(xlim)) {
