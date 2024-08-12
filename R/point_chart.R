@@ -650,12 +650,14 @@ point_chart <- function(
               mapping = aes(
                 x = .data[[x]],
                 ymin = .data[[ci_lower]],
-                ymax = .data[[ci_upper]]
+                ymax = .data[[ci_upper]],
+                colour = ci_legend_title
               ),
-              colour = ci_colours[[1]],
               width = errorbar_width,
-              linewidth = 0.5
-            )
+              linewidth = 0.5,
+              show.legend = show_ci_leg
+            ) +
+            scale_color_manual("",values=ci_colours[[1]])
 
         # Add ribbon without grouping variable
         } else if (ci == 'ribbon') {
@@ -959,7 +961,7 @@ point_chart <- function(
             mutate(diff_ci_lower = get(y) - get(ci_lower),
                    diff_ci_upper = get(ci_upper) - get(y))
 
-          # Add error bars as trace with invisible markers
+          # Add error bars as trace
           base <- base |>
             add_trace(
               data = df,
@@ -968,10 +970,13 @@ point_chart <- function(
               type = 'scatter',
               mode = 'markers',
               yaxis = y_axis_choice,
-              showlegend = F,
+              name = ci_legend_title,
+              showlegend = ci_legend,
+              legendgroup = 'ci',
               marker = list(
-                color = '#ffffff00',
-                line = list(colour = '#ffffff00', width = 0)
+                color = ci_colours,
+                line = list(colour = '#ffffff00', width = 0),
+                symbol = 'line-ew-open' # use hozizontal line markers so that horizontal line symbol will be used in legned to match ggplot legend formatting
               ),
               hoverinfo='none',
               error_y = list(
@@ -981,6 +986,23 @@ point_chart <- function(
                 thickness = 1,
                 arrayminus = ~ diff_ci_lower,
                 array = ~ diff_ci_upper
+              )
+            ) |>
+            # Add additional trace of white horizontal line scatter-markers
+            #   to mask original markers
+            add_trace(
+              data = df,
+              x = ~ df[[x]],
+              y = ~ df[[y]],
+              type = 'scatter',
+              mode = 'markers',
+              yaxis = y_axis_choice,
+              hoverinfo='none',
+              showlegend = F,
+              marker = list(
+                color = 'white',
+                line = list(colour = 'white', width=2),
+                symbol = 'line-ew-open'
               )
             )
 
@@ -993,10 +1015,11 @@ point_chart <- function(
               ymin = ~ df[[ci_lower]],
               ymax = ~ df[[ci_upper]],
               yaxis = y_axis_choice,
+              hoverinfo='none',
               showlegend = ci_legend,
               legendgroup = 'ci',
-              legendgrouptitle = list(text = ci_legend_title),
-              #name = ???,
+              #legendgrouptitle = list(text = ci_legend_title),
+              name = ci_legend_title,
               fillcolor = yarrr::transparent(ci_colours, trans.val = .5), # add transparency using 'yarrr' package
               line = list(color = 'transparent')
             )
@@ -1185,7 +1208,6 @@ point_chart <- function(
             plotly_point_sizes <- (ggplot_build(ggsizeobj)$data[[1]]$size)*3   # *3 to scale ggplot to plotly (approx)
         }
 
-
       # Add plotly trace without groups
       base <- base |>
         add_trace(
@@ -1202,7 +1224,8 @@ point_chart <- function(
             line = list(colour = 'transparent', width = 0)
             ),
           legendgroup = 'data',
-          legendgrouptitle = list(text = legend_title),
+          #legendgrouptitle = list(text = legend_title),
+          name = if(legend_title != "") {legend_title} else {y},
           # leverage 'text' and 'customdata' fields to include ci limits in default hover labels
           text = text_upper,
           customdata = text_lower,
