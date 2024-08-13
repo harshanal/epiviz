@@ -130,6 +130,9 @@ base_gg <- function() {
     y2_max <- max(df[[y]], na.rm=T)
     y2_min <- min(df[[y]], na.rm=T)
 
+    # Get current y1 axis name
+    current_y1_title <- base_chart$labels$y
+
 
     # If no secondary y data has been plotted yet
     if ((is.null(base$secondary_y_shift) | base$secondary_y_shift == 0) &
@@ -144,7 +147,7 @@ base_gg <- function() {
         # Add variables to chart "metadata"
         base$secondary_y_shift <- shift
         base$secondary_y_scale <- scale
-        # Get current y1 axis name
+
 
       } else {
         # If data hasn't already been plotted on y1;
@@ -172,22 +175,26 @@ base_gg <- function() {
     base$secondary_y_shift <- 0
   }
 
-  # Apply utils/inv_scale_function to the values that will be plotted on the
-  # scaled secondary y axis (if they've been supplied)
+  # Rescale values that will be plotted on the scaled secondary y axis (if they've been supplied)
+          # utils/inv_scale_function no longer used
   if (!is.null(y)) {
-    df[[y]] <- inv_scale_function(df[[y]], scale, shift)
+    #df[[y]] <- inv_scale_function(df[[y]], scale, shift)
+    df[[y]] <- (df[[y]] + shift) / scale
   }
 
   if (!is.null(ci_lower)) {
-    df[[ci_lower]] <- inv_scale_function(df[[ci_lower]], scale, shift)
+    #df[[ci_lower]] <- inv_scale_function(df[[ci_lower]], scale, shift)
+    df[[ci_lower]] <- (df[[ci_lower]] + shift) / scale
   }
 
   if (!is.null(ci_upper)) {
-    df[[ci_upper]] <- inv_scale_function(df[[ci_upper]], scale, shift)
+    #df[[ci_upper]] <- inv_scale_function(df[[ci_upper]], scale, shift)
+    df[[ci_upper]] <- (df[[ci_upper]] + shift) / scale
   }
 
   if (!is.null(hline)) {
-    hline <- inv_scale_function(hline, scale, shift)
+    #hline <- inv_scale_function(hline, scale, shift)
+    hline <- (hline + shift) / scale
   }
 
 
@@ -420,12 +427,14 @@ base_gg <- function() {
     # apply percentage scale if invoked
     if (y_percent == FALSE) {
       base <- base +
+        ylab(current_y1_title) +
         # scale_y_continuous(sec.axis = sec_axis(~scale_function(., scale, shift),
         #                                        name = y_axis_title))
         scale_y_continuous(sec.axis = sec_axis(~ . * scale + shift,
                                                name = y_axis_title))
     } else {
       base <- base +
+        ylab(current_y1_title) +
         # scale_y_continuous(sec.axis = sec_axis(~scale_function(., scale, shift),
         #                                        name = y_axis_title,
         #                                        labels = scales::label_percent()))
