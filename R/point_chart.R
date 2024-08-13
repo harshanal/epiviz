@@ -24,6 +24,8 @@
 #'    each point on the chart. If not provided the no labels will be applied. If \code{dynamic
 #'    = TRUE} then \code{point_labels} will be applied as hover-labels, and \code{point_labels}
 #'    will accept html to format the output labels.}
+#'    \item{point_labels_size} {Font size of \code{point_labels} on output chart
+#'    when \code{dynamic = FALSE}.}
 #'    \item{point_labels_hjust} {Horizontal justification of \code{point_labels} on output chart
 #'    when \code{dynamic = FALSE}. Permitted values = c(0, 0.5, 1) for left, centre,
 #'    and right justified respectively.}
@@ -332,35 +334,48 @@
 #'   summarise(detections = n(),
 #'             detections_london = sum(london_det)) %>%
 #'   ungroup() %>%
-#'   mutate(percent_london = detections_london/detections,
+#'   mutate(proportion_london = detections_london/detections,
+#'          percent_london = percent(proportion_london, accuracy = 1),
 #'          hoverlabels = paste0(
 #'            '<b>',specimen_month,'</b>',
 #'            '<br>Detections: ',detections,
-#'            '<br><i>% in London: ',scales::percent(round(percent_london,4)),'</i>'
+#'            '<br>In London: ',detections_london,
+#'            '<br><i>% in London: ',percent_london,'</i>'
 #'          ))
+#'
 #'
 #' # Define parameters list for point_chart() function.
 #' species_region_params <- list(
 #'   df = london_detections,
 #'   x = "specimen_month",
 #'   y = "detections",
-#'   point_size = "percent_london",
+#'   point_size = "detections_london",
 #'   point_size_legend = TRUE,
-#'   point_size_legend_title = "Percentage of \ndetections in London",
+#'   point_size_legend_title = "Number of \ndetections in \nLondon",
 #'   point_shape = "circle",
-#'   point_colours = "#007C91",
-#'   chart_title = "Detections by month (with percentage in London)",
-#'   x_axis_title = "Detecion Month",
+#'   point_colours = "#8A1B61",
+#'   chart_title = "Detections by month \n(with percentage in London)",
+#'   x_axis_title = "Detection Month",
 #'   y_axis_title = "Number of Detections",
-#'   x_axis_label_angle = 45
+#'   x_axis_label_angle = 45,
+#'   y_axis_break_labels = seq(300, 900, 100),
+#'   x_axis_date_breaks = "6 months"
 #' )
 #'
-#' # Add hover labels for dynamic chart
-#' label_parameters <- list(point_labels = "hoverlabels")
+#' # Add point label parameters for static chart
+#' stat_label_parameters <- list(point_labels = "percent_london",
+#'                               point_labels_size = 2.5,
+#'                               point_labels_vjust = 1,
+#'                               point_labels_hjust = 0.5,
+#'                               point_labels_nudge_x = 5,
+#'                               point_labels_nudge_y = -15)
+#'
+#' # Add hover label parameters for dynamic chart
+#' dyn_label_parameters <- list(point_labels = "hoverlabels")
 #'
 #' # Create static and dynamic charts
-#' static_chart <- point_chart(params = species_region_params, dynamic = FALSE)
-#' dynamic_chart <- point_chart(params = c(species_region_params,label_parameters), dynamic = TRUE)
+#' static_chart <- point_chart(params = c(species_region_params,stat_label_parameters), dynamic = FALSE)
+#' dynamic_chart <- point_chart(params = c(species_region_params,dyn_label_parameters), dynamic = TRUE)
 #'
 #' # View using app
 #' library(shiny)
@@ -388,6 +403,7 @@ point_chart <- function(
                           point_size = 1.5,
                           point_colours = "blue",
                           point_labels = NULL,         # note that this needs to reference a variable in df
+                          point_labels_size = 5,
                           point_labels_hjust = 0,
                           point_labels_vjust = 0,
                           point_labels_nudge_x = 0,
@@ -452,6 +468,7 @@ point_chart <- function(
   if(!exists('point_shape',where=params)) params$point_shape <- "triangle"
   if(!exists('point_size',where=params)) params$point_size <- 1.5
   if(!exists('point_colours',where=params)) params$point_colours <- "blue"
+  if(!exists('point_labels_size',where=params)) params$point_labels_size <- 5
   if(!exists('point_labels_hjust',where=params)) params$point_labels_hjust <- 0
   if(!exists('point_labels_vjust',where=params)) params$point_labels_vjust <- 0
   if(!exists('point_labels_nudge_x',where=params)) params$point_labels_nudge_x <- 0
@@ -576,7 +593,7 @@ point_chart <- function(
   param_assign(params,
                c("df","x","y","ci","ci_legend","ci_legend_title","ci_lower",
                  "ci_upper","ci_colours","errorbar_width","group_var","point_shape",
-                 "point_size","point_colours","point_labels",
+                 "point_size","point_colours","point_labels","point_labels_size",
                  "point_labels_hjust","point_labels_vjust","point_labels_nudge_x",
                  "point_labels_nudge_y","y_sec_axis","y_sec_axis_no_shift","chart_title",
                  "chart_footer","chart_title_size","chart_title_colour","chart_footer_size",
@@ -871,6 +888,7 @@ point_chart <- function(
           y = .data[[y]],
           label = .data[[point_labels]]
         ),
+        size = point_labels_size,
         hjust = point_labels_hjust,
         vjust = point_labels_vjust,
         nudge_x = point_labels_nudge_x,
