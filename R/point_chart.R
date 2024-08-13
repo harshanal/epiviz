@@ -617,6 +617,10 @@ point_chart <- function(
     # produce ggplot object if 'dynamic' is set to FALSE
 
 
+  # Supress spurious 'Scale for X is already present' messages
+  #   -Will suppress other messages
+  suppressMessages({
+
   ##### Create base ggplot object
 
   # Define base ggplot object using R/base_gg() function
@@ -899,6 +903,8 @@ point_chart <- function(
 
   ##### Return final output
   return(base)
+
+  }) # suppressMessage() end
 
   ### STATIC CHART END
 
