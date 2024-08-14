@@ -12,19 +12,20 @@ point_chart(
     point_labels_hjust = 0, point_labels_vjust = 0, point_labels_nudge_x = 0,
     point_labels_nudge_y = 0, group_var = NULL, ci = NULL, ci_upper = NULL, ci_lower =
     NULL, ci_legend = TRUE, ci_legend_title = "Confidence interval", ci_colours = "red",
-    errorbar_width = NULL, y_sec_axis = FALSE, y_sec_axis_no_shift = TRUE, chart_title =
-    NULL, chart_title_size = 13, 
-     chart_title_colour = "black", chart_footer = NULL,
-    chart_footer_size = 12, chart_footer_colour = "black", x_axis_title = NULL,
-    y_axis_title = NULL, x_axis_label_angle = NULL, y_axis_label_angle = NULL,
-    x_axis_reverse = FALSE, y_percent = FALSE, x_limit_min = NULL, x_limit_max = NULL,
-    y_limit_min = NULL, y_limit_max = NULL, x_axis_break_labels = NULL,
-    y_axis_break_labels = NULL, x_axis_n_breaks = NULL, y_axis_n_breaks = NULL,
-    x_axis_date_breaks = NULL, st_theme = NULL, show_gridlines = TRUE, show_axislines =
-    TRUE, 
-     legend_title = "", legend_pos = "right", point_size_legend = FALSE,
-    point_size_legend_title = "", hline = NULL, hline_colour = "black", hline_width =
-    0.5, hline_type = "dashed", hline_label = NULL, hline_label_colour = "black")
+    errorbar_width = NULL, y_sec_axis = FALSE, y_sec_axis_no_shift = TRUE,
+    y_sec_axis_percent_full = FALSE, chart_title = NULL, 
+     chart_title_size = 13,
+    chart_title_colour = "black", chart_footer = NULL, chart_footer_size = 12,
+    chart_footer_colour = "black", x_axis_title = NULL, y_axis_title = NULL,
+    x_axis_label_angle = NULL, y_axis_label_angle = NULL, x_axis_reverse = FALSE,
+    y_percent = FALSE, x_limit_min = NULL, x_limit_max = NULL, y_limit_min = NULL,
+    y_limit_max = NULL, x_axis_break_labels = NULL, y_axis_break_labels = NULL,
+    x_axis_n_breaks = NULL, y_axis_n_breaks = NULL, x_axis_date_breaks = NULL, st_theme =
+    NULL, show_gridlines = TRUE, 
+     show_axislines = TRUE, legend_title = "",
+    legend_pos = "right", point_size_legend = FALSE, point_size_legend_title = "", hline
+    = NULL, hline_colour = "black", hline_width = 0.5, hline_type = "dashed", hline_label
+    = NULL, hline_label_colour = "black")
 )
 }
 \arguments{
@@ -38,12 +39,15 @@ then \code{base} must be a ggplot object.}
 \item{params}{A named list containing arguements used to create the plot.
 ' \describe{
 \item{df}{A data frame containing values used to create the point chart.}
-\item{x}{Name of the variable in df used to populate the x-axis.}
-\item{y}{Name of the variable in df used to populate the y-axis.}
+\item{x}{Name of the variable in \code{df} used to populate the x-axis.}
+\item{y}{Name of the variable in \code{df} used to populate the y-axis.}
 \item{point_shape}{Shape of the plotted points. Permitted values of c('circle',
 'triangle','square','plus','square cross','asterisk','diamond')}. When \code{group_var}
 is provided, point shapes will be automatically assigned based on group.
-\item{point_size} {########## EXPAND #################}
+\item{point_size} {Size of the plotted point symbols. If supplied as a number, all points
+will be plotted with this size. If supplied as the name of a numeric variable
+within \code{df}, then the size of each point will be relative to the value of
+that numeric variable in the manner of a bubble chart.}
 \item{point_colours} {Colour of the points to be plotted (default = "blue").
 When \code{group_var} is provided, \code{point_colours} can be set as a
 character vector to define colours for each group.}
@@ -84,8 +88,9 @@ is provided. Defaults to \code{FALSE}.}
    "errorbar"}.}
 \item{y_sec_axis} {Logical to indicate whether data should be plotted on the
 secondary (right) y-axis. Default = \code{FALSE}.}
-\item{y_sec_axis_no_shift} {Forces the secondary y-axis scale to begin at 0. Default =
-\code{TRUE}.}
+\item{y_sec_axis_no_shift} {Forces the secondary y-axis scale to begin at 0. Default = \code{TRUE}.}
+\item{y_sec_axis_percent_full} {Forces the secondary y-axis scale to range from 0-100\%
+when \code{y_percent = TRUE}}
 \item{chart_title} {Text to use as chart title.}
 \item{chart_title_size} {Font size of chart title.}
 \item{chart_title_colour} {Font colour of chart title.}
@@ -179,6 +184,7 @@ chart_detections_per_month <- point_chart(
   )
 )
 
+chart_detections_per_month
 
 
 
@@ -301,50 +307,7 @@ shinyApp(ui, server)
 
 
 
-# Example 4: Point chart with additional overlayed chart on secondary y-axis
-library(epiviz)
-
-# Use static chart from Example 3 as a base chart
-base_chart <- point_chart(params = species_params, dynamic = FALSE)
-base_chart <- chart_detections_per_month
-
-# Define data for overlaying chart
-# Percentage of overall detections in people over 65 years of age.
-library(lubridate)
-detections_over65 <- lab_data \%>\%
-  mutate(age = year(as.period(lubridate::interval(date_of_birth,Sys.Date()))),
-         over65 = ifelse(age > 65, 1, 0)) \%>\%
-  group_by(specimen_month = lubridate::floor_date(specimen_date, 'month')) \%>\%
-  summarise(detections = n(),
-            detections_over65 = sum(over65)) \%>\%
-  ungroup() \%>\%
-  mutate(percent_over65 = detections_over65/detections)
-
-# Define parameters list
-over65_params <- list(
-  df = detections_over65,
-  x = "specimen_month",
-  y = "percent_over65",
-  y_percent = TRUE,
-  y_sec_axis = TRUE,
-  point_colours = "purple",
-  point_size = 3,
-  point_shape = "asterisk",
-  x_limit_min = "2022-01-01",
-  x_limit_max = "2023-12-31",
-  y_limit_max = 700,
-  chart_title = "Detections per Month 2022-2023",
-  x_axis_title = "Month of detection",
-  y_axis_title = "Percentage of detections in over 65s",
-  x_axis_date_breaks = "2 months"
-)
-
-over65_chart <- point_chart(base = base_chart, params = over65_params, dynamic = FALSE)
-
-
-
-
-# Example 5: Point chart as bubble chart
+# Example 4: Point chart as bubble chart
 library(epiviz)
 
 # Create dataframe of number of detections of each species by region
@@ -409,6 +372,68 @@ server <- function(input, output, session) {
   output$dynamic_chart <- renderPlotly(dynamic_chart)
 }
 shinyApp(ui, server)
+
+
+
+# Example 5: Point chart with additional overlayed chart on secondary y-axis
+library(epiviz)
+
+# Use static chart from Example 1 as a base chart
+base_chart <- chart_detections_per_month
+
+# Define data for overlaying chart
+# Percentage of overall detections in people over 65 years of age.
+library(lubridate)
+detections_over65 <- lab_data \%>\%
+  mutate(age = year(as.period(lubridate::interval(date_of_birth,Sys.Date()))),
+         over65 = ifelse(age > 65, 1, 0)) \%>\%
+  group_by(specimen_month = lubridate::floor_date(specimen_date, 'month')) \%>\%
+  summarise(detections = n(),
+            detections_over65 = sum(over65)) \%>\%
+  ungroup() \%>\%
+  mutate(percent_over65 = detections_over65/detections)
+
+# Define parameters list
+over65_params <- list(
+  df = detections_over65,
+  x = "specimen_month",
+  y = "percent_over65",
+  y_percent = TRUE,
+  y_sec_axis = TRUE,
+  y_sec_axis_percent_full = TRUE,
+  point_colours = "purple",
+  point_size = 3,
+  point_shape = "asterisk",
+  x_limit_min = "2022-01-01",
+  x_limit_max = "2023-12-31",
+  y_limit_max = 1000,
+  chart_title = "Detections per Month 2022-2023",
+  x_axis_title = "Month of detection",
+  y_axis_title = "Percentage of detections in over 65s",
+  x_axis_date_breaks = "2 months"
+)
+
+# Create point chart
+over65_chart <- point_chart(base = base_chart,
+                            params = over65_params,
+                            dynamic = FALSE)
+
+
+# Legends are not currently implemented for static charts with a supplied
+#  base chart, so add legend manually using dummy data and an invisible geom_point()
+over65_chart <- over65_chart +
+  geom_point(data = data.frame(x=as.Date(c("2020-01-01","2020-01-02")),
+                               y=c(1,1),
+                               label=c("Total Detections","\% of Detections in Over 65s")),
+             aes(x=x, y=y, colour=label, shape=label)) +
+  scale_color_manual(name='', values=c("Total Detections"="#007C91",
+                                       "\% of Detections in Over 65s"="purple")) +
+  scale_shape_manual(name='', values=c("Total Detections"="triangle",
+                                       "\% of Detections in Over 65s"="asterisk")) +
+  theme(legend.position="top")
+
+over65_chart
+
 
 }
 

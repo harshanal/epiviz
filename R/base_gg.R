@@ -121,14 +121,23 @@ base_gg <- function() {
   if (y_sec_axis == TRUE) {
 
     # Get limits of current plotted data (i.e. if 'base' was provided with function
-    # call, returns -Inf if 'base' not provided and thus no data currently plotted)
+    #    call, returns -Inf if 'base' not provided and thus no data currently plotted).
+    #    Use y_limits instead if provided.
     current_plotted_data_max <-
-      max(layer_scales(base)$y$range$range)
+      if (!is.null(y_limit_max)) {y_limit_max} else {max(layer_scales(base)$y$range$range)}
     current_plotted_data_min <-
-      min(layer_scales(base)$y$range$range)
+      if (!is.null(y_limit_min)) {y_limit_min} else {min(layer_scales(base)$y$range$range)}
+
     # Get limits of new data to plot
     y2_max <- max(df[[y]], na.rm=T)
     y2_min <- min(df[[y]], na.rm=T)
+
+    # If y_sec_axis_percent_full = TRUE, then reset y2 limits
+    #   to 0 and 1 for a full 0-100% scale
+    if(y_sec_axis_percent_full == TRUE) {
+      y2_max <- 1
+      y2_min <- 0
+    }
 
     # Get current y1 axis name
     current_y1_title <- base_chart$labels$y

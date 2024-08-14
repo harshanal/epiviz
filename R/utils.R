@@ -276,7 +276,7 @@ plotly_legend_pos <- function(x) {
     legend_settings <- switch(
       x,
       "left" = list(
-        x = -0.2,
+        x = -0.1,
         y = 0.5,
         xanchor = "right",
         yanchor = "middle",
@@ -290,7 +290,7 @@ plotly_legend_pos <- function(x) {
         orientation = legend_orientation
       ),
       "right" = list(
-        x = 1.02,
+        x = if(y_sec_axis == TRUE) {1.1} else {1.02}, # account for secondary y-axis causing legend overlap
         y = 0.5,
         xanchor = "left",
         yanchor = "middle",
