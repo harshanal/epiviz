@@ -140,7 +140,7 @@ base_gg <- function() {
     }
 
     # Get current y1 axis name
-    current_y1_title <- base_chart$labels$y
+    current_y1_title <- base$labels$y
 
 
     # If no secondary y data has been plotted yet

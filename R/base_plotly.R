@@ -355,11 +355,14 @@ base_plotly <- function() {
         base <- base |> layout(yaxis2 = list(tickformat  = ".0%"))
       }
 
-      # Apply sec y axis range
+      # Force sec y percentage scale to 0-100% if specified
+      if(y_sec_axis_percent_full == TRUE) {
+        y_range <- c(0,1)
+      }
+
+      # Apply sec y-axis range
       base <- base |>
-        layout(
-          yaxis2 = list(range = y_range)
-        )
+        layout(yaxis2 = list(range = y_range))
 
       # Apply sec y_axis_break_labels if provided
       if(!is.null(y_axis_break_labels)) {
