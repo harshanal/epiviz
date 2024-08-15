@@ -18,6 +18,9 @@ base_gg <- function() {
   # create base plot
   if (is.null(base)) {
     base <- ggplot()
+  } else {
+    # Store base chart in unmodified state
+    base_chart <- base
   }
 
   # Add theme if theme argument provided
@@ -120,13 +123,11 @@ base_gg <- function() {
   # If user wants to plot on the secondary y-axis
   if (y_sec_axis == TRUE) {
 
-    # Get limits of current plotted data (i.e. if 'base' was provided with function
-    #    call, returns -Inf if 'base' not provided and thus no data currently plotted).
-    #    Use y_limits instead if provided.
+    # Get limits of current plotted data, use y_limits instead if provided.
     current_plotted_data_max <-
-      if (!is.null(y_limit_max)) {y_limit_max} else {max(layer_scales(base)$y$range$range)}
+      if (!is.null(y_limit_max)) {y_limit_max} else {max(layer_scales(base_chart)$y$range$range)}
     current_plotted_data_min <-
-      if (!is.null(y_limit_min)) {y_limit_min} else {min(layer_scales(base)$y$range$range)}
+      if (!is.null(y_limit_min)) {y_limit_min} else {min(layer_scales(base_chart)$y$range$range)}
 
     # Get limits of new data to plot
     y2_max <- max(df[[y]], na.rm=T)
@@ -139,8 +140,8 @@ base_gg <- function() {
       y2_min <- 0
     }
 
-    # Get current y1 axis name
-    current_y1_title <- base$labels$y
+    # Get current y1 axis name from base_chart
+    current_y1_title <- base_chart$labels$y
 
 
     # If no secondary y data has been plotted yet
