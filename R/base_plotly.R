@@ -16,6 +16,7 @@ base_plotly <- function() {
     ##### Create base plotly object
     if (!is.null(base)) {
       base <- base
+      base_chart <- base # store unmodified base chart
     } else {
       base <- plot_ly()
     }
@@ -95,17 +96,21 @@ base_plotly <- function() {
                                    font = axis_label_font)))
     }
 
+
     # Add y axis label
-    if (!is.null(y_axis_title)) {
-      base <- base |>
-        layout(yaxis = list(title =
-                              list(text = html_bold(y_axis_title),
-                                   font = axis_label_font)))
-    } else {
-      base <- base |>
-        layout(yaxis = list(title =
-                              list(text = html_bold(y),
-                                   font = axis_label_font)))
+    #    (but only if base_chart isn't provided and sec y-axis isn't specified, otherwise leave y-axis title as is)
+    if (!exists("base_chart") & y_sec_axis == FALSE) {
+      if (!is.null(y_axis_title)) {
+        base <- base |>
+          layout(yaxis = list(title =
+                                list(text = html_bold(y_axis_title),
+                                     font = axis_label_font)))
+      } else {
+        base <- base |>
+          layout(yaxis = list(title =
+                                list(text = html_bold(y),
+                                     font = axis_label_font)))
+      }
     }
 
 
