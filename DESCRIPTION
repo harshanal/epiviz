@@ -35,7 +35,6 @@ Imports:
     tidyr,
     yarrr,
     lubridate,
-    conflicted,
     magrittr
 Depends: 
     R (>= 2.10)

@@ -357,8 +357,11 @@ stat_label_parameters <- list(point_labels = "percent_london",
 dyn_label_parameters <- list(point_labels = "hoverlabels")
 
 # Create static and dynamic charts
-static_chart <- point_chart(params = c(species_region_params,stat_label_parameters), dynamic = FALSE)
-dynamic_chart <- point_chart(params = c(species_region_params,dyn_label_parameters), dynamic = TRUE)
+static_chart <- point_chart(params = c(species_region_params,stat_label_parameters),
+                            dynamic = FALSE)
+
+dynamic_chart <- point_chart(params = c(species_region_params,dyn_label_parameters),
+                             dynamic = TRUE)
 
 # View using app
 library(shiny)
