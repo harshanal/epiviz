@@ -162,9 +162,9 @@ point charts.
 # epiviz::lab_data dataset.
 library(epiviz)
 
-detections_per_month <- epiviz::lab_data \%>\%
-  group_by(specimen_month = lubridate::floor_date(specimen_date, 'month')) \%>\%
-  summarise(detections = n()) \%>\%
+detections_per_month <- epiviz::lab_data |>
+  group_by(specimen_month = lubridate::floor_date(specimen_date, 'month')) |>
+  summarise(detections = n()) |>
   ungroup()
 
 # Create static point chart of detections per month from 2022 to 2023.
@@ -192,10 +192,10 @@ chart_detections_per_month
 library(epiviz)
 
 # Add random error limits to detections_per_month dataframe
-detections_per_month <- detections_per_month \%>\%
-  rowwise() \%>\%
+detections_per_month <- detections_per_month |>
+  rowwise() |>
   mutate(lower_limit = detections - sample(10:50,1),
-         upper_limit = detections + sample(10:50,1)) \%>\%
+         upper_limit = detections + sample(10:50,1)) |>
   ungroup()
 
 # Define parameters list outside of point_chart() function.
@@ -311,12 +311,12 @@ shinyApp(ui, server)
 library(epiviz)
 
 # Create dataframe of number of detections of each species by region
-london_detections <- epiviz::lab_data \%>\%
-  mutate(london_det = ifelse(region == "London", 1, 0)) \%>\%
-  group_by(specimen_month = lubridate::floor_date(specimen_date, 'month')) \%>\%
+london_detections <- epiviz::lab_data |>
+  mutate(london_det = ifelse(region == "London", 1, 0)) |>
+  group_by(specimen_month = lubridate::floor_date(specimen_date, 'month')) |>
   summarise(detections = n(),
-            detections_london = sum(london_det)) \%>\%
-  ungroup() \%>\%
+            detections_london = sum(london_det)) |>
+  ungroup() |>
   mutate(proportion_london = detections_london/detections,
          percent_london = percent(proportion_london, accuracy = 1),
          hoverlabels = paste0(
@@ -384,13 +384,13 @@ base_chart <- chart_detections_per_month
 # Define data for overlaying chart
 # Percentage of overall detections in people over 65 years of age.
 library(lubridate)
-detections_over65 <- lab_data \%>\%
+detections_over65 <- lab_data |>
   mutate(age = year(as.period(lubridate::interval(date_of_birth,Sys.Date()))),
-         over65 = ifelse(age > 65, 1, 0)) \%>\%
-  group_by(specimen_month = lubridate::floor_date(specimen_date, 'month')) \%>\%
+         over65 = ifelse(age > 65, 1, 0)) |>
+  group_by(specimen_month = lubridate::floor_date(specimen_date, 'month')) |>
   summarise(detections = n(),
-            detections_over65 = sum(over65)) \%>\%
-  ungroup() \%>\%
+            detections_over65 = sum(over65)) |>
+  ungroup() |>
   mutate(percent_over65 = detections_over65/detections)
 
 # Define parameters list

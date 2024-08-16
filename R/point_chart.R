@@ -118,7 +118,8 @@
 #'
 #'
 #'
-#'
+#' @import dplyr
+#' @import magrittr
 #' @import grDevices
 #' @import scales
 #' @import tidyr
@@ -141,9 +142,9 @@
 #' # epiviz::lab_data dataset.
 #' library(epiviz)
 #'
-#' detections_per_month <- epiviz::lab_data %>%
-#'   group_by(specimen_month = lubridate::floor_date(specimen_date, 'month')) %>%
-#'   summarise(detections = n()) %>%
+#' detections_per_month <- epiviz::lab_data |>
+#'   group_by(specimen_month = lubridate::floor_date(specimen_date, 'month')) |>
+#'   summarise(detections = n()) |>
 #'   ungroup()
 #'
 #' # Create static point chart of detections per month from 2022 to 2023.
@@ -171,10 +172,10 @@
 #' library(epiviz)
 #'
 #' # Add random error limits to detections_per_month dataframe
-#' detections_per_month <- detections_per_month %>%
-#'   rowwise() %>%
+#' detections_per_month <- detections_per_month |>
+#'   rowwise() |>
 #'   mutate(lower_limit = detections - sample(10:50,1),
-#'          upper_limit = detections + sample(10:50,1)) %>%
+#'          upper_limit = detections + sample(10:50,1)) |>
 #'   ungroup()
 #'
 #' # Define parameters list outside of point_chart() function.
@@ -290,12 +291,12 @@
 #' library(epiviz)
 #'
 #' # Create dataframe of number of detections of each species by region
-#' london_detections <- epiviz::lab_data %>%
-#'   mutate(london_det = ifelse(region == "London", 1, 0)) %>%
-#'   group_by(specimen_month = lubridate::floor_date(specimen_date, 'month')) %>%
+#' london_detections <- epiviz::lab_data |>
+#'   mutate(london_det = ifelse(region == "London", 1, 0)) |>
+#'   group_by(specimen_month = lubridate::floor_date(specimen_date, 'month')) |>
 #'   summarise(detections = n(),
-#'             detections_london = sum(london_det)) %>%
-#'   ungroup() %>%
+#'             detections_london = sum(london_det)) |>
+#'   ungroup() |>
 #'   mutate(proportion_london = detections_london/detections,
 #'          percent_london = percent(proportion_london, accuracy = 1),
 #'          hoverlabels = paste0(
@@ -363,13 +364,13 @@
 #' # Define data for overlaying chart
 #' # Percentage of overall detections in people over 65 years of age.
 #' library(lubridate)
-#' detections_over65 <- lab_data %>%
+#' detections_over65 <- lab_data |>
 #'   mutate(age = year(as.period(lubridate::interval(date_of_birth,Sys.Date()))),
-#'          over65 = ifelse(age > 65, 1, 0)) %>%
-#'   group_by(specimen_month = lubridate::floor_date(specimen_date, 'month')) %>%
+#'          over65 = ifelse(age > 65, 1, 0)) |>
+#'   group_by(specimen_month = lubridate::floor_date(specimen_date, 'month')) |>
 #'   summarise(detections = n(),
-#'             detections_over65 = sum(over65)) %>%
-#'   ungroup() %>%
+#'             detections_over65 = sum(over65)) |>
+#'   ungroup() |>
 #'   mutate(percent_over65 = detections_over65/detections)
 #'
 #' # Define parameters list
@@ -1146,15 +1147,15 @@ point_chart <- function(
             #    separate dfs for each, reverse order of lower lim df, and bind together.
             df_group_low <- df |>
               filter(get(group_var) == unique_groups[i]) |>
-              select(x, ci_lower) |>
+              select(any_of(c(x, ci_lower))) |>     # any_of as x and ci_lower point towards characters rather than variable names
               dplyr::rename("y_val" = 2)
 
             df_group_up <- df |>
               filter(get(group_var) == unique_groups[i]) |>
-              select(x, ci_upper) |>
+              select(any_of(c(x, ci_upper))) |>     # any_of as x and ci_upper point towards characters rather than variable names
               dplyr::rename("y_val" = 2)
 
-            df_group_ribb <- rbind(df_group_low, (df_group_up %>% arrange(desc(row_number()))))
+            df_group_ribb <- rbind(df_group_low, (df_group_up |> arrange(desc(row_number()))))
 
 
             # Add separate ribbon for each group using df defined above

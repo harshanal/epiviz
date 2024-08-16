@@ -16,6 +16,7 @@ import(grDevices)
 import(htmltools)
 import(leaflet)
 import(lubridate)
+import(magrittr)
 import(plotly, except = last_plot)
 
 import(scales)
