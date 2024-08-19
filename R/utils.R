@@ -260,6 +260,7 @@ datebreak_to_d3 <- function(x) {
 #'
 #' @return A list of parameters for plotly layout.legend
 #'
+#' @examples
 #' \dontrun{
 #' plotly_legend_pos("right")
 #' }
@@ -306,5 +307,72 @@ plotly_legend_pos <- function(x) {
     )
 
     return(legend_settings)
+
+}
+
+
+
+
+
+
+#' A function to generate a colour palette of n_pal hexcodes based upon an input
+#' colour (or colours) \code{x}
+#'
+#' @param x Either the character name of an RColorBrewer palette (e.g.
+#' \code{fill_palette = "YlOrRd"}), a character containing a single rgb
+#' colour code, hexcode, or colour name that will be used to generate
+#' a colour range (e.g. \code{fill_palette = "#007C91"}), or a character
+#' vector containing multiple rgb codes, hexcodes, or colour names that
+#' will be used to generate a colour range (e.g. \code{c("#007C91","purple",
+#' "red")}). Defaults to the RColorBrewer "Blues" palette.
+#' @param n_pal numeric The number of desired colours in the returned palette.
+#'
+#' @return A character vector of hex codes for use in a colour palette.
+#'
+#' @examples
+#' \dontrun{
+#' palette_gen(c("#007C91","purple"),7)
+#'
+#' palette_gen("#007C91",5)
+#'
+#' palette_gen("YlOrRd",5)
+#' }
+palette_gen <- function(x, n_pal) {
+
+  # x is single element; i.e. single hexcode or RColorBrewer palette name
+  if (length(x) == 1) {
+
+    # x specified as RColorBrewer palette
+    if (x %in% rownames(RColorBrewer::brewer.pal.info)) {
+
+      # Create RColorBrewer palette
+      #   RColourBrewer::brewer.pal has a min palette size of 3 and max of 9
+      #   -If n_pal <= 2, manually create 2 element palette
+      #   -If n_pal >= 9, extend palette with colorRampPalette()
+      if (n_pal <= 2) {
+        suppressWarnings({
+          pal <- RColorBrewer::brewer.pal(n = n_pal, name = x)
+        })
+        pal <- c(dplyr::first(pal),dplyr::last(pal))
+      } else if (n_pal >= 9) {
+        pal <- colorRampPalette(RColorBrewer::brewer.pal(n = 9, name = x))(n_pal)
+      } else {
+        pal <- RColorBrewer::brewer.pal(n = n_pal, name = x)
+      }
+
+      # x specified as single colour
+    } else {
+
+      # Combine the single colour with a baseline of white
+      x <- c("white", x)
+      pal <- colorRampPalette(x)(n_pal)
+    }
+
+    # x is multiple element; i.e. x specified as vector of multiple colours
+  } else if (length(x) > 1) {
+    pal <- colorRampPalette(x)(n_pal)
+  }
+
+  return(pal)
 
 }
