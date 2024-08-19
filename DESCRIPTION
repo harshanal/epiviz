@@ -31,6 +31,11 @@ Imports:
     sf,
     leaflet,
     htmltools,
-    stringr
+    stringr,
+    scales,
+    tidyr,
+    yarrr,
+    lubridate,
+    magrittr
 Depends: 
     R (>= 2.10)

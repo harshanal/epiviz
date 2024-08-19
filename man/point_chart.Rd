@@ -2,124 +2,442 @@
 % Please edit documentation in R/point_chart.R
 \name{point_chart}
 \alias{point_chart}
-\title{Point chart}
+\title{point_chart}
 \usage{
 point_chart(
-  df,
+  dynamic = FALSE,
   base = NULL,
-  x = NULL,
-  y = NULL,
-  group_var = NULL,
-  y_axis = "y1",
-  ci = "e",
-  lower = NULL,
-  upper = NULL,
-  error_colour = "red",
-  h_line = NULL,
-  y_label = NULL,
-  x_label = NULL,
-  x_label_angle = NULL,
-  y_label_angle = NULL,
-  x_labels_reverse = NULL,
-  y_min_limit = NULL,
-  y_max_limit = NULL,
-  x_axis_breaks = NULL,
-  legend_pos = "bottom",
-  remove_gridlines = NULL,
-  percent = NULL,
-  cap_text = NULL,
-  labels = NULL,
-  hjust = 0,
-  vjust = 0,
-  shape = "triangle",
-  no_shift = FALSE
+  params = list(df = NULL, x = NULL, y = NULL, point_shape = "triangle", point_size =
+    1.5, point_colours = "blue", point_labels = NULL, point_labels_size = 5,
+    point_labels_hjust = 0, point_labels_vjust = 0, point_labels_nudge_x = 0,
+    point_labels_nudge_y = 0, group_var = NULL, ci = NULL, ci_upper = NULL, ci_lower =
+    NULL, ci_legend = TRUE, ci_legend_title = "Confidence interval", ci_colours = "red",
+    errorbar_width = NULL, y_sec_axis = FALSE, y_sec_axis_no_shift = TRUE,
+    y_sec_axis_percent_full = FALSE, chart_title = NULL, 
+     chart_title_size = 13,
+    chart_title_colour = "black", chart_footer = NULL, chart_footer_size = 12,
+    chart_footer_colour = "black", x_axis_title = NULL, y_axis_title = NULL,
+    x_axis_label_angle = NULL, y_axis_label_angle = NULL, x_axis_reverse = FALSE,
+    y_percent = FALSE, x_limit_min = NULL, x_limit_max = NULL, y_limit_min = NULL,
+    y_limit_max = NULL, x_axis_break_labels = NULL, y_axis_break_labels = NULL,
+    x_axis_n_breaks = NULL, y_axis_n_breaks = NULL, x_axis_date_breaks = NULL, st_theme =
+    NULL, show_gridlines = TRUE, 
+     show_axislines = TRUE, legend_title = "",
+    legend_pos = "right", point_size_legend = FALSE, point_size_legend_title = "", hline
+    = NULL, hline_colour = "black", hline_width = 0.5, hline_type = "dashed", hline_label
+    = NULL, hline_label_colour = "black")
 )
 }
 \arguments{
-\item{df}{name of data frame for plotting}
+\item{dynamic}{Logical indicating whether to produce a dynamic (plotly) output.
+Default is \code{FALSE}, which will return a static ggplot output.}
 
-\item{base}{base}
+\item{base}{A base ggplot or plotly object that the output will be applied to. If
+\code{dynamic = TRUE} then \code{base} must be a plotly object, and if \code{dynamic = FALSE}
+then \code{base} must be a ggplot object.}
 
-\item{x}{name of x axis variable in data frame}
+\item{params}{A named list containing arguements used to create the plot.
+' \describe{
+\item{df}{A data frame containing values used to create the point chart.}
+\item{x}{Name of the variable in \code{df} used to populate the x-axis.}
+\item{y}{Name of the variable in \code{df} used to populate the y-axis.}
+\item{point_shape}{Shape of the plotted points. Permitted values of c('circle',
+'triangle','square','plus','square cross','asterisk','diamond')}. When \code{group_var}
+is provided, point shapes will be automatically assigned based on group.
+\item{point_size} {Size of the plotted point symbols. If supplied as a number, all points
+will be plotted with this size. If supplied as the name of a numeric variable
+within \code{df}, then the size of each point will be relative to the value of
+that numeric variable in the manner of a bubble chart.}
+\item{point_colours} {Colour of the points to be plotted (default = "blue").
+When \code{group_var} is provided, \code{point_colours} can be set as a
+character vector to define colours for each group.}
+\item{point_labels} {Name of a variable in df containing text labels to plot against
+each point on the chart. If not provided the no labels will be applied. If \code{dynamic
+   = TRUE} then \code{point_labels} will be applied as hover-labels, and \code{point_labels}
+will accept html to format the output labels.}
+\item{point_labels_size} {Font size of \code{point_labels} on output chart
+when \code{dynamic = FALSE}.}
+\item{point_labels_hjust} {Horizontal justification of \code{point_labels} on output chart
+when \code{dynamic = FALSE}. Permitted values = c(0, 0.5, 1) for left, centre,
+and right justified respectively.}
+\item{point_labels_vjust} {Vertical justification of \code{point_labels} on output chart
+when \code{dynamic = FALSE}. Permitted values = c(0, 0.5, 1) for bottom, middle,
+and top justified respectively.}
+\item{point_labels_nudge_x} {Horizontal adjustment to nudge code{point_labels} by
+when \code{dynamic = FALSE}. Useful for offsetting text from points.}
+\item{point_labels_nudge_y} {Vertical adjustment to nudge code{point_labels} by
+when \code{dynamic = FALSE}. Useful for offsetting text from points.}
+\item{group_var}{Name of the variable in df used to define separate groups of points
+in the chart.}
+\item{ci} {Confidence interval. If \code{ci = "errorbar"} then confidence intervals be
+be plotted with each point as errorbars, and if \code{ci = "ribbon"} then confidence
+intervals will be added to the chart as a ribbon plot for each group. If \code{ci} is
+provided, then \code{ci_upper} and \code{ci_lower} must also be provided.}
+\item{ci_upper} {Name of the variable in df used as the upper confidence limit for
+each point. Mandatory when \code{ci} is provided.}
+\item{ci_lower} {Name of the variable in df used as the lower confidence limit for
+each point. Mandatory when \code{ci} is provided.}
+\item{ci_legend} {Logical indicating whether a separate legend should be included
+in the chart for confidence interval parameters. Only applies when \code{group_var}
+is provided. Defaults to \code{FALSE}.}
+\item{ci_legend_title} {Text to use as title for separate legend when \code{ci_legend = TRUE}.}
+\item{ci_colours} {Colour(s) used for plotting confidence intervals. When \code{ci =
+   "errorbar"} this will determine the colour of the plotted errorbars, when \code{ci =
+   "ribbon"} this will determine the colour of the plotted ribbons.}
+\item{errorbar_width} {Horizontal width of the plotted error bars when \code{ci =
+   "errorbar"}.}
+\item{y_sec_axis} {Logical to indicate whether data should be plotted on the
+secondary (right) y-axis. Default = \code{FALSE}.}
+\item{y_sec_axis_no_shift} {Forces the secondary y-axis scale to begin at 0. Default = \code{TRUE}.}
+\item{y_sec_axis_percent_full} {Forces the secondary y-axis scale to range from 0-100\%
+when \code{y_percent = TRUE}}
+\item{chart_title} {Text to use as chart title.}
+\item{chart_title_size} {Font size of chart title.}
+\item{chart_title_colour} {Font colour of chart title.}
+\item{chart_footer} {Text to use as chart footer.}
+\item{chart_footer_size} {Font size of chart footer.}
+\item{chart_footer_colour} {Font colour of chart footer.}
+\item{x_axis_title} {Text used for x-axis title. Defaults to name of x-variable if
+not stated.}
+\item{y_axis_title} {Text used for y-axis title. Defaults to name of y-variable if
+not stated.}
+\item{x_axis_label_angle} {Angle for x-axis label text.}
+\item{y_axis_label_angle} {Angle for y-axis label text.}
+\item{x_axis_reverse} {Reverses x-axis scale if \code{x_axis_reverse = TRUE}.}
+\item{y_percent} {Converts y-axis to percentage scale if \code{y_percent = TRUE}.}
+\item{x_limit_min} {Lower limit for the x-axis. Default used if not provided.}
+\item{x_limit_max} {Upper limit for the x-axis. Default used if not provided.}
+\item{y_limit_min} {Lower limit for the y-axis. Default used if not provided.}
+\item{y_limit_max} {Upper limit for the y-axis. Default used if not provided.}
+\item{x_axis_break_labels} {Vector of values to use for x-axis breaks. Defaults used if not provided.}
+\item{y_axis_break_labels} {Vector of values to use for y-axis breaks. Defaults used if not provided.}
+\item{x_axis_n_breaks} {Scales x-axis with approximately n breaks. Cannot be provided
+if \code{x_axis_break_labels} is provided.}
+\item{y_axis_n_breaks} {Scales y-axis with approximately n breaks. Cannot be used
+if \code{y_axis_break_labels} is also provided.}
+\item{x_axis_date_breaks} {A string giving the distance between breaks like "2 weeks", or "10 years".
+Valid specifications are 'sec', 'min', 'hour', 'day', 'week', 'month' or 'year', optionally followed
+by 's'. Matches ggplot scale_date() conventions (see https://ggplot2.tidyverse.org/reference/scale_date.html).
+Cannot be used if \code{y_axis_break_labels} is also provided.}
+\item{st_theme} {Name of a ggplot theme to be applied to a static plot. Can only be provided
+when \code{dynamic = FALSE}}
+\item{show_gridlines} {Logical to show chart gridlines. Default = \code{TRUE}.}
+\item{show_axislines} {Logical to show chart axis lines. Default = \code{TRUE}.}
+\item{legend_title} {Text used for legend title.}
+\item{legend_pos} {Position of the legend. Permitted values = c("top","bootom","right","left")}
+\item{point_size_legend} {Include a legend for \code{point_size}. Default = \code{FALSE}}
+\item{point_size_legend_title} {Text used for point legend title.}
+\item{hline} {Adds horizontal line across the chart at the corresponding y-value. Multiple
+values may be provided as a vector to add multiple horizontal lines.}
+\item{hline_colour} {Colour of the horizontal lines if \code{hline} is provided. A vector of colours
+can be provided to colour individual hlines if multiple hlines have been provided.}
+\item{hline_width} {Numerical width of the horizontal lines if \code{hline} is provided. A vector of numerical widths
+can be provided for individual hlines if multiple hlines have been provided.}
+\item{hline_type} {Line style of the horizontal lines if \code{hline} is provided. A vector of line styles
+can be provided to style hlines if multiple hlines have been provided. Permitted values = c("solid", "dotted",
+"dashed", "longdash", "dotdash").}
+\item{hline_label} {Text to label the horizontal lines if \code{hline} is provided. A vector of text strings
+can be provided to label individual hlines if multiple hlines have been provided.}
+\item{hline_label_colour} {Colour of the horizontal line labels if \code{hline_labels} is provided.
+A vector of colours can be provided to colour individual hline_labels if multiple hline_labels have been provided.}
 
-\item{y}{name of y axis variable in data frame}
-
-\item{group_var}{name of group variable to generate multiple lines
-(if required) in data frame}
-
-\item{y_axis}{y_axis}
-
-\item{ci}{indicator for using ribbon or error bar geom (if required),
-enter 'e' for error bar, enter any other value for ribbon}
-
-\item{lower}{lower value for error \ ribbon geom (mandatory if ci argument passed)}
-
-\item{upper}{upper value for error \ ribbon geom (mandatory if ci argument passed)}
-
-\item{error_colour}{if not plotting by group this is the colour of the error
-bars or ribbon}
-
-\item{h_line}{will display a horizontal line if valid inter passed
-provided where multiple lines generated each will be of different type}
-
-\item{y_label}{for provision of an y axis label}
-
-\item{x_label}{for provision of an x axis label}
-
-\item{x_label_angle}{to adjust the x axis label by the degrees of the
-integer provided}
-
-\item{y_label_angle}{to adjust the y axis label by the degrees of the
-integer provided}
-
-\item{x_labels_reverse}{enter an argument of any value i.e. 'y' to reverse
-the x labeling order when using categorical data}
-
-\item{y_min_limit}{set the limit on the y axis scaling by proving an integer}
-
-\item{y_max_limit}{set the limit on the x axis scaling by proving an integer}
-
-\item{x_axis_breaks}{modify the x axis breaks by providing an integer}
-
-\item{legend_pos}{modify the position of the legend (where applicable) with
-appropriate value i.e. bottom (default position),
-top, right, left}
-
-\item{remove_gridlines}{enter an argument of any value i.e. 'y' to remove
-the grid lines}
-
-\item{percent}{enter an argument of any value i.e. 'y' to include the \%
-symbol for y axis labels}
-
-\item{cap_text}{enter text for a caption to appear below plot}
-
-\item{labels}{labels to display alongside the plotted geom_points}
-
-\item{hjust}{the horizontal adjustment of the point labels}
-
-\item{vjust}{the vertical adjustment of the point labels}
-
-\item{shape}{shape of the points to be plotted (only used when not plotting
-by group)}
-
-\item{no_shift}{If no shift should be applied to the secondary y-axis}
+}}
 }
 \value{
-the final plot
+A ggplot or plotly object.
 }
 \description{
-The chart function has 3 mandatory arguments to plot, with additional
-arguments as described further below:
+A function for producing either static (ggplot) or dynamic (plotly)
+point charts.
 }
 \examples{
 
-# This example will plot the points on the secondary y-axis with error bars and
-# labels showing
-# the plotted values that are vertically adjusted from the plotted points
 \dontrun{
-point_chart(df = plot_df, x = "age", y = "value", ci = "e", upper = "uppercl",
-lower = "lowercl", group_var = "ukborn", y_axis = "y2", y_label = "Value",
-labels = "value", vjust = -3.5)
+
+
+
+# Example 1: Basic point chart.
+
+# Define a dataframe containing the number of detections per month from the
+# epiviz::lab_data dataset.
+library(epiviz)
+
+detections_per_month <- epiviz::lab_data |>
+  group_by(specimen_month = lubridate::floor_date(specimen_date, 'month')) |>
+  summarise(detections = n()) |>
+  ungroup()
+
+# Create static point chart of detections per month from 2022 to 2023.
+chart_detections_per_month <- point_chart(
+  params = list(
+    df = detections_per_month,
+    x = "specimen_month",
+    y = "detections",
+    point_colours = "#007C91",
+    point_size = 3,
+    x_limit_min = "2022-01-01",
+    x_limit_max = "2023-12-31",
+    chart_title = "Detections per Month 2022-2023",
+    x_axis_title = "Month of detection",
+    y_axis_title = "Number of detections",
+    x_axis_date_breaks = "2 months"
+  )
+)
+
+chart_detections_per_month
+
+
+
+# Example 2: Point chart with error bars and threshold line.
+library(epiviz)
+
+# Add random error limits to detections_per_month dataframe
+detections_per_month <- detections_per_month |>
+  rowwise() |>
+  mutate(lower_limit = detections - sample(10:50,1),
+         upper_limit = detections + sample(10:50,1)) |>
+  ungroup()
+
+# Define parameters list outside of point_chart() function.
+detections_params <- list(
+  df = detections_per_month,
+  x = "specimen_month",
+  y = "detections",
+  point_colours = "#007C91",
+  point_size = 3,
+  x_limit_min = "2022-01-01",
+  x_limit_max = "2023-12-31",
+  chart_title = "Detections per Month 2022-2023",
+  x_axis_title = "Month of detection",
+  y_axis_title = "Number of detections",
+  x_axis_date_breaks = "2 months",
+  y_axis_break_labels = seq(0, 900, 100),
+  ci = "errorbar",
+  ci_lower = "lower_limit",
+  ci_upper = "upper_limit",
+  error_colours = "red",
+  hline = 800,
+  hline_colour = "orange",
+  hline_label = "threshold",
+  hline_label_colour = "orange"
+)
+
+# Create static point chart
+static_chart <- point_chart(params = detections_params, dynamic = FALSE)
+
+# Create the same chart as a dynamic chart
+dynamic_chart <- point_chart(params = detections_params, dynamic = TRUE)
+
+# View both simultaneously using shiny app
+library(shiny)
+library(plotly)
+ui <- fluidPage(
+  plotOutput('static_chart'),
+  plotlyOutput('dynamic_chart')
+)
+server <- function(input, output, session) {
+  output$static_chart <- renderPlot(static_chart)
+  output$dynamic_chart <- renderPlotly(dynamic_chart)
+}
+shinyApp(ui, server)
+
+
+
+
+# Example 3: Point chart with grouped data and confidence ribbon.
+library(epiviz)
+
+# Define a dataframe containing the number of detections per month by species
+# from the epiviz::lab_data dataset, and add random error limits.
+species_by_month <- lab_data |>
+  group_by(specimen_month = lubridate::floor_date(specimen_date, 'month'),
+           organism_species_name) |>
+  summarise(detections = n()) |>
+  ungroup() |>
+  rowwise() |>
+  mutate(lower_limit = detections - sample(10:50,1),
+         upper_limit = detections + sample(10:50,1)) |>
+  ungroup()
+
+# Define parameters list for point_chart() function.
+#   -Include multiple threshold lines
+species_params <- list(
+  df = species_by_month,
+  x = "specimen_month",
+  y = "detections",
+  group_var = "organism_species_name",
+  point_colours = c("#007C91","#8A1B61","#FF7F32"),
+  point_size = 3,
+  x_limit_min = "2022-01-01",
+  x_limit_max = "2023-12-31",
+  chart_title = "Detections per Month 2022-2023",
+  x_axis_title = "Month of detection",
+  y_axis_title = "Number of detections",
+  x_axis_date_breaks = "2 months",
+  y_axis_break_labels = seq(0, 600, 100),
+  x_axis_label_angle = 45,
+  ci = "ribbon",
+  ci_lower = "lower_limit",
+  ci_upper = "upper_limit",
+  ci_colours = c("#007C91","#8A1B61","#FF7F32"),
+  hline = c(450,550),
+  hline_colour = c("blue","red"),
+  hline_label = c("threshold 1", "threshold 2"),
+  hline_label_colour = c("blue","red")
+)
+
+
+# Create static and dynamic charts
+static_chart <- point_chart(params = species_params, dynamic = FALSE)
+dynamic_chart <- point_chart(params = species_params, dynamic = TRUE)
+
+# View using app
+library(shiny)
+library(plotly)
+ui <- fluidPage(
+  plotOutput('static_chart'),
+  plotlyOutput('dynamic_chart')
+)
+server <- function(input, output, session) {
+  output$static_chart <- renderPlot(static_chart)
+  output$dynamic_chart <- renderPlotly(dynamic_chart)
+}
+shinyApp(ui, server)
+
+
+
+
+# Example 4: Point chart as bubble chart
+library(epiviz)
+
+# Create dataframe of number of detections of each species by region
+london_detections <- epiviz::lab_data |>
+  mutate(london_det = ifelse(region == "London", 1, 0)) |>
+  group_by(specimen_month = lubridate::floor_date(specimen_date, 'month')) |>
+  summarise(detections = n(),
+            detections_london = sum(london_det)) |>
+  ungroup() |>
+  mutate(proportion_london = detections_london/detections,
+         percent_london = percent(proportion_london, accuracy = 1),
+         hoverlabels = paste0(
+           '<b>',specimen_month,'</b>',
+           '<br>Detections: ',detections,
+           '<br>In London: ',detections_london,
+           '<br><i>\% in London: ',percent_london,'</i>'
+         ))
+
+
+# Define parameters list for point_chart() function.
+species_region_params <- list(
+  df = london_detections,
+  x = "specimen_month",
+  y = "detections",
+  point_size = "detections_london",
+  point_size_legend = TRUE,
+  point_size_legend_title = "Number of \ndetections in \nLondon",
+  point_shape = "circle",
+  point_colours = "#8A1B61",
+  chart_title = "Detections by month \n(with percentage in London)",
+  x_axis_title = "Detection Month",
+  y_axis_title = "Number of Detections",
+  x_axis_label_angle = 45,
+  y_axis_break_labels = seq(300, 900, 100),
+  x_axis_date_breaks = "6 months"
+)
+
+# Add point label parameters for static chart
+stat_label_parameters <- list(point_labels = "percent_london",
+                              point_labels_size = 2.5,
+                              point_labels_vjust = 1,
+                              point_labels_hjust = 0.5,
+                              point_labels_nudge_x = 5,
+                              point_labels_nudge_y = -15)
+
+# Add hover label parameters for dynamic chart
+dyn_label_parameters <- list(point_labels = "hoverlabels")
+
+# Create static and dynamic charts
+static_chart <- point_chart(params = c(species_region_params,stat_label_parameters),
+                            dynamic = FALSE)
+
+dynamic_chart <- point_chart(params = c(species_region_params,dyn_label_parameters),
+                             dynamic = TRUE)
+
+# View using app
+library(shiny)
+library(plotly)
+ui <- fluidPage(
+  plotOutput('static_chart'),
+  plotlyOutput('dynamic_chart')
+)
+server <- function(input, output, session) {
+  output$static_chart <- renderPlot(static_chart)
+  output$dynamic_chart <- renderPlotly(dynamic_chart)
+}
+shinyApp(ui, server)
+
+
+
+# Example 5: Point chart with additional overlayed chart on secondary y-axis
+library(epiviz)
+
+# Use static chart from Example 1 as a base chart
+base_chart <- chart_detections_per_month
+
+# Define data for overlaying chart
+# Percentage of overall detections in people over 65 years of age.
+library(lubridate)
+detections_over65 <- lab_data |>
+  mutate(age = year(as.period(lubridate::interval(date_of_birth,Sys.Date()))),
+         over65 = ifelse(age > 65, 1, 0)) |>
+  group_by(specimen_month = lubridate::floor_date(specimen_date, 'month')) |>
+  summarise(detections = n(),
+            detections_over65 = sum(over65)) |>
+  ungroup() |>
+  mutate(percent_over65 = detections_over65/detections)
+
+# Define parameters list
+over65_params <- list(
+  df = detections_over65,
+  x = "specimen_month",
+  y = "percent_over65",
+  y_percent = TRUE,
+  y_sec_axis = TRUE,
+  y_sec_axis_percent_full = TRUE,
+  point_colours = "purple",
+  point_size = 3,
+  point_shape = "asterisk",
+  x_limit_min = "2022-01-01",
+  x_limit_max = "2023-12-31",
+  y_limit_max = 1000,
+  chart_title = "Detections per Month 2022-2023",
+  x_axis_title = "Month of detection",
+  y_axis_title = "Percentage of detections in over 65s",
+  x_axis_date_breaks = "2 months"
+)
+
+# Create point chart
+over65_chart <- point_chart(base = base_chart,
+                            params = over65_params,
+                            dynamic = FALSE)
+
+
+# Legends are not currently implemented for static charts with a supplied
+#  base chart, so add legend manually using dummy data and an invisible geom_point()
+over65_chart <- over65_chart +
+  geom_point(data = data.frame(x=as.Date(c("2020-01-01","2020-01-02")),
+                               y=c(1,1),
+                               label=c("Total Detections","\% of Detections in Over 65s")),
+             aes(x=x, y=y, colour=label, shape=label)) +
+  scale_color_manual(name='', values=c("Total Detections"="#007C91",
+                                       "\% of Detections in Over 65s"="purple")) +
+  scale_shape_manual(name='', values=c("Total Detections"="triangle",
+                                       "\% of Detections in Over 65s"="asterisk")) +
+  theme(legend.position="top")
+
+over65_chart
+
+
 }
 
 }
