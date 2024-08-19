@@ -215,16 +215,9 @@ epi_map <- function (dynamic = FALSE,
 ) {
 
 
-  #solve warnings regarding font family not found
-  if(get_os()[[1]] == "windows") {
-    windowsFonts("Arial" = windowsFont("Arial"))
-    map_font <- "Arial"
-  } else if(get_os()[[1]] == "osx") {
-    map_font <- "Arial"
-  } else {
-    # Arial not included with linux as standard, so default to sans
-    map_font <- "sans"
-  }
+  # Solve warnings regarding font family not found using utils/set_Arial() function
+  #    -Sets chart_font variable
+  set_Arial()
 
 
   # Assign any missing default args to params list
@@ -324,28 +317,32 @@ epi_map <- function (dynamic = FALSE,
 
 
 
-  # Define parameters from params list
-  for(i in 1:length(params)) {
-    assign(names(params)[i], params[[i]])
-  }
+  ##### Parameter assignment
 
-  # Set any unused parameter values to NULL
-  unused <- setdiff(c("df","value_col","data_areacode","inc_shp","shp_name",
-                      "shp_areacode","fill_palette","fill_opacity","break_intervals",
-                      "break_labels","force_cat","n_breaks","labels","map_title",
-                      "map_title_size","map_title_colour","map_footer","map_footer_size",
-                      "map_footer_colour","area_labels","area_labels_topn","legend_title",
-                      "legend_pos","map_zoom","border_shape_name","border_code_col","border_areaname"),
-                    names(params))
-
-  if (length(unused) > 0) {
-    for(i in 1:length(unused)) {
-      assign(unused[i], NULL)
-    }
-  }
+  # Define parameters as variables using utils/param_assign() function
+  #   -Takes input list, compares it ro a reference vector of expected
+  #     list elements, assigns each element to a variable within the
+  #     parent environment, and allocates a value of 'NULL' to anything
+  #     it can't find within the reference list.
+  param_assign(params,
+               c("df","value_col","data_areacode","inc_shp","shp_name",
+                 "shp_areacode","fill_palette","fill_opacity","break_intervals",
+                 "break_labels","force_cat","n_breaks","labels","map_title",
+                 "map_title_size","map_title_colour","map_footer","map_footer_size",
+                 "map_footer_colour","area_labels","area_labels_topn","legend_title",
+                 "legend_pos","map_zoom","border_shape_name","border_code_col","border_areaname"))
 
 
 
+
+
+  #################### EPI MAP #################################
+
+
+  ##### DEFINE MAP DATA
+
+
+  ##### Read in shapefile and map-fill variable data
 
   # Read in data based on whether the df and shapefile are already merged
   if(inc_shp == TRUE) {
@@ -375,7 +372,10 @@ epi_map <- function (dynamic = FALSE,
     mutate(Value = get({{value_col}}))
 
 
-  # define area centroid long & lat for label positions
+
+  ##### Define map labels
+
+  # Define centroid long & lat coords for label positions in each map area
 
   # Temporarily turn off spherical geometry to eliminate 'Edge X has duplicate vertex' error
   #    Centroids only used to position chart labels, true spherical centroid not needed
@@ -394,7 +394,9 @@ epi_map <- function (dynamic = FALSE,
     sf_use_s2(TRUE)
   )
 
-  # Define static area labels
+
+  # Define area label text for static chart
+
   if(area_labels == TRUE) {
 
     # Rank data to only show top n labels
@@ -404,7 +406,6 @@ epi_map <- function (dynamic = FALSE,
         mutate(ranks = rank(desc(Value)),
                labels_static = case_when(ranks <= area_labels_topn ~ Area,
                                          TRUE ~ ""))
-
     } else {
 
       df <- df |> mutate(labels_static = Area)
@@ -414,9 +415,11 @@ epi_map <- function (dynamic = FALSE,
   }
 
 
-  # Define colour palette and legend
+  ##### Define breaks and colour palette   (for map-fill and legend)
 
-  # Set breaks and break labels depending on whether they are predefined
+  ### Breaks
+
+  # Set breaks and break labels depending upon whether they're pre-defined
   if (is.null(break_intervals)) {
     # Set default of n_breaks to 5 if this is missing
     if (is.null(n_breaks)) {
@@ -478,27 +481,15 @@ epi_map <- function (dynamic = FALSE,
 
   }
 
+
+  ### Colour palette
+
   if (force_cat == TRUE) {
     # Count number of intervals for palette
     n_pal <- as.numeric(length(break_intervals))
 
     # Use utils/palette_gen() function to generate palette of fill colours for map
     pal <- palette_gen(fill_palette, n_pal)
-
-    # # Designate RColorBrewer palette for map
-    # #   RColourBrewer::brewer.pal has a min palette size of 3 and max of 9
-    # #   -If n_pal <= 2, manually create 2 element palette
-    # #   -If n_pal >= 9, extend palette with colorRampPalette()
-    # if (n_pal <= 2) {
-    #   suppressWarnings({
-    #       pal <- RColorBrewer::brewer.pal(n = n_pal, name = fill_palette)
-    #   })
-    #   pal <- c(first(pal),last(pal))
-    # } else if (n_pal >= 9) {
-    #   pal <- colorRampPalette(RColorBrewer::brewer.pal(n = 9, name = fill_palette))(n_pal)
-    # } else {
-    #   pal <- RColorBrewer::brewer.pal(n = n_pal, name = fill_palette)
-    # }
 
     # Create df of colours + categories for legend
     pal <- data.frame(value_cat = break_labels,
@@ -520,21 +511,6 @@ epi_map <- function (dynamic = FALSE,
     # Use utils/palette_gen() function to generate palette of fill colours for map
     pal <- palette_gen(fill_palette, n_pal)
 
-    # # Designate RColorBrewer palette for map
-    # #   RColourBrewer::brewer.pal has a min palette size of 3 and max of 9
-    # #   -If n_pal <= 2, manually create 2 element palette
-    # #   -If n_pal >= 9, extend palette with colorRampPalette()
-    # if (n_pal <= 2) {
-    #   suppressWarnings({
-    #     pal <- RColorBrewer::brewer.pal(n = n_pal, name = fill_palette)
-    #   })
-    #   pal <- c(first(pal),last(pal))
-    # } else if (n_pal >= 9) {
-    #   pal <- colorRampPalette(RColorBrewer::brewer.pal(n = 9, name = fill_palette))(n_pal)
-    # } else {
-    #   pal <- RColorBrewer::brewer.pal(n = n_pal, name = fill_palette)
-    # }
-
     # Create df of colours + categories for legend
     pal <- data.frame(value_cat = levels(cut(unlist(df$Value), n_pal, dig.lab=10)),
                       fill_colour = pal) |>
@@ -551,7 +527,9 @@ epi_map <- function (dynamic = FALSE,
 
 
 
-  # Define border if provided
+
+
+  ##### Define additional map border if provided
 
   if (!is.null(border_shape_name)) {
     # Read in shapefile based on whether it's provided as a filepath or df
@@ -586,7 +564,10 @@ epi_map <- function (dynamic = FALSE,
 
 
 
-  ### produce plot
+
+  ######################## PRODUCE MAP ##############################
+
+  ##### CREATE STATIC MAP
 
   if (!dynamic) {
     # produce ggplot object if 'dynamic' is set to FALSE
@@ -628,7 +609,7 @@ epi_map <- function (dynamic = FALSE,
         geom_text(
           data = data_sf,
           size = 8/.pt,
-          family = map_font,
+          family = chart_font,
           aes(x = centroid_long,
               y = centroid_lat,
               label = get({{labels}}))
@@ -643,7 +624,7 @@ epi_map <- function (dynamic = FALSE,
         geom_text(
           data = data_sf,
           size = 8/.pt,
-          family = map_font,
+          family = chart_font,
           aes(x = centroid_long,
               y = centroid_lat,
               label = stringr::str_wrap(labels_static,12),
@@ -702,17 +683,17 @@ epi_map <- function (dynamic = FALSE,
         panel.grid.minor = element_blank(),
         panel.background = element_blank(),
         # Set legend text formattting
-        legend.text = element_text(size = 10, family = map_font),
+        legend.text = element_text(size = 10, family = chart_font),
         legend.title = element_text(
           face = "bold",
           size = 10,
-          family = map_font
+          family = chart_font
         ),
         # Set title formatting
         plot.title = element_text(
           face = "bold",
           size = map_title_size,
-          family = map_font,
+          family = chart_font,
           colour = map_title_colour),
         # Set footer formatting
         plot.caption = element_text(
@@ -756,6 +737,9 @@ epi_map <- function (dynamic = FALSE,
 
     ### GGPLOT END
 
+
+
+  ##### CREATE DYNAMIC MAP
 
   } else {
     # produce leaflet object if 'dynamic' is set to TRUE
@@ -923,24 +907,6 @@ epi_map <- function (dynamic = FALSE,
 }
 
 
-
-
-# credit: https://www.r-bloggers.com/2015/06/identifying-the-os-from-r/
-get_os <- function(){
-  sysinf <- Sys.info()
-  if (!is.null(sysinf)){
-    os <- sysinf['sysname']
-    if (os == 'Darwin')
-      os <- "osx"
-  } else { ## mystery machine
-    os <- .Platform$OS.type
-    if (grepl("^darwin", R.version$os))
-      os <- "osx"
-    if (grepl("linux-gnu", R.version$os))
-      os <- "linux"
-  }
-  tolower(os)
-}
 
 
 
