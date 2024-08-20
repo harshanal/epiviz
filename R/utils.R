@@ -308,3 +308,66 @@ plotly_legend_pos <- function(x) {
     return(legend_settings)
 
 }
+
+
+
+
+
+#' A function to rename an item in a named list
+#'
+#' @param params_list A named list
+#' @param current_name The name of the list item to be modified
+#' @param new_name The new name of the list item
+#'
+#' @return A list with the item renamed
+#'
+#' @examples
+#' params <- param_rename(params,"chart_footer_colour","new_name")
+#'
+param_rename <- function(params_list, current_name, new_name) {
+
+  names(params_list)[match(current_name, names(params_list))] <- new_name
+
+  return(params_list)
+
+}
+
+
+
+
+
+#' A function to add assorted date lookups to an existing
+#' dataframe with a date variable.
+#'
+#' @param df A dataframe
+#' @param date_var character, the name of a date column within df
+#'
+#' @return A dataframe
+#'
+#' @examples
+#' \dontrun{
+#' dataframe_out <- adorn_date(df = dataframe, date_var = "date_column")
+#' }
+adorn_dates <- function(df, date_var) {
+
+  df <- df |>
+    mutate(day = as.Date(get(date_var)),
+           month = format(day, "%m"),
+           year = format(day, "%Y"),
+           quarter = sprintf("%02d", lubridate::quarter(get(date_var))),  ###query: correct quarter for UK/epi?
+           year_month = format(day, "%Y-%m"),
+           #year_quarter = format(day, "%Y/0%q"),
+           year_quarter = paste0(year,'-Q',quarter),
+           iso_week_full = ISOweek::ISOweek(get(date_var)),
+           iso_week = lubridate::isoweek(get(date_var)),
+           iso_year = lubridate::isoyear(get(date_var)),
+           iso_year_week = paste0(iso_year,'-',iso_week),
+           start_iso_year_week = as.character(floor_date(get(date_var), "weeks", week_start = 1)) ### from GAS dashboard, check
+           )
+
+  return(df)
+
+}
+
+
+

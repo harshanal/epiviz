@@ -358,9 +358,17 @@ base_gg <- function() {
     xlim <- c(NA,NA)
   }
 
+
   # Convert any date axis limits to dates if necessary
   if (lubridate::is.Date(df[[y]]) & !is.null(ylim)) {ylim <- as.Date(ylim)}
   if (lubridate::is.Date(df[[x]]) & !is.null(xlim)) {xlim <- as.Date(xlim)}
+
+
+  # Handle base_gg() being called inside epi_curve()
+  if (substr(deparse(sys.calls()[[sys.nframe()-1]]),1,9) == "epi_curve") {
+    xlim <- c(NA,NA)
+  }
+
 
   # Apply axis limits to base plot
   if (!is.null(ylim) & is.null(xlim)) {
@@ -396,7 +404,12 @@ base_gg <- function() {
       hline_xpos <- base$coordinates$limits$x[[1]]
     } else {
       # else use min value of x, or max if values reversed
-      hline_xpos <- if (x_axis_reverse == TRUE) {max(df[[x]])} else {min(df[[x]])}
+      if (!is.factor(df[[x]])) {
+        hline_xpos <- if (x_axis_reverse == TRUE) {max(df[[x]])} else {min(df[[x]])}
+      } else {
+        # handle factor x-axes
+        hline_xpos <- if (x_axis_reverse == TRUE) {last(df[[x]])} else {first(df[[x]])}
+      }
     }
 
     # Apply hline label to plot
