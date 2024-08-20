@@ -12,12 +12,13 @@ plotly_legend_pos(x)
 }
 \value{
 A list of parameters for plotly layout.legend
-
-\dontrun{
-plotly_legend_pos("right")
-}
 }
 \description{
 Function to convert ggplot legend positions into list of
 parameters for plotly layout
+}
+\examples{
+\dontrun{
+plotly_legend_pos("right")
+}
 }
