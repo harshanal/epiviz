@@ -101,6 +101,7 @@
 #' @import yarrr
 #' @import lubridate
 #' @import ISOweek
+#' @import zoo
 #' @rawNamespace import(plotly, except = last_plot)
 #'
 #' @return A ggplot or plotly object.
@@ -185,16 +186,19 @@ epi_curve <- function(
                           date_end = NULL,
                           time_period = "use_date_var",
                           group_var = NULL,
-                          #ci = NULL,
-                          #ci_upper = NULL,
-                          #ci_lower = NULL,
-                          #ci_legend = TRUE,
-                          #ci_legend_title = "Confidence interval",
-                          #ci_colours = "red",
-                          #errorbar_width = NULL,
-                          #y_sec_axis = FALSE,
-                          #y_sec_axis_no_shift = TRUE,
-                          #y_sec_axis_percent_full = FALSE,
+                          group_var_barmode = 'stack',
+                          fill_colours = "lightblue",
+                          bar_border_colour = "transparent",
+                          rolling_average_line = FALSE,
+                          rolling_average_line_lookback = 7,
+                          rolling_average_line_colour = "red",
+                          rolling_average_line_width = 1,
+                          rolling_average_line_legend_label = "Rolling average",
+                          cumulative_sum_line = FALSE,
+                          cumulative_sum_line_colour = "darkblue",
+                          cumulative_sum_line_width = 1,
+                          cumulative_sum_line_legend_label = "Cumulative sum",
+                          cumulative_sum_line_axis_title = "Cumulative Sum",
                           chart_title = NULL,
                           chart_title_size = 13,
                           chart_title_colour = "black",
@@ -206,9 +210,6 @@ epi_curve <- function(
                           x_axis_label_angle = NULL,
                           y_axis_label_angle = NULL,
                           x_axis_reverse = FALSE,
-                          #y_percent = FALSE,
-                          #x_limit_min = NULL,
-                          #x_limit_max = NULL,
                           y_limit_min = NULL,
                           y_limit_max = NULL,
                           x_axis_break_labels = NULL,
@@ -236,7 +237,20 @@ epi_curve <- function(
 
 
   # Where relevant, assign defaults to any parameters not specified by the user
+  if(!exists('group_var_barmode',where=params)) params$group_var_barmode <- "stack"
   if(!exists('time_period',where=params)) params$time_period <- "use_date_var"
+  if(!exists('fill_colours',where=params)) params$fill_colours <- "lightblue"
+  if(!exists('bar_border_colour',where=params)) params$bar_border_colour <- "transparent"
+  if(!exists('rolling_average_line',where=params)) params$rolling_average_line <- FALSE
+  if(!exists('rolling_average_line_lookback',where=params)) params$rolling_average_line_lookback <- 7
+  if(!exists('rolling_average_line_colour',where=params)) params$rolling_average_line_colour <- "red"
+  if(!exists('rolling_average_line_width',where=params)) params$rolling_average_line_width <- 1
+  if(!exists('rolling_average_line_legend_label',where=params)) params$rolling_average_line_legend_label <- "Rolling average"
+  if(!exists('cumulative_sum_line',where=params)) params$cumulative_sum_line <- FALSE
+  if(!exists('cumulative_sum_line_colour',where=params)) params$cumulative_sum_line_colour <- "darkblue"
+  if(!exists('cumulative_sum_line_width',where=params)) params$cumulative_sum_line_width <- 1
+  if(!exists('cumulative_sum_line_legend_label',where=params)) params$cumulative_sum_line_legend_label <- "Cumulative sum"
+  if(!exists('cumulative_sum_line_axis_title',where=params)) params$cumulative_sum_line_axis_title <- "Cumulative Sum"
   if(!exists('chart_title_size',where=params)) params$chart_title_size <- 12
   if(!exists('chart_title_colour',where=params)) params$chart_title_colour <- "black"
   if(!exists('chart_footer_size',where=params)) params$chart_footer_size <- 10
@@ -254,10 +268,10 @@ epi_curve <- function(
   if(!exists('hline_label_colour',where=params)) params$hline_label_colour <- "black"
   # The following are not input parameters for epi_curve, but are needed
   #   for base_gg and base_plotly so set defaults
-  if(!exists('y_percent',where=params)) params$y_percent <- FALSE
-  if(!exists('y_sec_axis',where=params)) params$y_sec_axis <- FALSE
-  if(!exists('y_sec_axis_no_shift',where=params)) params$y_sec_axis_no_shift <- TRUE
-  if(!exists('y_sec_axis_percent_full',where=params)) params$y_sec_axis_percent_full <- FALSE
+  params$y_percent <- FALSE
+  params$y_sec_axis <- FALSE
+  params$y_sec_axis_no_shift <- TRUE
+  params$y_sec_axis_percent_full <- FALSE
 
 
   # Rename certain parameters so that they will be recognised
@@ -267,7 +281,7 @@ epi_curve <- function(
   params <- param_rename(params,"date_end","x_limit_max")
 
 
-  # base not a user define arguement for epi_curse, so set to NULL
+  # 'base' not a user define arguement for epi_curve, so set to NULL
   #   for base_gg() and base_plotly()
   base <- NULL
 
@@ -277,17 +291,23 @@ print(params)
 
 
 
-  # ##### Checks and warnings
-  #
-  # # Check if df is is.null
-  # if (!exists('df',where=params)) stop("A data frame argument is required")
-  #
-  # # Check df is a df class
-  # if(!is.data.frame(params$df)) stop("df is not a data frame object")
-  #
-  # # Check df is empty
-  # if(!not_empty(params$df)) stop("df is empty")
-  #
+  ##### Checks and warnings
+
+  # Check if df is is.null
+  if (!exists('df',where=params)) stop("A data frame argument is required")
+
+  # Check df is a df class
+  if(!is.data.frame(params$df)) stop("df is not a data frame object")
+
+  # Check df is empty
+  if(!not_empty(params$df)) stop("df is empty")
+
+  # Check group_var_barmode valid
+  if (!is.null(params$group_var) & !(params$group_var_barmode %in% c('stack', 'group'))) {
+    stop("group_var_barmode must equal 'stack' or 'group'")
+  }
+
+
   # # Check if x argument is is.null
   # if ((is.null(params$x)) | !exists('x',where=params))
   #   stop("Please include a variable from df for x, i.e. x = \"variable_name\"")
@@ -375,17 +395,20 @@ print(params)
                  "x",
                  "y",
                  "time_period",
-                 #"ci",
-                 #"ci_legend",
-                 #"ci_legend_title",
-                 "ci_lower",   # required as NULL for base_gg() / base_plotly()
-                 "ci_upper",   # required as NULL for base_gg() / base_plotly()
-                 #"ci_colours",
-                 #"errorbar_width",
                  "group_var",
-                 #"y_sec_axis",
-                 #"y_sec_axis_no_shift",
-                 #"y_sec_axis_percent_full",
+                 "group_var_barmode",
+                 "fill_colours",
+                 "bar_border_colour",
+                 "rolling_average_line",
+                 "rolling_average_line_lookback",
+                 "rolling_average_line_colour",
+                 "rolling_average_line_width",
+                 "rolling_average_line_legend_label",
+                 "cumulative_sum_line",
+                 "cumulative_sum_line_colour",
+                 "cumulative_sum_line_width",
+                 "cumulative_sum_line_legend_label",
+                 "cumulative_sum_line_axis_title",
                  "chart_title",
                  "chart_footer",
                  "chart_title_size",
@@ -396,7 +419,6 @@ print(params)
                  "x_axis_label_angle",
                  "y_axis_title",
                  "y_axis_label_angle",
-                 #"y_percent",
                  "st_theme",
                  "x_axis_reverse",
                  "y_limit_min",
@@ -417,12 +439,31 @@ print(params)
                  "hline_width",
                  "hline_type",
                  "hline_label",
-                 "hline_label_colour")
+                 "hline_label_colour",
+                 "ci_lower",   # required as NULL for base_gg() / base_plotly()
+                 "ci_upper"    # required as NULL for base_gg() / base_plotly()
+                 )
                )
 
 
 
   ##### DATA MANIPULATION
+
+
+  ### Define full date range
+
+  # Define start and end dates if not provided
+  if(is.null(x_limit_min)){
+    date_start <- min(df[[x]]) - 5
+  } else {
+    date_start <- as.Date(x_limit_min)
+  }
+
+  if(is.null(x_limit_max)){
+    date_end <- max(df[[x]]) + 5
+  } else {
+    date_end <- as.Date(x_limit_max)
+  }
 
 
   ### Add time periods to df
@@ -438,29 +479,16 @@ print(params)
   }
 
 
-  ### Define full date range
+  ### Create date factor for x-axis
 
-  # Define start and end dates if not provided
-  if(is.null(date_start)){
-    date_start <- min(df[[date_var]]) - 5
-  } else {
-    date_start <- as.Date(date_start)
-  }
-
-  if(is.null(date_end)){
-     date_end <- max(df[[date_var]]) + 5
-   } else {
-     date_end <- as.Date(date_end)
-   }
-
-  # Define sequence of all dates in range
+  # Define sequence of all dates in full date range
   all_dates_seq <- data.frame(date_seq = seq(date_start, date_end, 1))
 
-  # Expand using utils/adorn_dates()
+  # Expand with additional time periods using utils/adorn_dates()
   all_dates <- adorn_dates(all_dates_seq, "date_seq")
 
-  # Pull only values corresponding to x, turn into vector of
-  #    unique values for use as factor levels
+  # Pull only values corresponding to x (i.e. user specified time_period), turn
+  #    into vector of unique values for use as factor levels
   unique_dates <- unique(all_dates[[x]])
 
   # Add date factor column to df for use in chart
@@ -471,8 +499,7 @@ print(params)
 
 print(unique_dates)
 print(head(df))
-print(head(df |> select(date_factor)))
-print(class(df$date_factor))
+
 
 
   ### Add totals by date to df (i.e. defining y-axis)
@@ -504,13 +531,77 @@ print(class(df$date_factor))
 
   }
 
-print(y)
-print(head(df))
-print(df[[1]][1])
+
+
+  # Add rolling average df if specified
+  if (rolling_average_line == TRUE) {
+
+    # Create df for rolling average depending on whether data is grouped
+    if(is.null(group_var)) {
+
+      # Un-grouped
+      df_rolling_average <- df |>
+        mutate(
+               # rolling_averge = zoo::rollmean(x = get(y),
+               #                                k = rolling_average_line_lookback,
+               #                                fill = NA,
+               #                                align = "right"),
+               rolling_average = slider::slide_dbl(
+                                            .x = get(y),
+                                            .f = mean,
+                                            .before = rolling_average_line_lookback - 1, # -1 as .before includes current time interval
+                                            .complete = FALSE
+                                            )
+               )
+
+    } else {
+
+      # Grouped
+      df_rolling_average <- df |>
+        group_by(date_factor) |>
+        summarise(n = sum(n)) |>
+        ungroup() |>
+        mutate(rolling_average = slider::slide_dbl(
+                  .x = get(y),
+                  .f = mean,
+                  .before = rolling_average_line_lookback - 1, # -1 as .before includes current time interval
+                  .complete = FALSE
+                )
+              )
+
+    }
+
+  }
+
+
+
+  # Add cumulative sum df if specified
+  if (cumulative_sum_line == TRUE) {
+
+    # Create df for rolling average depending on whether data is grouped
+    if(is.null(group_var)) {
+
+      # Un-grouped
+      df_cumulative_sum <- df |>
+        mutate(cumulative_sum = cumsum(get(y)))
+
+    } else {
+
+      # Grouped
+      df_cumulative_sum <- df |>
+        group_by(date_factor) |>
+        summarise(n = sum(n)) |>
+        ungroup() |>
+        mutate(cumulative_sum = cumsum(get(y)))
+
+    }
+print(head(df_cumulative_sum,10))
+  }
 
 
 
 
+#print(head(df,30), n = 30)
 
 
 
@@ -543,69 +634,173 @@ print(df[[1]][1])
   df <- base_return$df
 
 
-print(is.null(group_var))
-print(x)
-assign("testdf",df,envir=parent.frame())
-assign("testbase",base,envir=parent.frame())
+
 
   ##### Build epi curve
 
   # Build according to whether plotting variables are grouped or not
   if(is.null(group_var)) {
 
-    # Create base point chart without groups
+    # Create epi curve without groups
 
       base <-
         base + geom_bar(
           data = df,
-          mapping = aes(x = date_factor,
+          mapping = aes(x = .data[[x]],
                         y = .data[[y]]
                         ),
-          stat='identity'
-          #color = point_colours[[1]],
-          #shape = point_shape,
-          #size = point_size
+          fill = fill_colours[1],
+          stat = 'identity',
+          color = bar_border_colour
         )
 
   } else {
 
-    # creating base point chart with groups
+    # Create epi curve with groups
+
+      # Adjust group_var_barmode for ggplot
+      if(group_var_barmode == "group") {group_var_barmode <- "dodge"}
 
       base <-
-        base + ggplot2::geom_point(
+        base + geom_bar(
           data = df,
-          mapping = aes(
-            x = .data[[x]],
-            y = .data[[y]],
-            group = factor(.data[[group_var]]),
-            colour = factor(.data[[group_var]]),
-            shape = factor(.data[[group_var]]),
+          mapping = aes(x = .data[[x]],
+                        y = .data[[y]],
+                        group = .data[[group_var]],
+                        fill = .data[[group_var]]
           ),
-          size = point_size
-        )
+          stat = 'identity',
+          color = bar_border_colour,
+          position = group_var_barmode
+        ) +
+        scale_fill_manual(values = fill_colours)
 
     }
 
-    # # Add point_colours if provided
-    # if (length(point_colours) > 1) {
-    #   base <- base +
-    #     scale_colour_manual(values = point_colours)
-    # }
 
 
-    # ##### Apply point colour / shape legend parameters
-    #
-    # # Base legend title
-    # if (!is.null(legend_title)) {
-    #   base <-  base + labs(name = legend_title,
-    #                        colour = legend_title)
-    # }
-    #
-    #
-    # # Legend position
-    # if (!is.null(legend_pos)) {
-    #   base <-  base + theme(legend.position = legend_pos)
-    # }
+    ##### Apply legend parameters
+
+    # Legend title
+    if (!is.null(legend_title)) {
+      base <-  base + labs(name = legend_title,
+                           fill = legend_title,
+                           colour = legend_title)
+    }
+
+    # Legend position
+    if (!is.null(legend_pos)) {
+      base <-  base + theme(legend.position = legend_pos)
+    }
+
+
+
+  ##### Add rolling average line if specified
+
+  if (rolling_average_line == TRUE) {
+
+    base <-
+      base + geom_line(
+        data = df_rolling_average,
+        mapping = aes(x = .data[[x]],
+                      y = rolling_average,
+                      color = rolling_average_line_legend_label,
+                      group = 1   # group = 1 as x is a factor
+        ),
+        size = rolling_average_line_width
+      )
+
+  }
+
+
+
+  ##### Add cumulative sum line if specified
+
+  if (cumulative_sum_line == TRUE) {
+
+    # Calculate scale factor
+
+    # Get limits of current plotted data, use y_limits instead if provided.
+    current_plotted_data_max <-
+      if (!is.null(y_limit_max)) {y_limit_max} else {max(layer_scales(base)$y$range$range)}
+    current_plotted_data_min <-
+      if (!is.null(y_limit_min)) {y_limit_min} else {min(layer_scales(base)$y$range$range)}
+
+    # Get limits of cumsum for secondary axis scale
+    cumsum_max <- max(df_cumulative_sum$cumulative_sum, na.rm=T)
+    cumsum_min <- min(df_cumulative_sum$cumulative_sum, na.rm=T)
+
+    # Define scale
+    scale <- (current_plotted_data_max - current_plotted_data_min) / (cumsum_max - cumsum_min)
+
+
+    # Plot cumulative sum line
+    base <-
+      base + geom_line(
+        data = df_cumulative_sum,
+        mapping = aes(x = .data[[x]],
+                      y = cumulative_sum * scale,
+                      color = cumulative_sum_line_legend_label,
+                      group = 1   # group = 1 as x is a factor
+        ),
+        size = cumulative_sum_line_width
+      )
+
+    # Define variable for use in scale_y_continuous below
+    sec_axis_var <- sec_axis(~ . / scale, name = cumulative_sum_line_axis_title)
+
+  }
+
+
+
+  ##### Add rolling average + cumsum line legends
+
+  # Rolling average only
+  if (rolling_average_line == TRUE & cumulative_sum_line == FALSE) {
+
+    base <- base +
+      scale_color_manual(name = "", values = rolling_average_line_colour)
+
+  # Cumulative sum only
+  } else if (rolling_average_line == FALSE & cumulative_sum_line == TRUE) {
+
+    base <- base +
+      scale_color_manual(name = "", values = cumulative_sum_line_colour)
+
+  # Both
+  } else if (rolling_average_line == TRUE & cumulative_sum_line == TRUE) {
+
+    base <- base +
+      scale_color_manual(name = "",
+                         values = c(rolling_average_line_colour, cumulative_sum_line_colour))
+
+  }
+
+
+
+  ##### Redefine elements of base_gg specific to epi_curve
+
+  # Redefine x-axis label so that default = time_period
+  if (!is.null(x_axis_title)) {
+    base <- base + labs(x = x_axis_title)
+  } else {
+    base <- base + labs(x = time_period) # default to time_period if label not provided
+  }
+
+
+  # Redefine y-axis scale to remove gap between bars and x-axis
+
+  # Waiver secondary y-axis scale if no cumulative sum line specified
+  if (cumulative_sum_line == FALSE) {sec_axis_var <- waiver()}
+
+  if (!is.null(y_axis_break_labels)) {
+    base <- base + scale_y_continuous(breaks = y_axis_break_labels,
+                                      expand = c(0,0),
+                                      sec.axis = sec_axis_var)
+  } else {
+    base <- base + scale_y_continuous(expand = c(0,0),
+                                      sec.axis = sec_axis_var)
+  }
 
 
 
