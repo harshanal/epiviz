@@ -189,6 +189,8 @@ epi_curve <- function(
                           group_var_barmode = 'stack',
                           fill_colours = "lightblue",
                           bar_border_colour = "transparent",
+                          case_boxes = FALSE,
+                          case_boxes_colour = "white",
                           rolling_average_line = FALSE,
                           rolling_average_line_lookback = 7,
                           rolling_average_line_colour = "red",
@@ -241,6 +243,8 @@ epi_curve <- function(
   if(!exists('time_period',where=params)) params$time_period <- "use_date_var"
   if(!exists('fill_colours',where=params)) params$fill_colours <- "lightblue"
   if(!exists('bar_border_colour',where=params)) params$bar_border_colour <- "transparent"
+  if(!exists('case_boxes',where=params)) params$case_boxes <- FALSE
+  if(!exists('case_boxes_colour',where=params)) params$case_boxes_colour <- "white"
   if(!exists('rolling_average_line',where=params)) params$rolling_average_line <- FALSE
   if(!exists('rolling_average_line_lookback',where=params)) params$rolling_average_line_lookback <- 7
   if(!exists('rolling_average_line_colour',where=params)) params$rolling_average_line_colour <- "red"
@@ -399,6 +403,8 @@ print(params)
                  "group_var_barmode",
                  "fill_colours",
                  "bar_border_colour",
+                 "case_boxes",
+                 "case_boxes_colour",
                  "rolling_average_line",
                  "rolling_average_line_lookback",
                  "rolling_average_line_colour",
@@ -447,7 +453,7 @@ print(params)
 
 
 
-  ##### DATA MANIPULATION
+  #################### DATA MANIPULATION #########################
 
 
   ### Define full date range
@@ -531,7 +537,7 @@ print(head(df))
 
   }
 
-
+print(head(df,10))
 
   # Add rolling average df if specified
   if (rolling_average_line == TRUE) {
@@ -595,13 +601,11 @@ print(head(df))
         mutate(cumulative_sum = cumsum(get(y)))
 
     }
-print(head(df_cumulative_sum,10))
+
   }
 
 
 
-
-#print(head(df,30), n = 30)
 
 
 
@@ -695,6 +699,28 @@ print(head(df_cumulative_sum,10))
 
 
 
+  ##### Add boxes around each case if specified
+
+  if (case_boxes == TRUE) {
+
+    # Add transparent stacked bar plot with external borders to create
+    #   boxes around each case.
+    base <-
+      base + geom_bar(
+        # Uncount df to get 1 row per case, add box = 1 column for y-vals to
+        #   create 1 box per case
+        data = df |> uncount(get(y)) |> mutate(box = 1),
+        mapping = aes(x = .data[[x]],
+                      y = box
+        ),
+        fill = "transparent",
+        stat = 'identity',
+        color = case_boxes_colour,
+        size = 0.5
+      )
+
+  }
+
   ##### Add rolling average line if specified
 
   if (rolling_average_line == TRUE) {
@@ -726,20 +752,18 @@ print(head(df_cumulative_sum,10))
     current_plotted_data_min <-
       if (!is.null(y_limit_min)) {y_limit_min} else {min(layer_scales(base)$y$range$range)}
 
-    # Get limits of cumsum for secondary axis scale
+    # Get upper limit of cumsum for secondary axis scale
     cumsum_max <- max(df_cumulative_sum$cumulative_sum, na.rm=T)
-    cumsum_min <- min(df_cumulative_sum$cumulative_sum, na.rm=T)
 
     # Define scale
-    scale <- (current_plotted_data_max - current_plotted_data_min) / (cumsum_max - cumsum_min)
-
+    scale <- (current_plotted_data_max - current_plotted_data_min) / (cumsum_max)
 
     # Plot cumulative sum line
     base <-
       base + geom_line(
         data = df_cumulative_sum,
         mapping = aes(x = .data[[x]],
-                      y = cumulative_sum * scale,
+                      y = (cumulative_sum * scale) + current_plotted_data_min, #shift so that cumsum scale always starts at 0
                       color = cumulative_sum_line_legend_label,
                       group = 1   # group = 1 as x is a factor
         ),
@@ -747,7 +771,8 @@ print(head(df_cumulative_sum,10))
       )
 
     # Define variable for use in scale_y_continuous below
-    sec_axis_var <- sec_axis(~ . / scale, name = cumulative_sum_line_axis_title)
+    sec_axis_var <- sec_axis(~ . / scale - (current_plotted_data_min / scale),
+                             name = cumulative_sum_line_axis_title)
 
   }
 
@@ -803,6 +828,38 @@ print(head(df_cumulative_sum,10))
   }
 
 
+  # Re-apply hline so that it doesn't appear behind the bars
+
+  # Adds hline
+  if (!is.null(hline)) {
+
+    base <-
+      base + geom_hline(yintercept = hline,
+                        colour = hline_colour,
+                        linewidth = hline_width,
+                        linetype = hline_type)
+
+  }
+
+  # Apply hline label to plot
+  if (!is.null(hline) && !is.null(hline_label)) {
+
+    # Get hline_xpos from base_return list from base_gg
+    hline_xpos <- base_return$hline_xpos
+
+    base <- base +
+      geom_text(
+        aes(
+          x = hline_xpos,
+          y = hline,
+          label = hline_label,
+          vjust = -0.5,
+          hjust = 0
+        ),
+        colour = hline_label_colour)
+
+  }
+
 
 
   ##### Return final output
@@ -831,17 +888,27 @@ print(head(df_cumulative_sum,10))
     #      different depending upon the nature of the chart
 
     # Define ggplot object to harvest axis ranges from
-    ggobj <- ggplot() + geom_point(data=df, aes(x=.data[[x]],y=.data[[y]])) + geom_hline(yintercept = hline)
+    #ggobj <- ggplot() + geom_bar(data=df, aes(x=.data[[x]],y=.data[[y]])) + geom_hline(yintercept = hline)
+    if(is.null(group_var)) {
+      ggobj <- ggplot() + geom_bar(data = df, aes(x = .data[[x]],y = .data[[y]]), stat = 'identity')
+    } else {
+      if(group_var_barmode == "group") {group_var_barmode <- "dodge"}
+      ggobj <- ggplot() + geom_bar(data = df, aes(x=.data[[x]],y=.data[[y]],group=.data[[group_var]]),
+                                   stat = 'identity',position = group_var_barmode)
+    }
     x_min <- ggplot_build(ggobj)$layout$panel_params[[1]]$x.range[1]
     x_max <- ggplot_build(ggobj)$layout$panel_params[[1]]$x.range[2]
-    y_min <- ggplot_build(ggobj)$layout$panel_params[[1]]$y.range[1]
+    #y_min <- ggplot_build(ggobj)$layout$panel_params[[1]]$y.range[1]
+    y_min <- 0
     y_max <- ggplot_build(ggobj)$layout$panel_params[[1]]$y.range[2]
 
-    # Handle dates converting to numeric when extracted from ggplot axis range
-    x_min <- if(lubridate::is.Date(df[[x]])) {as.Date.numeric(x_min)} else {x_min}
-    x_max <- if(lubridate::is.Date(df[[x]])) {as.Date.numeric(x_max)} else {x_max}
-    y_min <- if(lubridate::is.Date(df[[y]])) {as.Date.numeric(y_min)} else {y_min}
-    y_max <- if(lubridate::is.Date(df[[y]])) {as.Date.numeric(y_max)} else {y_max}
+
+    # # Handle dates converting to numeric when extracted from ggplot axis range
+    # x_min <- if(lubridate::is.Date(df[[x]])) {as.Date.numeric(x_min)} else {x_min}
+    # x_max <- if(lubridate::is.Date(df[[x]])) {as.Date.numeric(x_max)} else {x_max}
+    # y_min <- if(lubridate::is.Date(df[[y]])) {as.Date.numeric(y_min)} else {y_min}
+    # y_max <- if(lubridate::is.Date(df[[y]])) {as.Date.numeric(y_max)} else {y_max}
+
 
 
 
@@ -859,7 +926,7 @@ print(head(df_cumulative_sum,10))
     df <- base_return$df
     y_axis_choice <- base_return$y_axis_choice
 
-
+    return(base)
 
 
     ##### Apply confidence intervals

@@ -470,10 +470,11 @@ base_gg <- function() {
 
 
 
-  ##### Return both df and base
+  ##### Return df, base, and hline_xpos as list
   #       (df$y may have been modified through sec axis scaling)
+  #       (hline_xpos required in case hline needs to be reapplied over other plots)
 
-  return_list <- list("base" = base, "df" = df)
+  return_list <- list("base" = base, "df" = df, "hline_xpos" = hline_xpos)
 
   return(return_list)
 
