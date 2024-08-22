@@ -102,6 +102,7 @@
 #' @import lubridate
 #' @import ISOweek
 #' @import zoo
+#' @import forcats
 #' @rawNamespace import(plotly, except = last_plot)
 #'
 #' @return A ggplot or plotly object.
@@ -177,7 +178,6 @@
 #'
 epi_curve <- function(
                         dynamic = FALSE,
-                        #base = NULL,
                         params = list(
                           df = NULL,
                           y = NULL,
@@ -229,7 +229,8 @@ epi_curve <- function(
                           hline_width = 0.5,
                           hline_type = "dashed",
                           hline_label = NULL,
-                          hline_label_colour = "black"
+                          hline_label_colour = "black",
+                          hover_labels = NULL             # requires implementation
                         )
                   ) {
 
@@ -446,6 +447,7 @@ print(params)
                  "hline_type",
                  "hline_label",
                  "hline_label_colour",
+                 "hover_labels",
                  "ci_lower",   # required as NULL for base_gg() / base_plotly()
                  "ci_upper"    # required as NULL for base_gg() / base_plotly()
                  )
@@ -655,7 +657,8 @@ print(head(df,10))
                         ),
           fill = fill_colours[1],
           stat = 'identity',
-          color = bar_border_colour
+          color = bar_border_colour,
+          size = 0.25
         )
 
   } else {
@@ -675,6 +678,7 @@ print(head(df,10))
           ),
           stat = 'identity',
           color = bar_border_colour,
+          size = 0.25,
           position = group_var_barmode
         ) +
         scale_fill_manual(values = fill_colours)
@@ -890,11 +894,15 @@ print(head(df,10))
     # Define ggplot object to harvest axis ranges from
     #ggobj <- ggplot() + geom_bar(data=df, aes(x=.data[[x]],y=.data[[y]])) + geom_hline(yintercept = hline)
     if(is.null(group_var)) {
-      ggobj <- ggplot() + geom_bar(data = df, aes(x = .data[[x]],y = .data[[y]]), stat = 'identity')
+      ggobj <- ggplot() +
+        geom_bar(data = df, aes(x = .data[[x]],y = .data[[y]]), stat = 'identity') +
+        geom_hline(yintercept = hline)
     } else {
       if(group_var_barmode == "group") {group_var_barmode <- "dodge"}
-      ggobj <- ggplot() + geom_bar(data = df, aes(x=.data[[x]],y=.data[[y]],group=.data[[group_var]]),
-                                   stat = 'identity',position = group_var_barmode)
+      ggobj <- ggplot() +
+        geom_bar(data = df, aes(x=.data[[x]],y=.data[[y]],group=.data[[group_var]]),
+                 stat = 'identity',position = group_var_barmode) +
+        geom_hline(yintercept = hline)
     }
     x_min <- ggplot_build(ggobj)$layout$panel_params[[1]]$x.range[1]
     x_max <- ggplot_build(ggobj)$layout$panel_params[[1]]$x.range[2]
@@ -921,402 +929,210 @@ print(head(df,10))
     environment(base_plotly) <- environment()
     base_return <- base_plotly()
 
-    # base_plotly() returns a list containing base, df, and the y_axis_choice variable; extract here
+    # base_plotly() returns a list containing base, df, y_axis_choice, and axis_label_font; extract here
     base <- base_return$base
     df <- base_return$df
     y_axis_choice <- base_return$y_axis_choice
-
-    return(base)
-
-
-    ##### Apply confidence intervals
-
-    # Apply before main point-plot so that points appear in front of bars / ribbons.
-
-    # Add conf intervals if arguments for ci and ci_upper+ci_lower bounds are provided.
-    if(!is.null(ci)) {
-
-      # Stop if ci_upper and/or ci_lower limit isn't provided
-      if(is.null(ci_lower) | is.null(ci_upper)) {
-        stop("Please provide arguements for 'ci_upper' and 'ci_lower' when ci is specified.")
-      }
-
-
-      # Plot for no group_var
-      if (is.null(group_var)) {
-
-        # Add error bars or ribbon depending upon ci arguement
-
-        # Add error bars without grouping variable
-        if(ci == 'errorbar') {
-
-          # Plotly error bars require upper and lower error divergence rather
-          #   than values, so calculate
-          df <- df |>
-            mutate(diff_ci_lower = get(y) - get(ci_lower),
-                   diff_ci_upper = get(ci_upper) - get(y))
-
-          # Add error bars as trace
-          base <- base |>
-            add_trace(
-              data = df,
-              x = ~ df[[x]],
-              y = ~ df[[y]],
-              type = 'scatter',
-              mode = 'markers',
-              yaxis = y_axis_choice,
-              name = ci_legend_title,
-              showlegend = ci_legend,
-              legendgroup = 'ci',
-              marker = list(
-                color = ci_colours,
-                line = list(colour = '#ffffff00', width = 0),
-                symbol = 'line-ew-open' # use hozizontal line markers so that horizontal line symbol will be used in legned to match ggplot legend formatting
-              ),
-              hoverinfo='none',
-              error_y = list(
-                type = "data",
-                symmetric = FALSE,
-                color = ci_colours,
-                thickness = 1,
-                arrayminus = ~ diff_ci_lower,
-                array = ~ diff_ci_upper
-              )
-            ) |>
-            # Add additional trace of white horizontal line scatter-markers
-            #   to mask original markers
-            add_trace(
-              data = df,
-              x = ~ df[[x]],
-              y = ~ df[[y]],
-              type = 'scatter',
-              mode = 'markers',
-              yaxis = y_axis_choice,
-              hoverinfo='none',
-              showlegend = F,
-              marker = list(
-                color = 'white',
-                line = list(colour = 'white', width=2),
-                symbol = 'line-ew-open'
-              )
-            )
-
-          # Add ribbon without grouping variable
-        } else if (ci == 'ribbon') {
-
-          base <- base |>
-            add_ribbons(
-              x = ~ df[[x]],
-              ymin = ~ df[[ci_lower]],
-              ymax = ~ df[[ci_upper]],
-              yaxis = y_axis_choice,
-              hoverinfo='none',
-              showlegend = ci_legend,
-              legendgroup = 'ci',
-              #legendgrouptitle = list(text = ci_legend_title),
-              name = ci_legend_title,
-              fillcolor = yarrr::transparent(ci_colours, trans.val = .5), # add transparency using 'yarrr' package
-              line = list(color = 'transparent')
-            )
-
-        }
-
-
-        # Plot for group_var provided
-      } else if (!is.null(group_var)) {
-
-        # Add error bars or ribbon depending upon ci arguement
-
-        # Add error bars with grouping variable
-        if(ci == 'errorbar') {
-
-          # Errorbar traces must be defined individually for each group
-
-          # Define unique groups
-          unique_groups <- unique(df[[group_var]])
-
-          # Iterate over each group
-          for (i in 1:length(unique_groups)) {
-
-            # Plotly error bars require upper and lower error divergence rather
-            #   than values, so create df for each group and calculate
-            df_group <- df |>
-              filter(get(group_var) == unique_groups[i]) |>
-              mutate(diff_ci_lower = get(y) - get(ci_lower),
-                     diff_ci_upper = get(ci_upper) - get(y))
-
-            # Add error bars as trace with invisible markers
-            base <- base |>
-              add_trace(
-                data = df_group,
-                x = df_group[[x]],
-                y = df_group[[y]],
-                type = 'scatter',
-                mode = 'markers',
-                yaxis = y_axis_choice,
-                name = unique_groups[[i]],
-                showlegend = F,
-                marker = list(
-                  color = '#ffffff00',
-                  line = list(colour = '#ffffff00', width = 0)
-                ),
-                hoverinfo='none',
-                error_y = list(
-                  type = "data",
-                  symmetric = FALSE,
-                  color = ci_colours[[i]],
-                  thickness = 1,
-                  arrayminus = ~ diff_ci_lower,
-                  array = ~ diff_ci_upper
-                )
-              )
-          }
-
-        # Add ribbon with grouping variable
-        } else if (ci == 'ribbon') {
-
-          # Ribbons must be defined individually for each group
-
-          # Define unique groups
-          unique_groups <- unique(df[[group_var]])
-
-          # Iterate over each group
-          for (i in 1:length(unique_groups)) {
-
-            #df_group <- df[which(df[[group_var]]==unique_groups[[i]]), ]
-
-            # Need to construct polygon for each ribbon
-            #   -Points must be connected in order, so must go in positive direction
-            #    along upper limit and negative direction along lower limit. Define
-            #    separate dfs for each, reverse order of lower lim df, and bind together.
-            df_group_low <- df |>
-              filter(get(group_var) == unique_groups[i]) |>
-              select(any_of(c(x, ci_lower))) |>     # any_of as x and ci_lower point towards characters rather than variable names
-              dplyr::rename("y_val" = 2)
-
-            df_group_up <- df |>
-              filter(get(group_var) == unique_groups[i]) |>
-              select(any_of(c(x, ci_upper))) |>     # any_of as x and ci_upper point towards characters rather than variable names
-              dplyr::rename("y_val" = 2)
-
-            df_group_ribb <- rbind(df_group_low, (df_group_up |> arrange(desc(row_number()))))
-
-
-            # Add separate ribbon for each group using df defined above
-            base <- base |>
-              add_trace(
-                data = df_group_ribb,
-                x = ~ df_group_ribb[[x]],
-                y = ~ y_val,
-                type = 'scatter',
-                mode = 'lines',
-                yaxis = y_axis_choice,
-                name = unique_groups[[i]],
-                line = list(color = 'transparent'),
-                fill = 'toself',
-                #fillcolor = paste0(ci_colours[[i]],'80')
-                fillcolor = yarrr::transparent(ci_colours[[i]], trans.val = .5), # add transparency using 'yarrr' package
-                showlegend = ci_legend,
-                legendgroup = 'ci',
-                legendgrouptitle = list(text = ci_legend_title)
-              )
-
-          }
-
-        }
-
-      }
-
-    }
+    axis_label_font <- base_return$axis_label_font
 
 
 
-    ##### Resolve point style
 
-    # Note:- Limited to 7 at present; expand
+    ##### Define colour parameters for bar plot
 
-    # Create ggplot -> plotly point-shape key
-    ggplot_point_shapes <- c('circle','triangle','square','plus','square cross','asterisk','diamond')
-    plotly_point_shapes <- c('circle','triangle-up','square','cross-thin-open','square-x-open','asterisk-open','diamond')
-    point_shapes_key <- setNames(as.list(plotly_point_shapes),ggplot_point_shapes)
-
-    # Stop if point_shape is not in list
-    if (!(point_shape %in% ggplot_point_shapes)) {
-      stop(
-        "Invalid point type. Please provide one of the following point types:
-           'circle', 'triangle', 'square', 'plus', 'square cross', 'asterisk', 'diamond'"
-      )
-    }
-
-
-    ##### Define default hover labels
-
-    if (is.null(ci)) {
-
-        hoverlabels <- paste0('<b>%{x}</b>',
-                              '<br>%{y}')
-    } else {
-
-      hoverlabels <- paste0('<b>%{x}</b>',
-                            '<br>%{y}',
-                            '<br><i>Upper: %{text}</i>',
-                            '<br><i>Lower: %{customdata}</i>')
-    }
-
-
-
-    ##### Create point chart
-
-    # Build according to whether plotting variables are grouped or not
+    # Ungrouped data
     if (is.null(group_var)) {
 
-      # Replace default hoverlabels if point_labels is defined
-      if (is.null(ci)) {
-        # leverage 'text' and 'customdata' fields to include ci limits in default hover labels
-        #     -Included in trace below
-        text_upper <- df[[x]]
-        text_lower <- df[[x]]  # arbitary table field to keep tibble sizes the same, not included in label here anyway
+      # Define colour map for single colour
+      colormap <- setNames(fill_colours[1], fill_colours[1])
+
+      # Add colour field to df
+      df <- df |>
+        mutate(fill_colour = fill_colours[1])
+
+    # Grouped data
+    } else {
+
+      # Define colour map for multiple colours if not already defined by user
+      if (is.null(names(fill_colours))) {
+        colormap <- setNames(fill_colours, unique(df[[group_var]]))
+      }
+
+      # Add colour field to df
+      df <- df |>
+        mutate(fill_colour = get(group_var))
+
+    }
+
+    # Define colour_field parameter for bar plot
+    #    Note:- Stacked bar colours need reversing to match with ggplot output
+    if (is.factor(df$fill_colour) & group_var_barmode == "stack") {
+      colour_field <- forcats::fct_rev(df$fill_colour)
+    } else {
+      colour_field <- df$fill_colour
+    }
+
+
+
+    ##### Define hover labels
+
+    # Define defaults if user does not define hover_labels
+    if (is.null(hover_labels)) {
+
+      # Define total to display depending upon whether case boxes are enabled
+      hover_n <- if (case_boxes == FALSE) {'{y}'} else {'{customdata}'}
+
+      # Ungrouped
+      if (!is.null(group_var)) {
+        hoverlabels <- paste0('<b>%{x}</b>',
+                               '<br>%',hover_n)
+      # Grouped
       } else {
-        text_upper <- if(y_percent==TRUE) {scales::percent(df[[ci_upper]])} else {df[[ci_upper]]}
-        text_lower <- if(y_percent==TRUE) {scales::percent(df[[ci_lower]])} else {df[[ci_lower]]}
+        hoverlabels <- paste0('<b>%{x}</b>',
+                               '<br>%',hover_n,
+                               '<extra></extra>') # Remove tooltip for ungrouped data
       }
 
-      if(!is.null(point_labels)) {
-        hoverlabels <- as.character(df[[point_labels]])
-      }
+    }
 
-      # Take into account user-defined point size
+    # # Replace defaults if hover_labels defined by user
+    # } else {
+    #   hoverlabels <- as.character(df[[hover_labels]])
+    # }
+### TO IMPLEMENT: If user defines hover labels in df, these will
+###               be removed when df is aggregated.
 
-        # If point size is a fixed number, define a vector containing that number
-        if (is.numeric(point_size) & length(point_size) ==1) {
 
-          plotly_point_sizes <- rep(point_size*3, nrow(df))   # *3 to scale ggplot to plotly (approx)
+print(first(df[[x]]))
+print(x_limit_min)
 
-        } else {
-        # If point size is a variable
+    ##### Build epi curve
 
-            # Define ggplot geom_point object to harvest point sizes from so that this can
-            #   be fed into the plotly chart.
-            ggsizeobj <- ggplot() +
-              geom_point(data = df, aes(x = .data[[x]], y = .data[[y]], size = .data[[point_size]]))
+    if (case_boxes == FALSE) {
 
-            plotly_point_sizes <- (ggplot_build(ggsizeobj)$data[[1]]$size)*3   # *3 to scale ggplot to plotly (approx)
-        }
-
-      # Add plotly trace without groups
+      # Add bar plot without boxes around each case
       base <- base |>
         add_trace(
           df,
           x = ~ df[[x]],
           y = ~ df[[y]],
-          type = 'scatter',
-          mode = 'markers',
-          yaxis = y_axis_choice,
+          type = 'bar',
+          color = ~ colour_field, #df$fill_colour,
+          colors = colormap,
           marker = list(
-            color = point_colours,
-            symbol = point_shapes_key[[point_shape]],
-            size = plotly_point_sizes,
-            line = list(colour = 'transparent', width = 0)
+            #color = fill_colours[1]
+            line = list(color = bar_border_colour,
+                        width = 0.5)
             ),
-          legendgroup = 'data',
-          #legendgrouptitle = list(text = legend_title),
-          name = if(legend_title != "") {legend_title} else {y},
-          # leverage 'text' and 'customdata' fields to include ci limits in default hover labels
-          text = text_upper,
-          customdata = text_lower,
-          hovertemplate = paste0(hoverlabels,"<extra></extra>") # Remove tooltip for ungrouped data
-        )
+          hovertemplate = hoverlabels,
+          showlegend = if (is.null(group_var)) {F} else {T}
+        ) |>
+        layout(barmode = group_var_barmode)
 
-    } else {
 
-      # Add plotly trace with groups
 
-      # base <- base |>
-      #   add_trace(
-      #     df,
-      #     x = ~ df[[x]],
-      #     y = ~ df[[y]],
-      #     type = "scatter",
-      #     mode = "markers",
-      #     symbol = ~ df[[group_var]],
-      #     symbols = plotly_point_shapes,
-      #     color = ~ df[[group_var]],
-      #     colors = point_colours
-      #   )
+    # Add bar plot with boxes around each case
+    } else if (case_boxes == TRUE) {
 
-      # Define unique groups
-      unique_groups <- unique(df[[group_var]])
+        # Uncount data to get one row per case for one box per case.
+        df_case_boxes <- df |> uncount(get(y)) |> mutate(box = 1)
 
-      # Iterate over each group
-      for (i in 1:length(unique_groups)) {
-
-        df_group <- df |>
-          filter(get(group_var) == unique_groups[i])
-
-        # Replace default hoverlabels if point_labels is defined
-        if (is.null(ci)) {
-          # leverage 'text' and 'customdata' fields to include ci limits in default hover labels
-          #     -Included in trace below
-          text_upper <- df_group[[x]]
-          text_lower <- df_group[[x]]  # arbitary table field to keep tibble sizes the same, not included in label here anyway
+        # Re-define colour_field parameter for bar plot
+        #    Note:- Stacked bar colours need reversing to match with ggplot output
+        if (is.factor(df_case_boxes$fill_colour) & group_var_barmode == "stack") {
+          colour_field <- forcats::fct_rev(df_case_boxes$fill_colour)
         } else {
-          text_upper <- if(y_percent==TRUE) {scales::percent(df_group[[ci_upper]])} else {df_group[[ci_upper]]}
-          text_lower <- if(y_percent==TRUE) {scales::percent(df_group[[ci_lower]])} else {df_group[[ci_lower]]}
+          colour_field <- df_case_boxes$fill_colour
         }
 
-        if(!is.null(point_labels)) {
-          hoverlabels <- as.character(df_group[[point_labels]])
-          }
-
-
-        # Take into account user-defined point size
-
-          # If point size is a fixed number, define a vector containing that number
-          if (is.numeric(point_size) & length(point_size) ==1) {
-
-            plotly_point_sizes_group <- rep(point_size*3, nrow(df_group))   # *3 to scale ggplot to plotly (approx)
-
-          } else {
-            # If point size is a variable
-
-            # Define ggplot geom_point object to harvest point sizes from so that this can
-            #   be fed into the plotly chart.
-            ggsizeobj <- ggplot() +
-              geom_point(data = df_group, aes(x = .data[[x]], y = .data[[y]], size = .data[[point_size]]))
-
-            plotly_point_sizes_group <- (ggplot_build(ggsizeobj)$data[[1]]$size)*3   # *3 to scale ggplot to plotly (approx)
-          }
-
+        # Bar plot with boxes
         base <- base |>
           add_trace(
-            data = df_group,
-            x = df_group[[x]],
-            y = df_group[[y]],
-            type = 'scatter',
-            mode = 'markers',
-            yaxis = y_axis_choice,
-            name = unique_groups[[i]],
+            df_case_boxes,
+            x = ~ df_case_boxes[[x]],
+            y = ~ df_case_boxes$box,
+            type = 'bar',
+            color = ~ colour_field, #df$fill_colour,
+            colors = colormap,
             marker = list(
-              color = point_colours[[i]],
-              symbol = plotly_point_shapes[[i]],
-              size = plotly_point_sizes_group,
-              line = list(color = 'transparent', width = 0)
-              ),
-            legendgroup = 'data',
-            # leverage 'text' and 'customdata' fields to include ci limits in default hover labels
-            #   Account for y_percent = TRUE
-            text = text_upper,
-            customdata = text_lower,
-            legendgrouptitle = list(text = legend_title),
-            hovertemplate = hoverlabels
-          )
+              line = list(color = case_boxes_colour,
+                          width = 0.5)
+            ),
+            customdata = df_case_boxes$n, # for hoverlabels
+            hovertemplate = hoverlabels,
+            showlegend = if (is.null(group_var)) {F} else {T}
+          ) |>
+          layout(barmode = group_var_barmode)
 
       }
+
+
+
+    ##### Add rolling average line if specified
+
+    if (rolling_average_line == TRUE) {
+
+      base <- base |>
+        add_trace(
+          df_rolling_average,
+          x = ~ df_rolling_average[[x]],
+          y = ~ df_rolling_average$rolling_average,
+          type = 'scatter',
+          mode = 'line',
+          line = list(color = "red"), #width = 0.5),
+          name = rolling_average_line_legend_label,
+          hovertemplate = paste0('<b>%{x}</b>',
+                                 '<br>%{y}',
+                                 '<extra>',rolling_average_line_legend_label,'</extra>')
+        )
 
     }
 
 
-    ##### Apply point legend parameters
+
+    ##### Add cumulative sum line if specified
+
+    if (cumulative_sum_line == TRUE) {
+
+      # Create secondary axis
+      base <- base |>
+        layout(
+          yaxis2 = list(
+            overlaying = "y",
+            side = "right",
+            showline = TRUE,
+            zeroline = FALSE,
+            linewidth = 1,
+            ticks="outside",
+            ticklen=3,
+            tickangle = -y_axis_label_angle,
+            # autorange = TRUE,
+            title = list(text = html_bold(cumulative_sum_line_axis_title),
+                         font = axis_label_font)
+          )
+        )
+
+
+        base <- base |>
+          add_trace(
+            df_cumulative_sum,
+            x = ~ df_cumulative_sum[[x]],
+            y = ~ df_cumulative_sum$cumulative_sum,
+            yaxis = "y2",
+            type = 'scatter',
+            mode = 'line',
+            line = list(color = "darkblue"), #width = 0.5),
+            name = cumulative_sum_line_legend_label,
+            hovertemplate = paste0('<b>%{x}</b>',
+                                   '<br>%{y}',
+                                   '<extra>',cumulative_sum_line_legend_label,'</extra>')
+          )
+
+      }
+
+
+
+    ##### Apply legend parameters
 
     # Legend position
     if (!is.null(legend_pos)) {
@@ -1325,7 +1141,7 @@ print(head(df,10))
       #    it can access point_chart arguements
       environment(plotly_legend_pos) <- environment()
 
-      if (legend_pos!="none") {
+      if (legend_pos != "none") {
         base <- base |> layout(legend = plotly_legend_pos(legend_pos))  # use utils/plotly_legend_pos() function to switch between ggplot and plotly legend params
       } else {
         base <- base |> layout(showlegend = F)
@@ -1333,12 +1149,13 @@ print(head(df,10))
 
     }
 
-    # Legend font
+    # Legend title + font
     base <- base |>
       layout(
         legend = list(
           #traceorder = "grouped+reversed",
-          font=list(size=8)
+          title=list(text = legend_title),
+          font=list(size = 8)
           )
         )
 

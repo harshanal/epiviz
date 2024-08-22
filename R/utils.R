@@ -290,7 +290,7 @@ plotly_legend_pos <- function(x) {
         orientation = legend_orientation
       ),
       "right" = list(
-        x = if(y_sec_axis == TRUE) {1.1} else {1.02}, # account for secondary y-axis causing legend overlap
+        x = if(y_sec_axis == TRUE | cumulative_sum_line == TRUE) {1.1} else {1.02}, # account for secondary y-axis causing legend overlap
         y = 0.5,
         xanchor = "left",
         yanchor = "middle",
@@ -361,7 +361,7 @@ adorn_dates <- function(df, date_var) {
            iso_week_full = ISOweek::ISOweek(get(date_var)),
            iso_week = lubridate::isoweek(get(date_var)),
            iso_year = lubridate::isoyear(get(date_var)),
-           iso_year_week = paste0(iso_year,'-',iso_week),
+           iso_year_week = paste0(iso_year,'-W',iso_week),
            start_iso_year_week = as.character(floor_date(get(date_var), "weeks", week_start = 1)) ### from GAS dashboard, check
            )
 

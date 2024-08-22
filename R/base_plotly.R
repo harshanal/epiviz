@@ -444,10 +444,16 @@ base_plotly <- function() {
         if (!is.null(hline_label)) {
 
           # Define positiion of label depending on whether x axis is reversed
+          # else use min value of x, or max if values reversed
+
+          # handle factor x-axes
+          xpos_high <- if (!is.factor(df[[x]])) {max(df[[x]])} else {last(df[[x]])}
+          xpos_low <- if (!is.factor(df[[x]])) {min(df[[x]])} else {first(df[[x]])}
+
           if (x_axis_reverse == FALSE) {
-            hline_xpos <- if(!is.null(x_limit_min)) {x_limit_min} else {min(df[[x]])}
+            hline_xpos <- if(!is.null(x_limit_min)) {x_limit_min} else {xpos_low}
           } else {
-            hline_xpos <- if(!is.null(x_limit_max)) {x_limit_max} else {max(df[[x]])}
+            hline_xpos <- if(!is.null(x_limit_max)) {x_limit_max} else {xpos_high}
           }
 
           base <- base |>
@@ -475,9 +481,11 @@ base_plotly <- function() {
 
 
 
-    ##### Return both df and base
+    ##### Return both df, base, and other variables required in rest of plotly
 
-    return_list <- list("base" = base, "df" = df, "y_axis_choice" = y_axis_choice)
+    return_list <- list("base" = base, "df" = df,
+                        "y_axis_choice" = y_axis_choice,
+                        "axis_label_font" = axis_label_font)
 
     return(return_list)
 
