@@ -265,6 +265,9 @@ datebreak_to_d3 <- function(x) {
 #' }
 plotly_legend_pos <- function(x) {
 
+    # Define cumulative_sum_line for functions that don't use it
+    if (!exists("cumulative_sum_line")) {cumulative_sum_line <- FALSE}
+
     # Define plotly legend orientation
     if (x %in% c("top", "bottom")) {
       legend_orientation <- "h"
@@ -322,7 +325,9 @@ plotly_legend_pos <- function(x) {
 #' @return A list with the item renamed
 #'
 #' @examples
+#' \dontrun{
 #' params <- param_rename(params,"chart_footer_colour","new_name")
+#' }
 #'
 param_rename <- function(params_list, current_name, new_name) {
 

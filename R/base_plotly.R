@@ -444,7 +444,7 @@ base_plotly <- function() {
         if (!is.null(hline_label)) {
 
           # Define positiion of label depending on whether x axis is reversed
-          # else use min value of x, or max if values reversed
+          #   - use min value of x, or max x if axis reversed
 
           # handle factor x-axes
           xpos_high <- if (!is.factor(df[[x]])) {max(df[[x]])} else {last(df[[x]])}
@@ -455,6 +455,7 @@ base_plotly <- function() {
           } else {
             hline_xpos <- if(!is.null(x_limit_max)) {x_limit_max} else {xpos_high}
           }
+
 
           base <- base |>
             add_annotations(

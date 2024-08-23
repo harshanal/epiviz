@@ -26,7 +26,7 @@ test_that("point_chart produces static chart", {
   # Create static point chart
   result <- point_chart(params = params, dynamic = FALSE)
 
-  # check that the output is a plotly object
+  # check that the output is a ggplot object
   expect_true(inherits(result, "ggplot"))
 
 })

@@ -1,4 +1,4 @@
-#' epi_curse
+#' epi_curve
 #'
 #' @description A function for producing either a static (ggplot) or dynamic (plotly)
 #' epidemic curve.
@@ -7,39 +7,60 @@
 #' Default is \code{FALSE}, which will return a static ggplot output.
 #' @param params A named list containing arguements used to create the plot.
 #' ' \describe{
-#'    \item{df}{A data frame containing values used to create the point chart.}
-#'    \item{y}{Name of the variable in \code{df} used to populate the y-axis.}
-#'    \item{date_var}{Name of the variable in \code{df} containing the dates used
+#'    \item{df}{A data frame containing data used to create the epi curve.}
+#'    \item{date_var}{character, Name of the variable in \code{df} containing the dates used
 #'    to populate the x-axis.}
+#'    \item{date_start} {A date that will determine the minimum value along the x-axis.}
+#'    \item{date_end} {A date that will determine the maximum value along the x-axis.}
 #'    \item{time_period}{The time period to be used along the x-axis. Options include
 #'    \code{c("day","year","month","quarter","year_month","year_quarter",
 #'      "iso_year","iso_week","start_iso_year_week","iso_year_week",
 #'      "use_date_var")}. Default = \code{"use_date_var"}, which indicates that the dates
-#'      as they appear in the date_var column will be used to populate the x-axis.}
-#'    \item{group_var}{Name of the variable in df used to define separate groups of points
-#'    in the chart.}
-#'    \item{ci} {Confidence interval. If \code{ci = "errorbar"} then confidence intervals be
-#'    be plotted with each point as errorbars, and if \code{ci = "ribbon"} then confidence
-#'    intervals will be added to the chart as a ribbon plot for each group. If \code{ci} is
-#'    provided, then \code{ci_upper} and \code{ci_lower} must also be provided.}
-#'    \item{ci_upper} {Name of the variable in df used as the upper confidence limit for
-#'    each point. Mandatory when \code{ci} is provided.}
-#'    \item{ci_lower} {Name of the variable in df used as the lower confidence limit for
-#'    each point. Mandatory when \code{ci} is provided.}
-#'    \item{ci_legend} {Logical indicating whether a separate legend should be included
-#'    in the chart for confidence interval parameters. Only applies when \code{group_var}
-#'    is provided. Defaults to \code{FALSE}.}
-#'    \item{ci_legend_title} {Text to use as title for separate legend when \code{ci_legend = TRUE}.}
-#'    \item{ci_colours} {Colour(s) used for plotting confidence intervals. When \code{ci =
-#'    "errorbar"} this will determine the colour of the plotted errorbars, when \code{ci =
-#'    "ribbon"} this will determine the colour of the plotted ribbons.}
-#'    \item{errorbar_width} {Horizontal width of the plotted error bars when \code{ci =
-#'    "errorbar"}.}
-#'    \item{y_sec_axis} {Logical to indicate whether data should be plotted on the
-#'    secondary (right) y-axis. Default = \code{FALSE}.}
-#'    \item{y_sec_axis_no_shift} {Forces the secondary y-axis scale to begin at 0. Default = \code{TRUE}.}
-#'    \item{y_sec_axis_percent_full} {Forces the secondary y-axis scale to range from 0-100%
-#'    when \code{y_percent = TRUE}}
+#'      as they appear in the \code{date_var} column will be used to populate the x-axis.}
+#'    \item{group_var}{Name of the variable in df used to define separate groups within each bar,
+#'    e.g. species or region.}
+#'    \item{group_var_barmode}{Indicates how grouped bar data should be plotted. Options include
+#'    \code{c("group","stack")}. Default = \code{"stack"}.}
+#'    \item{fill_colours} {Colours used to fill bars on chart. If \code{group_var} has not been
+#'    provided, then \code{fill_colours} must be a character containing a single colour (default =
+#'    \code{"lightblue"}). If \code{group_var} has been provided, then \code{fill_colours} must be
+#'    a character vector of colours with a number of elements equal to the number of unique groups
+#'    in \code{group_var}. If a named character vector is provided where the names are values within
+#'    \code{group_var}, then each colour will be mapped to it's corresponding value in \code{group_var}
+#'    on the output chart and legend (e.g. \code{c("KLEBSIELLA PNEUMONIAE" = "#007C91", "STAPHYLOCOCCUS
+#'    AUREUS" = "#8A1B61", "PSEUDOMONAS AERUGINOSA" = "#FF7F32")} or \code{setNames(c("#007C91",
+#'    "#8A1B61","#FF7F32"), c("KLEBSIELLA PNEUMONIAE","STAPHYLOCOCCUS AUREUS","PSEUDOMONAS AERUGINOSA"))})}
+#'    \item{bar_border_colour} {Colour of the border around each bar. No border colour is drawn as default.}
+#'    \item{case_boxes} {boolean, If \code{case_boxes = TRUE} then a boundary box will be drawn around
+#'    each case within each bar. Defaults to \code{case_boxes = FALSE}.}
+#'    \item{case_boxes_colour} {The colour of the border around each case box if if \code{case_boxes =
+#'    TRUE}. Default = \code{"white"}.}
+#'    \item{rolling_average_line} {boolean, If \code{rolling_average_line = TRUE}, then a line showing the
+#'    rolling mean will be added to the plot. Default = \code{FALSE}.}
+#'    \item{rolling_average_line_lookback} {Integer denoting the lookback window across which the rolling
+#'    mean will be calculated (including the current time interval). Each integer denotes a division
+#'    within \code{time_period}, e.g. if \code{time_period = "year_month"} and
+#'    \code{rolling_average_line_lookback = 3} then the rolling mean will be calculated using values from
+#'    the current month and the previous 2 months, and if \code{time_period = "day"} and
+#'    \code{rolling_average_line_lookback = 7} then the rolling mean will be calculated using values from
+#'    the previous 7 days including the current day. If there are less values within the lookback window
+#'    than \code{rolling_average_line_lookback}, then the mean will be calculated from an incomplete
+#'    window using the values available (i.e. if \code{rolling_average_line_lookback = 7} and
+#'    \code{time_period = "day"} but there are only 4 values within the previous 7 days, then the rolling
+#'    mean will be calculated from the 4 available values.)}
+#'    \item{rolling_average_line_colour} {character Colour of the rolling average line. Default = \code{"red"}.}
+#'    \item{rolling_average_line_width} {numeric Width of the rolling average line. Default = 1.}
+#'    \item{rolling_average_line_legend_label} {character Label to be used for the rolling average line
+#'    in the chart legend.}
+#'    \item{cumulative_sum_line} {boolean, If \code{cumulative_sum_line_line = TRUE}, then a line showing
+#'    the cumulative sum will be added to the plot. Default = \code{FALSE}. Values for the cumulative sum
+#'    will be plotted on the secondary y-axis.}
+#'    \item{cumulative_sum_line_colour} {character Colour of the cumulative line. Default = \code{"darkblue"}.}
+#'    \item{cumulative_sum_line_width} {numeric Width of the cumulative sum line. Default = 1.}
+#'    \item{cumulative_sum_line_legend_label} {character Label to be used for the cumulative sum line
+#'    in the chart legend.}
+#'    \item{cumulative_sum_line_axis_title} {character Axis title for the cumulative sum line secondary
+#'    axis.}
 #'    \item{chart_title} {Text to use as chart title.}
 #'    \item{chart_title_size} {Font size of chart title.}
 #'    \item{chart_title_colour} {Font colour of chart title.}
@@ -52,24 +73,14 @@
 #'    not stated.}
 #'    \item{x_axis_label_angle} {Angle for x-axis label text.}
 #'    \item{y_axis_label_angle} {Angle for y-axis label text.}
-#'    \item{x_axis_reverse} {Reverses x-axis scale if \code{x_axis_reverse = TRUE}.}
-#'    \item{y_percent} {Converts y-axis to percentage scale if \code{y_percent = TRUE}.}
-#'    \item{x_limit_min} {Lower limit for the x-axis. Default used if not provided.}
-#'    \item{x_limit_max} {Upper limit for the x-axis. Default used if not provided.}
 #'    \item{y_limit_min} {Lower limit for the y-axis. Default used if not provided.}
 #'    \item{y_limit_max} {Upper limit for the y-axis. Default used if not provided.}
-#'    \item{x_axis_break_labels} {Vector of values to use for x-axis breaks. Defaults used if not provided.}
-#'    \item{y_axis_break_labels} {Vector of values to use for y-axis breaks. Defaults used if not provided.}
-#'    \item{x_axis_n_breaks} {Scales x-axis with approximately n breaks. Cannot be provided
-#'    if \code{x_axis_break_labels} is provided.}
+#'    \item{x_axis_break_labels} {Vector of values to use for x-axis breaks. Defaults
+#'    used if not provided. Values provided must match the formatting of \code{time_period}.}
+#'    \item{y_axis_break_labels} {Vector of values to use for y-axis breaks. Defaults
+#'    used if not provided.}
 #'    \item{y_axis_n_breaks} {Scales y-axis with approximately n breaks. Cannot be used
 #'    if \code{y_axis_break_labels} is also provided.}
-#'    \item{x_axis_date_breaks} {A string giving the distance between breaks like "2 weeks", or "10 years".
-#'    Valid specifications are 'sec', 'min', 'hour', 'day', 'week', 'month' or 'year', optionally followed
-#'    by 's'. Matches ggplot scale_date() conventions (see https://ggplot2.tidyverse.org/reference/scale_date.html).
-#'    Cannot be used if \code{y_axis_break_labels} is also provided.}
-#'    \item{st_theme} {Name of a ggplot theme to be applied to a static plot. Can only be provided
-#'    when \code{dynamic = FALSE}}
 #'    \item{show_gridlines} {Logical to show chart gridlines. Default = \code{TRUE}.}
 #'    \item{show_axislines} {Logical to show chart axis lines. Default = \code{TRUE}.}
 #'    \item{legend_title} {Text used for legend title.}
@@ -98,11 +109,10 @@
 #' @import grDevices
 #' @import scales
 #' @import tidyr
-#' @import yarrr
 #' @import lubridate
 #' @import ISOweek
-#' @import zoo
 #' @import forcats
+#' @import slider
 #' @rawNamespace import(plotly, except = last_plot)
 #'
 #' @return A ggplot or plotly object.
@@ -112,66 +122,146 @@
 #'
 #' \dontrun{
 #'
+#' # Example 1: Basic epi curve
 #'
-#'
-#' # Example 5: Point chart with additional overlayed chart on secondary y-axis
+#' # Create a basic epi curve using the epiviz::lab_data dataset
 #' library(epiviz)
 #'
-#' # Use static chart from Example 1 as a base chart
-#' base_chart <- chart_detections_per_month
-#'
-#' # Define data for overlaying chart
-#' # Percentage of overall detections in people over 65 years of age.
-#' library(lubridate)
-#' detections_over65 <- lab_data |>
-#'   mutate(age = year(as.period(lubridate::interval(date_of_birth,Sys.Date()))),
-#'          over65 = ifelse(age > 65, 1, 0)) |>
-#'   group_by(specimen_month = lubridate::floor_date(specimen_date, 'month')) |>
-#'   summarise(detections = n(),
-#'             detections_over65 = sum(over65)) |>
-#'   ungroup() |>
-#'   mutate(percent_over65 = detections_over65/detections)
-#'
-#' # Define parameters list
-#' over65_params <- list(
-#'   df = detections_over65,
-#'   x = "specimen_month",
-#'   y = "percent_over65",
-#'   y_percent = TRUE,
-#'   y_sec_axis = TRUE,
-#'   y_sec_axis_percent_full = TRUE,
-#'   point_colours = "purple",
-#'   point_size = 3,
-#'   point_shape = "asterisk",
-#'   x_limit_min = "2022-01-01",
-#'   x_limit_max = "2023-12-31",
-#'   y_limit_max = 1000,
-#'   chart_title = "Detections per Month 2022-2023",
-#'   x_axis_title = "Month of detection",
-#'   y_axis_title = "Percentage of detections in over 65s",
-#'   x_axis_date_breaks = "2 months"
+#' basic_epi_curve <- epi_curve(
+#'   params = list(
+#'     df = lab_data,
+#'     date_var = "specimen_date",
+#'     date_start = "2020-01-01",
+#'     date_end = "2023-12-31",
+#'     time_period = "year_month",
+#'     fill_colours = "#007C91",
+#'     rolling_average_line = TRUE,
+#'     rolling_average_line_lookback = 3,
+#'     rolling_average_line_legend_label = "3-month rolling average",
+#'     chart_title = "Laboratory Detections per Month",
+#'     x_axis_title = "Year - Month",
+#'     y_axis_title = "Number of detections",
+#'     x_axis_label_angle = -90
+#'   )
 #' )
 #'
-#' # Create point chart
-#' over65_chart <- point_chart(base = base_chart,
-#'                             params = over65_params,
-#'                             dynamic = FALSE)
+#' basic_epi_curve
 #'
 #'
-#' # Legends are not currently implemented for static charts with a supplied
-#' #  base chart, so add legend manually using dummy data and an invisible geom_point()
-#' over65_chart <- over65_chart +
-#'   geom_point(data = data.frame(x=as.Date(c("2020-01-01","2020-01-02")),
-#'                                y=c(1,1),
-#'                                label=c("Total Detections","% of Detections in Over 65s")),
-#'              aes(x=x, y=y, colour=label, shape=label)) +
-#'   scale_color_manual(name='', values=c("Total Detections"="#007C91",
-#'                                        "% of Detections in Over 65s"="purple")) +
-#'   scale_shape_manual(name='', values=c("Total Detections"="triangle",
-#'                                        "% of Detections in Over 65s"="asterisk")) +
-#'   theme(legend.position="top")
 #'
-#' over65_chart
+#'
+#' # Example 2: Create both static and dynamic epi curves using grouped data
+#'
+#' library(epiviz)
+#'
+#' # Define list of date breaks for x-axis; use every other ISO week in date range
+#' week_seq <- seq(as.Date("2021-01-01"),as.Date("2022-05-31"), by = '2 week')
+#' week_breaks <- paste0(lubridate::isoyear(week_seq),'-W',lubridate::isoweek(week_seq))
+#'
+#' # Create parameter list
+#' params_list <- list(
+#'   df = lab_data,
+#'   date_var = "specimen_date",
+#'   date_start = "2021-01-01",
+#'   date_end = "2022-05-31",
+#'   time_period = "iso_year_week",
+#'   group_var = "organism_species_name",
+#'   group_var_barmode = "stack",
+#'   fill_colours = c("KLEBSIELLA PNEUMONIAE" = "#007C91",
+#'                    "STAPHYLOCOCCUS AUREUS" = "#8A1B61",
+#'                    "PSEUDOMONAS AERUGINOSA" = "#FF7F32"),
+#'   rolling_average_line = TRUE,
+#'   rolling_average_line_legend_label = "7-week rolling average",
+#'   chart_title = "Laboratory detections by species \n 2021-01 - 2022-05",
+#'   chart_footer = "This chart has been created using simulated data.",
+#'   x_axis_title = "Year - ISO Week",
+#'   y_axis_title = "Number of detections",
+#'   x_axis_label_angle = -90,
+#'   x_axis_break_labels = week_breaks,
+#'   y_axis_break_labels = seq(0, 250, 20),
+#'   chart_title_colour = "#007C91",
+#'   chart_footer_colour = "#007C91"
+#' )
+#'
+#' # Create static epi curve
+#' static_curve <- epi_curve(params = params_list, dynamic = FALSE)
+#'
+#' # Create dynamic epi curve
+#' dynamic_curve <- epi_curve(params = params_list, dynamic = TRUE)
+#'
+#' # View both simultaneously using shiny app
+#' library(shiny)
+#' library(plotly)
+#' ui <- fluidPage(
+#'   plotOutput('static_curve'),
+#'   plotlyOutput('dynamic_curve')
+#' )
+#' server <- function(input, output, session) {
+#'   output$static_curve <- renderPlot(static_curve)
+#'   output$dynamic_curve <- renderPlotly(dynamic_curve)
+#' }
+#' shinyApp(ui, server)
+#'
+#'
+#'
+#'
+#' # Example 3: Create static and dynamic curves using grouped data, include cumulative
+#' # sum line and boxes around each case
+#'
+#' library(epiviz)
+#'
+#' # Create parameter list
+#' params_cases <- list(
+#'   df = lab_data,
+#'   date_var = "specimen_date",
+#'   date_start = "2021-06-01",
+#'   date_end = "2021-07-31",
+#'   time_period = "day",
+#'   group_var = "organism_species_name",
+#'   group_var_barmode = "stack",
+#'   fill_colours = c("#007C91","#8A1B61","#FF7F32"),
+#'   case_boxes = TRUE,
+#'   rolling_average_line = TRUE,
+#'   rolling_average_line_legend_label = "7-day rolling average",
+#'   cumulative_sum_line = TRUE,
+#'   chart_title = "Laboratory detections by species \n June - July 2021",
+#'   chart_title_colour = "#007C91",
+#'   hline = c(35),
+#'   hline_label = "Threshold",
+#'   hline_width = 0.5,
+#'   hline_colour = "orange",
+#'   hline_label_colour = "orange",
+#'   hline_type = "dotdash",
+#'   legend_title = "Detected organisms",
+#'   legend_pos = "right",
+#'   y_limit_max = 40,
+#'   x_axis_break_labels = as.character(seq(as.Date("2021-06-01"),
+#'                                          as.Date("2021-07-31"),
+#'                                          by = '2 days')),
+#'   y_axis_break_labels = seq(0, 40, 5),
+#'   x_axis_title = "Date",
+#'   y_axis_title = "Number of detections",
+#'   x_axis_label_angle = -90,
+#'   y_axis_label_angle = 90
+#' )
+#'
+#'
+#' # Create static and dynamic curves
+#' static_curve <- epi_curve(params = params_cases, dynamic = FALSE)
+#' dynamic_curve <- epi_curve(params = params_cases, dynamic = TRUE)
+#'
+#' # View both simultaneously using shiny app
+#' library(shiny)
+#' library(plotly)
+#' ui <- fluidPage(
+#'   plotOutput('static_curve'),
+#'   plotlyOutput('dynamic_curve')
+#' )
+#' server <- function(input, output, session) {
+#'   output$static_curve <- renderPlot(static_curve)
+#'   output$dynamic_curve <- renderPlotly(dynamic_curve)
+#' }
+#' shinyApp(ui, server)
 #'
 #'
 #' }
@@ -180,7 +270,7 @@ epi_curve <- function(
                         dynamic = FALSE,
                         params = list(
                           df = NULL,
-                          y = NULL,
+                          y = NULL,                      # for pre-aggregated data, requires implementation
                           date_var = NULL,
                           date_start = NULL,
                           date_end = NULL,
@@ -211,15 +301,11 @@ epi_curve <- function(
                           y_axis_title = NULL,
                           x_axis_label_angle = NULL,
                           y_axis_label_angle = NULL,
-                          x_axis_reverse = FALSE,
                           y_limit_min = NULL,
                           y_limit_max = NULL,
                           x_axis_break_labels = NULL,
                           y_axis_break_labels = NULL,
-                          x_axis_n_breaks = NULL,
                           y_axis_n_breaks = NULL,
-                          x_axis_date_breaks = NULL,
-                          st_theme = NULL,
                           show_gridlines = TRUE,
                           show_axislines = TRUE,
                           legend_title = "",
@@ -291,8 +377,6 @@ epi_curve <- function(
   base <- NULL
 
 
-
-print(params)
 
 
 
@@ -454,6 +538,13 @@ print(params)
                )
 
 
+  # Set a default colour palette when group_var is set but fill_colour is not
+  if(!is.null(group_var) & length(fill_colours) == 1) {
+    fill_colours <- hue_pal()(length(unique(df[[group_var]])))
+  }
+
+
+
 
   #################### DATA MANIPULATION #########################
 
@@ -505,8 +596,19 @@ print(params)
     filter(!is.na(date_factor)) # filter out NAs, i.e. dates that fall outside of range
 
 
-print(unique_dates)
-print(head(df))
+
+  ### Change x_limit_max and x_limit_min to match time_period choice
+
+  # Create df of limits and apply utils/adorn_dates() to find time_period limits
+  df_x_limits <- data.frame(x_limit = as.Date(c(x_limit_min,x_limit_max))) |>
+    adorn_dates("x_limit") |>
+    select(x_limit, any_of(time_period))
+
+  # Define limits converted to time_period
+  x_limit_min <- df_x_limits[[time_period]][1]
+  x_limit_max <- df_x_limits[[time_period]][2]
+
+
 
 
 
@@ -539,7 +641,7 @@ print(head(df))
 
   }
 
-print(head(df,10))
+
 
   # Add rolling average df if specified
   if (rolling_average_line == TRUE) {
@@ -605,9 +707,6 @@ print(head(df,10))
     }
 
   }
-
-
-
 
 
 
@@ -724,6 +823,8 @@ print(head(df,10))
       )
 
   }
+
+
 
   ##### Add rolling average line if specified
 
@@ -956,6 +1057,8 @@ print(head(df,10))
       # Define colour map for multiple colours if not already defined by user
       if (is.null(names(fill_colours))) {
         colormap <- setNames(fill_colours, unique(df[[group_var]]))
+      } else {
+        colormap <- fill_colours
       }
 
       # Add colour field to df
@@ -1003,8 +1106,7 @@ print(head(df,10))
 ###               be removed when df is aggregated.
 
 
-print(first(df[[x]]))
-print(x_limit_min)
+
 
     ##### Build epi curve
 
@@ -1025,6 +1127,7 @@ print(x_limit_min)
                         width = 0.5)
             ),
           hovertemplate = hoverlabels,
+          #legendgroup = 'bars',
           showlegend = if (is.null(group_var)) {F} else {T}
         ) |>
         layout(barmode = group_var_barmode)
@@ -1060,6 +1163,7 @@ print(x_limit_min)
             ),
             customdata = df_case_boxes$n, # for hoverlabels
             hovertemplate = hoverlabels,
+            #legendgroup = 'bars',
             showlegend = if (is.null(group_var)) {F} else {T}
           ) |>
           layout(barmode = group_var_barmode)
@@ -1081,6 +1185,7 @@ print(x_limit_min)
           mode = 'line',
           line = list(color = "red"), #width = 0.5),
           name = rolling_average_line_legend_label,
+          #legendgroup = 'lines',
           hovertemplate = paste0('<b>%{x}</b>',
                                  '<br>%{y}',
                                  '<extra>',rolling_average_line_legend_label,'</extra>')
@@ -1123,6 +1228,7 @@ print(x_limit_min)
             mode = 'line',
             line = list(color = "darkblue"), #width = 0.5),
             name = cumulative_sum_line_legend_label,
+            #legendgroup = 'lines',
             hovertemplate = paste0('<b>%{x}</b>',
                                    '<br>%{y}',
                                    '<extra>',cumulative_sum_line_legend_label,'</extra>')

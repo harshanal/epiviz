@@ -36,6 +36,9 @@ Imports:
     tidyr,
     yarrr,
     lubridate,
-    magrittr
+    magrittr,
+    ISOweek,
+    forcats,
+    slider
 Depends: 
     R (>= 2.10)

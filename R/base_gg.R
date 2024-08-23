@@ -239,7 +239,12 @@ base_gg <- function() {
   # Apply specified axis_break_labels
 
   if (!is.null(x_axis_break_labels)) {
-    base <- base + scale_x_continuous(breaks = x_axis_break_labels)
+    # handle factor axis
+    if (!is.factor(df[[x]])) {
+      base <- base + scale_x_continuous(breaks = x_axis_break_labels)
+    } else {
+      base <- base + scale_x_discrete(breaks = x_axis_break_labels)
+    }
   }
 
   if (!is.null(y_axis_break_labels)) {
@@ -365,7 +370,7 @@ base_gg <- function() {
 
 
   # Handle base_gg() being called inside epi_curve()
-  if (substr(deparse(sys.calls()[[sys.nframe()-1]]),1,9) == "epi_curve") {
+  if (substr(deparse(sys.calls()[[sys.nframe()-1]]),1,9)[1] == "epi_curve") {
     xlim <- c(NA,NA)
   }
 
@@ -393,6 +398,8 @@ base_gg <- function() {
                         colour = hline_colour,
                         linewidth = hline_width,
                         linetype = hline_type)
+  } else {
+    hline_xpos <- NULL    # if no hline, return hline_xpos = NULL for function export list at end
   }
 
   # If specified, add label to the start of the horizontal line
