@@ -10,8 +10,8 @@
 #'    \item{df}{A data frame containing data used to create the epi curve.}
 #'    \item{date_var}{character, Name of the variable in \code{df} containing the dates used
 #'    to populate the x-axis.}
-#'    \item{date_start} {A date that will determine the minimum value along the x-axis.}
-#'    \item{date_end} {A date that will determine the maximum value along the x-axis.}
+#'    \item{date_start}{A date that will determine the minimum value along the x-axis.}
+#'    \item{date_end}{A date that will determine the maximum value along the x-axis.}
 #'    \item{time_period}{The time period to be used along the x-axis. Options include
 #'    \code{c("day","year","month","quarter","year_month","year_quarter",
 #'      "iso_year","iso_week","start_iso_year_week","iso_year_week",
@@ -21,7 +21,7 @@
 #'    e.g. species or region.}
 #'    \item{group_var_barmode}{Indicates how grouped bar data should be plotted. Options include
 #'    \code{c("group","stack")}. Default = \code{"stack"}.}
-#'    \item{fill_colours} {Colours used to fill bars on chart. If \code{group_var} has not been
+#'    \item{fill_colours}{Colours used to fill bars on chart. If \code{group_var} has not been
 #'    provided, then \code{fill_colours} must be a character containing a single colour (default =
 #'    \code{"lightblue"}). If \code{group_var} has been provided, then \code{fill_colours} must be
 #'    a character vector of colours with a number of elements equal to the number of unique groups
@@ -30,14 +30,14 @@
 #'    on the output chart and legend (e.g. \code{c("KLEBSIELLA PNEUMONIAE" = "#007C91", "STAPHYLOCOCCUS
 #'    AUREUS" = "#8A1B61", "PSEUDOMONAS AERUGINOSA" = "#FF7F32")} or \code{setNames(c("#007C91",
 #'    "#8A1B61","#FF7F32"), c("KLEBSIELLA PNEUMONIAE","STAPHYLOCOCCUS AUREUS","PSEUDOMONAS AERUGINOSA"))})}
-#'    \item{bar_border_colour} {Colour of the border around each bar. No border colour is drawn as default.}
-#'    \item{case_boxes} {boolean, If \code{case_boxes = TRUE} then a boundary box will be drawn around
+#'    \item{bar_border_colour}{Colour of the border around each bar. No border colour is drawn as default.}
+#'    \item{case_boxes}{boolean, If \code{case_boxes = TRUE} then a boundary box will be drawn around
 #'    each case within each bar. Defaults to \code{case_boxes = FALSE}.}
-#'    \item{case_boxes_colour} {The colour of the border around each case box if if \code{case_boxes =
+#'    \item{case_boxes_colour}{The colour of the border around each case box if if \code{case_boxes =
 #'    TRUE}. Default = \code{"white"}.}
-#'    \item{rolling_average_line} {boolean, If \code{rolling_average_line = TRUE}, then a line showing the
+#'    \item{rolling_average_line}{boolean, If \code{rolling_average_line = TRUE}, then a line showing the
 #'    rolling mean will be added to the plot. Default = \code{FALSE}.}
-#'    \item{rolling_average_line_lookback} {Integer denoting the lookback window across which the rolling
+#'    \item{rolling_average_line_lookback}{Integer denoting the lookback window across which the rolling
 #'    mean will be calculated (including the current time interval). Each integer denotes a division
 #'    within \code{time_period}, e.g. if \code{time_period = "year_month"} and
 #'    \code{rolling_average_line_lookback = 3} then the rolling mean will be calculated using values from
@@ -48,55 +48,55 @@
 #'    window using the values available (i.e. if \code{rolling_average_line_lookback = 7} and
 #'    \code{time_period = "day"} but there are only 4 values within the previous 7 days, then the rolling
 #'    mean will be calculated from the 4 available values.)}
-#'    \item{rolling_average_line_colour} {character Colour of the rolling average line. Default = \code{"red"}.}
-#'    \item{rolling_average_line_width} {numeric Width of the rolling average line. Default = 1.}
+#'    \item{rolling_average_line_colour}{character Colour of the rolling average line. Default = \code{"red"}.}
+#'    \item{rolling_average_line_width}{numeric Width of the rolling average line. Default = 1.}
 #'    \item{rolling_average_line_legend_label} {character Label to be used for the rolling average line
 #'    in the chart legend.}
-#'    \item{cumulative_sum_line} {boolean, If \code{cumulative_sum_line_line = TRUE}, then a line showing
+#'    \item{cumulative_sum_line}{boolean, If \code{cumulative_sum_line_line = TRUE}, then a line showing
 #'    the cumulative sum will be added to the plot. Default = \code{FALSE}. Values for the cumulative sum
 #'    will be plotted on the secondary y-axis.}
-#'    \item{cumulative_sum_line_colour} {character Colour of the cumulative line. Default = \code{"darkblue"}.}
-#'    \item{cumulative_sum_line_width} {numeric Width of the cumulative sum line. Default = 1.}
-#'    \item{cumulative_sum_line_legend_label} {character Label to be used for the cumulative sum line
+#'    \item{cumulative_sum_line_colour}{character Colour of the cumulative line. Default = \code{"darkblue"}.}
+#'    \item{cumulative_sum_line_width}{numeric Width of the cumulative sum line. Default = 1.}
+#'    \item{cumulative_sum_line_legend_label}{character Label to be used for the cumulative sum line
 #'    in the chart legend.}
-#'    \item{cumulative_sum_line_axis_title} {character Axis title for the cumulative sum line secondary
+#'    \item{cumulative_sum_line_axis_title}{character Axis title for the cumulative sum line secondary
 #'    axis.}
-#'    \item{chart_title} {Text to use as chart title.}
-#'    \item{chart_title_size} {Font size of chart title.}
-#'    \item{chart_title_colour} {Font colour of chart title.}
-#'    \item{chart_footer} {Text to use as chart footer.}
-#'    \item{chart_footer_size} {Font size of chart footer.}
-#'    \item{chart_footer_colour} {Font colour of chart footer.}
-#'    \item{x_axis_title} {Text used for x-axis title. Defaults to name of x-variable if
+#'    \item{chart_title}{Text to use as chart title.}
+#'    \item{chart_title_size}{Font size of chart title.}
+#'    \item{chart_title_colour}{Font colour of chart title.}
+#'    \item{chart_footer}{Text to use as chart footer.}
+#'    \item{chart_footer_size}{Font size of chart footer.}
+#'    \item{chart_footer_colour}{Font colour of chart footer.}
+#'    \item{x_axis_title}{Text used for x-axis title. Defaults to name of x-variable if
 #'    not stated.}
-#'    \item{y_axis_title} {Text used for y-axis title. Defaults to name of y-variable if
+#'    \item{y_axis_title}{Text used for y-axis title. Defaults to name of y-variable if
 #'    not stated.}
-#'    \item{x_axis_label_angle} {Angle for x-axis label text.}
-#'    \item{y_axis_label_angle} {Angle for y-axis label text.}
-#'    \item{y_limit_min} {Lower limit for the y-axis. Default used if not provided.}
-#'    \item{y_limit_max} {Upper limit for the y-axis. Default used if not provided.}
-#'    \item{x_axis_break_labels} {Vector of values to use for x-axis breaks. Defaults
+#'    \item{x_axis_label_angle}{Angle for x-axis label text.}
+#'    \item{y_axis_label_angle}{Angle for y-axis label text.}
+#'    \item{y_limit_min}{Lower limit for the y-axis. Default used if not provided.}
+#'    \item{y_limit_max}{Upper limit for the y-axis. Default used if not provided.}
+#'    \item{x_axis_break_labels}{Vector of values to use for x-axis breaks. Defaults
 #'    used if not provided. Values provided must match the formatting of \code{time_period}.}
-#'    \item{y_axis_break_labels} {Vector of values to use for y-axis breaks. Defaults
+#'    \item{y_axis_break_labels}{Vector of values to use for y-axis breaks. Defaults
 #'    used if not provided.}
-#'    \item{y_axis_n_breaks} {Scales y-axis with approximately n breaks. Cannot be used
+#'    \item{y_axis_n_breaks}{Scales y-axis with approximately n breaks. Cannot be used
 #'    if \code{y_axis_break_labels} is also provided.}
-#'    \item{show_gridlines} {Logical to show chart gridlines. Default = \code{TRUE}.}
-#'    \item{show_axislines} {Logical to show chart axis lines. Default = \code{TRUE}.}
-#'    \item{legend_title} {Text used for legend title.}
-#'    \item{legend_pos} {Position of the legend. Permitted values = c("top","bootom","right","left")}
-#'    \item{hline} {Adds horizontal line across the chart at the corresponding y-value. Multiple
+#'    \item{show_gridlines}{Logical to show chart gridlines. Default = \code{TRUE}.}
+#'    \item{show_axislines}{Logical to show chart axis lines. Default = \code{TRUE}.}
+#'    \item{legend_title}{Text used for legend title.}
+#'    \item{legend_pos}{Position of the legend. Permitted values = c("top","bootom","right","left")}
+#'    \item{hline}{Adds horizontal line across the chart at the corresponding y-value. Multiple
 #'    values may be provided as a vector to add multiple horizontal lines.}
-#'    \item{hline_colour} {Colour of the horizontal lines if \code{hline} is provided. A vector of colours
+#'    \item{hline_colour}{Colour of the horizontal lines if \code{hline} is provided. A vector of colours
 #'    can be provided to colour individual hlines if multiple hlines have been provided.}
-#'    \item{hline_width} {Numerical width of the horizontal lines if \code{hline} is provided. A vector of numerical widths
+#'    \item{hline_width}{Numerical width of the horizontal lines if \code{hline} is provided. A vector of numerical widths
 #'    can be provided for individual hlines if multiple hlines have been provided.}
-#'    \item{hline_type} {Line style of the horizontal lines if \code{hline} is provided. A vector of line styles
+#'    \item{hline_type}{Line style of the horizontal lines if \code{hline} is provided. A vector of line styles
 #'    can be provided to style hlines if multiple hlines have been provided. Permitted values = c("solid", "dotted",
 #'    "dashed", "longdash", "dotdash").}
-#'    \item{hline_label} {Text to label the horizontal lines if \code{hline} is provided. A vector of text strings
+#'    \item{hline_label}{Text to label the horizontal lines if \code{hline} is provided. A vector of text strings
 #'    can be provided to label individual hlines if multiple hlines have been provided.}
-#'    \item{hline_label_colour} {Colour of the horizontal line labels if \code{hline_labels} is provided.
+#'    \item{hline_label_colour}{Colour of the horizontal line labels if \code{hline_labels} is provided.
 #'    A vector of colours can be provided to colour individual hline_labels if multiple hline_labels have been provided.}
 #'
 #'
