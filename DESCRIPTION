@@ -16,7 +16,7 @@ Description: The epiviz package provides a set of functions to produce frequentl
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 LazyData: true
 Suggests: 
     testthat (>= 3.0.0)
@@ -35,7 +35,6 @@ Imports:
     scales,
     tidyr,
     yarrr,
-    lubridate,
-    magrittr
+    lubridate
 Depends: 
     R (>= 2.10)

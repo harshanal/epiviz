@@ -106,9 +106,9 @@ choropleth maps.
 # Local Authority Districts.
 
 # Define values for choropleth map using lab_data dataset
-London_staph_detections <- lab_data \%>\%
-  filter(region == "London", organism_species_name == "STAPHYLOCOCCUS AUREUS") \%>\%
-  group_by(local_authority_name) \%>\%
+London_staph_detections <- lab_data |>
+  filter(region == "London", organism_species_name == "STAPHYLOCOCCUS AUREUS") |>
+  group_by(local_authority_name) |>
   summarise(detections = n())
 
 # Create static map using London_LA_boundaries_2023 data
@@ -133,14 +133,14 @@ London_staph_detections_map <- epi_map(
 # public health regions using data pre-merged with a shapefile.
 
 # Define values for choropleth map using the lab_data dataset
-kleb_pneu_detections <- lab_data \%>\%
-  filter(organism_species_name == "KLEBSIELLA PNEUMONIAE") \%>\%
-  group_by(region) \%>\%
-  summarise(detections = n()) \%>\%
+kleb_pneu_detections <- lab_data |>
+  filter(organism_species_name == "KLEBSIELLA PNEUMONIAE") |>
+  group_by(region) |>
+  summarise(detections = n()) |>
   ungroup()
 
 # Add column defining labels to apply to map areas
-kleb_pneu_detections <- kleb_pneu_detections \%>\%
+kleb_pneu_detections <- kleb_pneu_detections |>
   mutate(map_labels = paste0(region,": \n",detections))
 
 # Join with the PHEC_boundaries_2016 shapefile data
