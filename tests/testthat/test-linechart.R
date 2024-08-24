@@ -1,6 +1,6 @@
 # test to chceck if the function returns a plotly object using the mandatory fields
 
-test_that("linechart static works", {
+test_that("line_chart static works", {
   library(dplyr)
   library(epiviz)
 
@@ -34,7 +34,7 @@ test_that("linechart static works", {
   )
 
    # Generate the line chart
-  result <- epiviz::linechart(params = params, dynamic = FALSE)
+  result <- epiviz::line_chart(params = params, dynamic = FALSE)
 
 
   # check that the output is a plotly object
@@ -45,7 +45,7 @@ test_that("linechart static works", {
 
 # test to chceck if the function returns a plotly object using the mandatory fields
 
-test_that("linechart dynamic works", {
+test_that("line_chart dynamic works", {
   library(dplyr)
   library(epiviz)
 
@@ -79,7 +79,7 @@ test_that("linechart dynamic works", {
   )
 
   # Generate the line chart
-  result <- epiviz::linechart(params = params, dynamic = TRUE)
+  result <- epiviz::line_chart(params = params, dynamic = TRUE)
 
 
   # check that the output is a plotly object

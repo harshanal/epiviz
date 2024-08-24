@@ -68,7 +68,7 @@
 #'    line_colour = c("blue","green","orange")
 #'  )
 #'  # Generate the line chart
-#'  epiviz::linechart(params = params, dynamic = FALSE)
+#'  epiviz::line_chart(params = params, dynamic = FALSE)
 #'
 
 
@@ -105,10 +105,10 @@
 #'  )
 #'
 #'  # Generate the line chart
-#'  epiviz::linechart(params = params, dynamic = TRUE)
+#'  epiviz::line_chart(params = params, dynamic = TRUE)
 #'
 #' @export
-linechart<-  function(dynamic = FALSE,
+line_chart<-  function(dynamic = FALSE,
                          base = NULL,
                          params = list(
                            dfr,

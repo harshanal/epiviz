@@ -40,7 +40,7 @@ utils::globalVariables(c(
   "labels_static", "map_zoom", "map_title_size", "map_title_colour",
   "map_footer_size", "map_footer_colour", "legend_pos",
 
-  # For linechart
+  # For line_chart
   "dfr", "x", "y", "group_var", "line_type", "st_theme", "line_colour",
   "width", "legend_title", "legend_position", "title", "x_label", "y_label",
   "x_label_angle", "y_label_angle", "show_gridlines", "show_axislines",
