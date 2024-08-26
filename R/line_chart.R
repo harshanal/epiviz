@@ -1,35 +1,78 @@
-library(plotly)
-library(ggplot2)
-
-linechart_n <-  function(dynamic = FALSE,
-                         base = NULL,
-                         df,
-                         x,
-                         y,
-                         ci = NULL,
-                         lower = NULL,
-                         upper = NULL,
-                         error_colour = c("#f2c75c"),
-                         group_var,
-                         line_colour = c("blue"),
-                         line_type = "solid",
-                         width = 1,
-                         title = NULL,
-                         x_label = NULL,
-                         x_label_angle = NULL, #rotation counterclockwise
-                         y_label = NULL,
-                         y_label_angle = NULL, #rotation counterclockwise
-                         y_percent = FALSE,
-                         st_theme = NULL,
-                         add_points = FALSE,
-                         show_gridlines = FALSE,
-                         show_axislines = TRUE,
-                         legend_title = NULL,
-                         legend_position = NULL,
-                         #  “left”,“top”, “right”, “bottom”, “none”.
-                         hline = NULL,
-                         hline_colour = "red",
-                         hline_label = NULL) {
+#' Line Chart Function
+#'
+#' Produce either a static (ggplot) or a dynamic (plotly) line chart output depending on the parameter \code{dynamic}.
+#'
+#' @param dynamic Logical indicating whether to produce a dynamic (plotly) plot. Default is \code{FALSE}.
+#' @param base Optional base plot to customize. Default is NULL.
+#' @param df Data frame containing the data.
+#' @param x Variable for the x-axis.
+#' @param y Variable for the y-axis.
+#' @param ci Type of confidence interval. Can be 'e' (error bar) or 'r' (ribbon). Default is NULL.
+#' @param lower Lower bound for confidence interval. Default is NULL.
+#' @param upper Upper bound for confidence interval. Default is NULL.
+#' @param error_colour Color for error bars or ribbons. Default is "#f2c75c".
+#' @param group_var Variable for grouping data points. Default is NULL.
+#' @param line_colour Vector of colors for lines. Default is "blue".
+#' @param line_type Type of line. Options: "solid", "dotted", "dashed", "longdash", "dotdash". Default is "solid".
+#' @param width Width of lines. Default is 1.
+#' @param title Title of the plot. Default is NULL.
+#' @param x_label Label for the x-axis. Default is NULL.
+#' @param x_label_angle Angle for x-axis label rotation (counterclockwise). Default is NULL.
+#' @param y_label Label for the y-axis. Default is NULL.
+#' @param y_label_angle Angle for y-axis label rotation (counterclockwise). Default is NULL.
+#' @param y_percent Logical indicating whether to display y-axis labels as percentages. Default is FALSE.
+#' @param st_theme Optional theme for ggplot plots. Default is NULL.
+#' @param add_points Logical indicating whether to add points to lines. Default is FALSE.
+#' @param show_gridlines Logical indicating whether to show gridlines. Default is FALSE.
+#' @param show_axislines Logical indicating whether to show axis lines. Default is TRUE.
+#' @param legend_title Title for the legend. Default is NULL.
+#' @param legend_position Position of the legend. Options: "left", "top", "right", "bottom", "none". Default is NULL.
+#' @param hline Horizontal line at specified y-value. Default is NULL.
+#' @param hline_colour Color of the horizontal line. Default is "red".
+#' @param hline_label Label for the horizontal line. Default is NULL.
+#'
+#' @import dplyr
+#' @import plotly
+#' @import ggplot2
+#' @import broom
+#' @import RColorBrewer
+#'
+#' @return A static (ggplot) or dynamic (plotly) line chart.
+#'
+#'
+#' @return
+#' @export
+#'
+#' @examples
+linechart <-  function(dynamic = FALSE,
+                       base = NULL,
+                       df,
+                       x,
+                       y,
+                       ci = NULL,
+                       lower = NULL,
+                       upper = NULL,
+                       error_colour = c("#f2c75c"),
+                       group_var,
+                       line_colour = c("blue"),
+                       line_type = "solid",
+                       width = 1,
+                       title = NULL,
+                       x_label = NULL,
+                       x_label_angle = NULL, #rotation counterclockwise
+                       y_label = NULL,
+                       y_label_angle = NULL, #rotation counterclockwise
+                       y_percent = FALSE,
+                       st_theme = NULL,
+                       add_points = FALSE,
+                       show_gridlines = FALSE,
+                       show_axislines = TRUE,
+                       legend_title = NULL,
+                       legend_position = NULL,
+                       #  “left”,“top”, “right”, “bottom”, “none”.
+                       hline = NULL,
+                       hline_colour = "red",
+                       hline_label = NULL) {
   valid_line_types <-
     c("solid", "dotted", "dashed", "longdash", "dotdash")
 
@@ -137,7 +180,7 @@ linechart_n <-  function(dynamic = FALSE,
         )
     } else{
 
-       # creating base graph with groups
+      # creating base graph with groups
       base <-
         base + ggplot2::geom_line(
           data = df,
@@ -253,20 +296,20 @@ linechart_n <-  function(dynamic = FALSE,
 
     # if add points included then add geom
     if(add_points) {
-       if(!missing(group_var)){
+      if(!missing(group_var)){
         base <-
           base + ggplot2::geom_point(data = df, aes(
             x = .data[[x]], y = .data[[y]], colour = .data[[group_var]], size=1
           )) +
-        guides(size = FALSE) # hides size of point from legend
+          guides(size = FALSE) # hides size of point from legend
 
-        }else{
+      }else{
 
         base <-
           base + ggplot2::geom_point(data = df, aes(x = .data[[x]], y = .data[[y]], size=1
           )) +
           guides(size = FALSE) # hides size of point from legend
-        }
+      }
     }
 
 
@@ -310,7 +353,6 @@ linechart_n <-  function(dynamic = FALSE,
         )
 
       )
-
 
     }
 
@@ -535,7 +577,7 @@ linechart_n <-  function(dynamic = FALSE,
         if (legend_position %in% c("top", "bottom"))
           "h"
       else
-          "v"
+        "v"
 
       # configure legend settings
       legend_settings <- switch(
@@ -583,119 +625,3 @@ linechart_n <-  function(dynamic = FALSE,
   # return either ggplot or base plot
   return(base)
 }
-
-
-############
-# test code
-############
-#
-# mtcars1 <- mtcars
-#
-# mtcars1$group <-
-#   cut(
-#     mtcars$cyl,
-#     breaks = c(0, 4, 6, 8),
-#     labels = c("4 cylinders", "6 cylinders", "8 cylinders")
-#   )
-#
-# library(ggplot2)
-#
-# linechart_n(
-#   dynamic = FALSE,
-#   df = mtcars1,
-#   x = "mpg",
-#   y = "hp",
-#   group_var = "group",
-#   line_colour = "blue",
-#   line_type = "dashed",
-#   width = 1.2,
-#   st_theme = theme_minimal(),
-#   title = "epiviz example title",
-#   x_label = "epiviz x",
-#   y_label = "epiviz y",
-#   y_percent = TRUE,
-#   show_gridlines = TRUE,
-#   show_axislines = TRUE,
-#   hline = 150,
-#   hline_colour = "purple",
-#   hline_label = "SOME VALUE=150",
-#   add_points = FALSE,
-#   x_label_angle = 45,
-#   y_label_angle = 90,
-#   legend_title = "legend title test",
-#   legend_position = "left"
-# )
-
-library(dplyr)
-
-data <- epiviz::lab_data
-head(data)
-
-data_processed <- data %>%
-  group_by(specimen_date, organism_species_name) %>%
-  summarize(count = n()) %>%
-  ungroup()
-
-data_processed_monthly <- data_processed %>%
-  filter(lubridate::year(specimen_date) == 2023) |>
-  mutate(month = format(specimen_date, "%Y-%m")) %>%
-  group_by(month, organism_species_name) %>%
-  summarise(total_count = sum(count)) |>
-  ungroup()
-head(data_processed_monthly)
-
-library(broom)
-
-# Function to add confidence intervals to the dataset
-add_confidence_intervals <- function(data, group_var, value_var, conf_level = 0.95) {
-  data %>%
-    group_by({{ group_var }}) %>%
-    summarise(mean = mean({{ value_var }}),
-              se = sd({{ value_var }}) / sqrt(n()), # Standard error
-              ci_lower = mean - qt((1 - conf_level) / 2, n() - 1) * se, # Lower confidence limit
-              ci_upper = mean + qt((1 - conf_level) / 2, n() - 1) * se) # Upper confidence limit
-}
-
-# Apply the function to add confidence intervals to your dataset
-data_with_intervals <- add_confidence_intervals(data_processed_monthly,
-                                                organism_species_name,
-                                                total_count)
-
-# Merge the confidence intervals back to the original dataset
-data_processed_with_intervals <- left_join(data_processed_monthly,
-                                           data_with_intervals,
-                                           by = "organism_species_name")
-
-# View the dataset with confidence intervals
-print(data_processed_with_intervals)
-
-
-linechart_n(
-  dynamic = FALSE,
-  df = data_processed_with_intervals,
-  x = "month",
-  y = "total_count",
-  group_var = "organism_species_name",
-  # ci='e',
-  # lower = "ci_lower",
-  # upper = "ci_upper",
-  line_colour = "blue",
-  width = 1,
-  st_theme = theme_minimal(),
-  title = "Organism trends (2023)",
-  x_label = "Time",
-  y_label = "Organism count",
-  y_percent = FALSE,
-  show_gridlines = FALSE,
-  show_axislines = TRUE,
-  hline = 150,
-  hline_colour = "purple",
-  hline_label = "Threshold=150",
-  add_points = TRUE,
-  x_label_angle = 45,
-  y_label_angle = 0,
-  legend_title = "Organism",
-  legend_position = "bottom"
-)
-
-
