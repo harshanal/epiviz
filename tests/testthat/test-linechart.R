@@ -87,4 +87,3 @@ test_that("line_chart dynamic works", {
   expect_true(inherits(result, "plotly"))
 
 })
-
