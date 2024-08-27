@@ -29,7 +29,7 @@ remotes::install_github("harshanal/epiviz@dev")
 Following functions are available in the current release of epiviz:
 
 - `line_chart()`: Line chart with options to add dual axes, threshold lines, confidence limits as ribbons/error bars.
-- `col_charts()`: Column chart with options to add dual axes, threshold lines, confidence limits as ribbons/error bars.
+- `col_chart()`: Column chart with options to add dual axes, threshold lines, confidence limits as ribbons/error bars.
 - `epi_map()`: Epidemiological map with customisable maps adaptable for multiple administrative levels.
 - `agesex_pyramid()`: Age-sex pyramid with customisable age bands with the option to add error bars.
 
