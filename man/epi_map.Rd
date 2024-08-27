@@ -34,7 +34,12 @@ shapefile data.}
 for the resultant map output. This will not be used if inc_shp = TRUE.}
 \item{shp_areacode}{ Name of the variable in shp_name containing the name
 or code of the map areas to be plotted. (Mandatory if shp_name argument passed).}
-\item{fill_palette}{name of the RColorBrewer palette to use in map fill (default = "Blues")}
+\item{fill_palette}{Colour palette used to fill the map areas. Can be provided as either
+the name of an RColorBrewer palette (e.g. \code{fill_palette = "YlOrRd"}), a character containing
+a single rgb colour code, hexcode, or colour name that will be used to generate a colour range (e.g.
+\code{fill_palette = "#007C91"}), or a character vector containing multiple rgb codes, hexcodes,
+or colour names that will be used to generate a colour range (e.g. \code{c("#007C91","purple","red")}).
+Defaults to the RColorBrewer "Blues" palette.)}
 \item{fill_opacity}{numeric value between 0 and 1 to determine map fill-color opacity.}
 \item{break_intervals}{numeric vector of interval points for legend
 (Mandatory if break_labels argument is passed, break_intervals and break_labels must be
@@ -101,9 +106,9 @@ choropleth maps.
 # Local Authority Districts.
 
 # Define values for choropleth map using lab_data dataset
-London_staph_detections <- lab_data \%>\%
-  filter(region == "London", organism_species_name == "STAPHYLOCOCCUS AUREUS") \%>\%
-  group_by(local_authority_name) \%>\%
+London_staph_detections <- lab_data |>
+  filter(region == "London", organism_species_name == "STAPHYLOCOCCUS AUREUS") |>
+  group_by(local_authority_name) |>
   summarise(detections = n())
 
 # Create static map using London_LA_boundaries_2023 data
@@ -128,14 +133,14 @@ London_staph_detections_map <- epi_map(
 # public health regions using data pre-merged with a shapefile.
 
 # Define values for choropleth map using the lab_data dataset
-kleb_pneu_detections <- lab_data \%>\%
-  filter(organism_species_name == "KLEBSIELLA PNEUMONIAE") \%>\%
-  group_by(region) \%>\%
-  summarise(detections = n()) \%>\%
+kleb_pneu_detections <- lab_data |>
+  filter(organism_species_name == "KLEBSIELLA PNEUMONIAE") |>
+  group_by(region) |>
+  summarise(detections = n()) |>
   ungroup()
 
 # Add column defining labels to apply to map areas
-kleb_pneu_detections <- kleb_pneu_detections \%>\%
+kleb_pneu_detections <- kleb_pneu_detections |>
   mutate(map_labels = paste0(region,": \n",detections))
 
 # Join with the PHEC_boundaries_2016 shapefile data

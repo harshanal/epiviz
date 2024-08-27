@@ -35,7 +35,7 @@
 #' @examples
 #' \dontrun{
 #' library(dplyr)
-#' data <- lab_data |>
+#' data <- epiviz::lab_data |>
 #'  group_by(organism_species_name) |>
 #'  summarise(Count=n())
 #'

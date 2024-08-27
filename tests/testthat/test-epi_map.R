@@ -7,10 +7,10 @@ test_that("epi_map returns a ggplot object when provided with un-merged shapefil
 
 
   data <- epiviz::lab_data
-  data_processed <- data %>%
+  data_processed <- data |>
     filter(region == "London",
-           organism_species_name == "STAPHYLOCOCCUS AUREUS") %>%
-    group_by(local_authority_name) %>%
+           organism_species_name == "STAPHYLOCOCCUS AUREUS") |>
+    group_by(local_authority_name) |>
     summarise(detections = n())
 
 
@@ -65,11 +65,11 @@ test_that("epi_map returns a ggplot object when provided with pre-merged shapefi
 
 
   data <- epiviz::lab_data
-  data_processed <- data %>%
-    filter(organism_species_name == "KLEBSIELLA PNEUMONIAE") %>%
-    group_by(region) %>%
-    summarise(detections = n()) %>%
-    ungroup() %>%
+  data_processed <- data |>
+    filter(organism_species_name == "KLEBSIELLA PNEUMONIAE") |>
+    group_by(region) |>
+    summarise(detections = n()) |>
+    ungroup() |>
     mutate(map_labels = paste0(region,": \n",detections))
 
 
@@ -124,11 +124,11 @@ test_that("epi_map returns a ggplot object when provided with a border shapefile
 
 
   data <- epiviz::lab_data
-  data_processed <- data %>%
-    filter(organism_species_name == "KLEBSIELLA PNEUMONIAE") %>%
-    group_by(region) %>%
-    summarise(detections = n()) %>%
-    ungroup() %>%
+  data_processed <- data |>
+    filter(organism_species_name == "KLEBSIELLA PNEUMONIAE") |>
+    group_by(region) |>
+    summarise(detections = n()) |>
+    ungroup() |>
     mutate(map_labels = paste0(region,": \n",detections))
 
 
@@ -182,10 +182,10 @@ test_that("epi_map returns a leaflet object when provided with un-merged shapefi
 
 
   data <- epiviz::lab_data
-  data_processed <- data %>%
+  data_processed <- data |>
     filter(region == "London",
-           organism_species_name == "STAPHYLOCOCCUS AUREUS") %>%
-    group_by(local_authority_name) %>%
+           organism_species_name == "STAPHYLOCOCCUS AUREUS") |>
+    group_by(local_authority_name) |>
     summarise(detections = n())
 
 
@@ -240,11 +240,11 @@ test_that("epi_map returns a leaflet object when provided with pre-merged shapef
 
 
   data <- epiviz::lab_data
-  data_processed <- data %>%
-    filter(organism_species_name == "KLEBSIELLA PNEUMONIAE") %>%
-    group_by(region) %>%
-    summarise(detections = n()) %>%
-    ungroup() %>%
+  data_processed <- data |>
+    filter(organism_species_name == "KLEBSIELLA PNEUMONIAE") |>
+    group_by(region) |>
+    summarise(detections = n()) |>
+    ungroup() |>
     mutate(map_labels = paste0(region,": \n",detections))
 
 
@@ -301,11 +301,11 @@ test_that("epi_map returns a leaflet object when provided with a border shapefil
 
 
   data <- epiviz::lab_data
-  data_processed <- data %>%
-    filter(organism_species_name == "KLEBSIELLA PNEUMONIAE") %>%
-    group_by(region) %>%
-    summarise(detections = n()) %>%
-    ungroup() %>%
+  data_processed <- data |>
+    filter(organism_species_name == "KLEBSIELLA PNEUMONIAE") |>
+    group_by(region) |>
+    summarise(detections = n()) |>
+    ungroup() |>
     mutate(map_labels = paste0(region,": \n",detections))
 
 

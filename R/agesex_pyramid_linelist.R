@@ -73,7 +73,7 @@ agesex_pyramid_linelist <- function(df,
 
   # Aggregate data by age group and sex
   df <- df |>
-    group_by(age_group, sex) %>%
+    group_by(age_group, sex) |>
     summarise(value = n(),
               lowercl = if (conf_limits) -1.96 * sqrt(value),
               uppercl = if (conf_limits) 1.96 * sqrt(value)) |>
