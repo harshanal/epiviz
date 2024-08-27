@@ -17,9 +17,10 @@
 #'   \item \code{ci} Optional. A character string specifying the column in `dfr` for confidence intervals.
 #'   \item \code{lower} Optional. A character string specifying the column in `dfr` for lower bounds of confidence intervals.
 #'   \item \code{upper} Optional. A character string specifying the column in `dfr` for upper bounds of confidence intervals.
-#'   \item \code{error_colour} A character vector specifying the color for error bars. Default is `#f2c75c`.
-#'   \item \code{line_colour} A character vector specifying the color for lines. Default is `blue`.
-#'   \item \code{line_type} A character string specifying the type of line to be used (e.g., "solid", "dashed").
+#'   \item \code{error_colour} The color for error bars. Default is `#f2c75c`.
+#'   \item \code{line_colour} List of colours for lines. Default is `blue`.
+#'   \item \code{line_type} Line type for single graph, or list of line types
+#'   Permissable values: "solid", "dotted", "dashed", "longdash", "dotdash"
 #'   \item \code{width} A numeric value specifying the width of the lines.
 #'   \item \code{title} Optional. A character string specifying the title of the plot.
 #'   \item \code{x_label} Optional. A character string specifying the label for the x-axis.
@@ -227,12 +228,15 @@ line_chart<-  function(dynamic = FALSE,
     # produce ggplot graph if 'dynamic' is set to FALSE
 
 
-    # validate line type
-    if (!(line_type %in% valid_line_types)) {
-      stop(
-        "Invalid line type. Please provide one of the following line types:
-           solid, dotted, dashed, longdash, dotdash"
-      )
+    # Validation for line types
+    if (length(line_type) == 1) {
+      if (!(line_type %in% valid_line_types)) {
+        stop("Invalid line type. Choose from: solid, dotted, dashed, longdash, dotdash")
+      }
+    } else {
+      if (!all(line_type %in% valid_line_types)) {
+        stop("One or more linetypes are invalid. Choose from: solid, dotted, dashed, longdash, dotdash")
+      }
     }
 
     # create base plot
@@ -268,12 +272,13 @@ line_chart<-  function(dynamic = FALSE,
             x = .data[[x]],
             y = .data[[y]],
             group = .data[[group_var]],
-            colour = .data[[group_var]]
+            colour = .data[[group_var]],
+            linetype = .data[[group_var]]
           ),
-          linewidth = width,
-          linetype = line_type
+          linewidth = width
         ) +
-        scale_colour_manual(values = line_colour)
+        scale_colour_manual(values = line_colour) +
+        scale_linetype_manual(values = line_type)
 
 
       # Legend parameters
