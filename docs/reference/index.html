@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">epiviz</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.0.9002</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.0.9005</span>
       </span>
     </div>
 
@@ -53,13 +53,33 @@
         </td>
         <td><p>Age-Sex Pyramid using Line List Data</p></td>
       </tr><tr><td>
+          <p><code><a href="base_gg.html">base_gg()</a></code> </p>
+        </td>
+        <td><p>Creates base ggplot object for use across other functions. Parameters are not passed explicitly to the function, so function call needs to be proceeded by environment(base_gg) &lt;- environment()</p></td>
+      </tr><tr><td>
+          <p><code><a href="base_plotly.html">base_plotly()</a></code> </p>
+        </td>
+        <td><p>Creates base plotly object for use across other functions. Parameters are not passed explicitly to the function, so function call needs to be proceeded by environment(base_plotly) &lt;- environment()</p></td>
+      </tr><tr><td>
           <p><code><a href="col_chart.html">col_chart()</a></code> </p>
         </td>
         <td><p>Column Chart</p></td>
       </tr><tr><td>
+          <p><code><a href="datebreak_to_d3.html">datebreak_to_d3()</a></code> </p>
+        </td>
+        <td><p>Function to convert ggplot scale_date(date_breaks) values to d3 date format for use in plotly dtick variable for date axis break setting.</p></td>
+      </tr><tr><td>
           <p><code><a href="epi_map.html">epi_map()</a></code> </p>
         </td>
         <td><p>epi_map</p></td>
+      </tr><tr><td>
+          <p><code><a href="get_os.html">get_os()</a></code> </p>
+        </td>
+        <td><p>Function for determining user's operating system credit: https://www.r-bloggers.com/2015/06/identifying-the-os-from-r/</p></td>
+      </tr><tr><td>
+          <p><code><a href="html_bold.html">html_bold()</a></code> </p>
+        </td>
+        <td><p>Function to apply html bold tags to input text strings for use in plotly font definitions.</p></td>
       </tr><tr><td>
           <p><code><a href="inv_scale_function.html">inv_scale_function()</a></code> </p>
         </td>
@@ -71,27 +91,43 @@
       </tr><tr><td>
           <p><code><a href="line_chart.html">line_chart()</a></code> </p>
         </td>
-        <td><p>Line_chart</p></td>
-      </tr><tr><td>
-          <p><code><a href="line_chart_plotly.html">line_chart_plotly()</a></code> </p>
-        </td>
-        <td><p>Line_chart</p></td>
+        <td><p>A function for producing either static (ggplot) or dynamic (plotly) line charts.</p></td>
       </tr><tr><td>
           <p><code><a href="London_LA_boundaries_2023.html">London_LA_boundaries_2023</a></code> </p>
         </td>
         <td><p>Local Authority Districts (May 2023) Boundaries for London BGC</p></td>
       </tr><tr><td>
+          <p><code><a href="palette_gen.html">palette_gen()</a></code> </p>
+        </td>
+        <td><p>A function to generate a colour palette of n_pal hexcodes based upon an input colour (or colours) <code>x</code></p></td>
+      </tr><tr><td>
+          <p><code><a href="param_assign.html">param_assign()</a></code> </p>
+        </td>
+        <td><p>Function to assign list elements to variables within the parent environment. Compares input list against a reference vector of expected list elements, and assigns any that it cannot find a value of 'NULL'.</p></td>
+      </tr><tr><td>
           <p><code><a href="PHEC_boundaries_2016.html">PHEC_boundaries_2016</a></code> </p>
         </td>
         <td><p>PHEC (Dec 2016) Generalised Clipped Boundaries in England</p></td>
       </tr><tr><td>
+          <p><code><a href="plotly_legend_pos.html">plotly_legend_pos()</a></code> </p>
+        </td>
+        <td><p>Function to convert ggplot legend positions into list of parameters for plotly layout</p></td>
+      </tr><tr><td>
+          <p><code><a href="plotly_line_style.html">plotly_line_style()</a></code> </p>
+        </td>
+        <td><p>Function to translate ggplot linetypes into plotly linetypes</p></td>
+      </tr><tr><td>
           <p><code><a href="point_chart.html">point_chart()</a></code> </p>
         </td>
-        <td><p>Point chart</p></td>
+        <td><p>point_chart</p></td>
       </tr><tr><td>
           <p><code><a href="scale_function.html">scale_function()</a></code> </p>
         </td>
         <td><p>Function to scale/shift secondary y axis labels</p></td>
+      </tr><tr><td>
+          <p><code><a href="set_Arial.html">set_Arial()</a></code> </p>
+        </td>
+        <td><p>Function to set chart_font variable to Arial in order to resolve warnings</p></td>
       </tr><tr><td>
           <p><code><a href="UK_boundaries_2023.html">UK_boundaries_2023</a></code> </p>
         </td>
