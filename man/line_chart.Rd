@@ -31,9 +31,10 @@ If \code{FALSE}, a static ggplot2 object will be returned.}
 \item \code{ci} Optional. A character string specifying the column in \code{dfr} for confidence intervals.
 \item \code{lower} Optional. A character string specifying the column in \code{dfr} for lower bounds of confidence intervals.
 \item \code{upper} Optional. A character string specifying the column in \code{dfr} for upper bounds of confidence intervals.
-\item \code{error_colour} A character vector specifying the color for error bars. Default is \verb{#f2c75c}.
-\item \code{line_colour} A character vector specifying the color for lines. Default is \code{blue}.
-\item \code{line_type} A character string specifying the type of line to be used (e.g., "solid", "dashed").
+\item \code{error_colour} The color for error bars. Default is \verb{#f2c75c}.
+\item \code{line_colour} List of colours for lines. Default is \code{blue}.
+\item \code{line_type} Line type for single graph, or list of line types
+Permissable values: "solid", "dotted", "dashed", "longdash", "dotdash"
 \item \code{width} A numeric value specifying the width of the lines.
 \item \code{title} Optional. A character string specifying the title of the plot.
 \item \code{x_label} Optional. A character string specifying the label for the x-axis.
