@@ -76,7 +76,8 @@ test_that("line_chart dynamic works", {
     x = "specimen_date", # Ensure this matches the column name exactly
     y = "count",         # Ensure this matches the column name exactly
     group_var = "organism_species_name",  # Ensure this matches the column name exactly
-    line_colour = c("blue","green","orange")
+    line_colour = c("blue","green","orange"),
+    line_type = c("solid", "dotted", "dashed")
   )
 
   # Generate the line chart

@@ -66,7 +66,8 @@
 #'    x = "specimen_date", # Ensure this matches the column name exactly
 #'    y = "count",         # Ensure this matches the column name exactly
 #'    group_var = "organism_species_name",  # Ensure this matches the column name exactly
-#'    line_colour = c("blue","green","orange")
+#'    line_colour = c("blue","green","orange"),
+#'    line_type = c("solid", "dotted", "dashed")
 #'  )
 #'  # Generate the line chart
 #'  epiviz::line_chart(params = params, dynamic = FALSE)
@@ -102,72 +103,97 @@
 #'    x = "specimen_date", # Ensure this matches the column name exactly
 #'    y = "count",         # Ensure this matches the column name exactly
 #'    group_var = "organism_species_name",  # Ensure this matches the column name exactly
-#'    line_colour = c("blue","green","orange")
+#'    line_colour = c("blue","green","orange"),
+#'    line_type = c("solid", "dotted", "dashed")
 #'  )
 #'
 #'  # Generate the line chart
 #'  epiviz::line_chart(params = params, dynamic = TRUE)
 #'
 #' @export
-line_chart<-  function(dynamic = FALSE,
-                         base = NULL,
-                         params = list(
-                           dfr,
-                           x,
-                           y,
-                           ci = NULL,
-                           lower = NULL,
-                           upper = NULL,
-                           error_colour = c("#f2c75c"),
-                           group_var,
-                           line_colour = c("blue"),
-                           line_type = "solid",
-                           width = 1,
-                           title = NULL,
-                           x_label = NULL,
-                           x_label_angle = NULL, #rotation counterclockwise
-                           y_label = NULL,
-                           y_label_angle = NULL, #rotation counterclockwise
-                           y_percent = FALSE,
-                           st_theme = NULL,
-                           add_points = FALSE,
-                           show_gridlines = FALSE,
-                           show_axislines = TRUE,
-                           legend_title = NULL,
-                           legend_position = NULL,
-                           #  “left”,“top”, “right”, “bottom”, “none”.
-                           hline = NULL,
-                           hline_colour = "red",
-                           hline_label = NULL)
-                           ) {
-
+line_chart <-  function(dynamic = FALSE,
+                        base = NULL,
+                        params = list(
+                          dfr,
+                          x,
+                          y,
+                          ci = NULL,
+                          lower = NULL,
+                          upper = NULL,
+                          error_colour = c("#f2c75c"),
+                          group_var,
+                          line_colour = c("blue"),
+                          line_type = "solid",
+                          width = 1,
+                          title = NULL,
+                          x_label = NULL,
+                          x_label_angle = NULL,
+                          #rotation counterclockwise
+                          y_label = NULL,
+                          y_label_angle = NULL,
+                          #rotation counterclockwise
+                          y_percent = FALSE,
+                          st_theme = NULL,
+                          add_points = FALSE,
+                          show_gridlines = FALSE,
+                          show_axislines = TRUE,
+                          legend_title = NULL,
+                          legend_position = NULL,
+                          #  “left”,“top”, “right”, “bottom”, “none”.
+                          hline = NULL,
+                          hline_colour = "red",
+                          hline_label = NULL
+                        )) {
   # Solve warnings regarding font family not found using utils/set_Arial() function
   set_Arial()
 
   # Where relevant, assign defaults to any parameters not specified by the user
-  if(!exists('ci', where=params)) params$ci <- NULL
-  if(!exists('lower', where=params)) params$lower <- NULL
-  if(!exists('upper', where=params)) params$upper <- NULL
-  if(!exists('error_colour', where=params)) params$error_colour <- c("#f2c75c")
-  if(!exists('group_var', where=params)) params$upper <- NULL
-  if(!exists('line_colour', where=params)) params$line_colour <- c("blue")
-  if(!exists('line_type', where=params)) params$line_type <- "solid"
-  if(!exists('width', where=params)) params$width <- 1
-  if(!exists('title', where=params)) params$title <- NULL
-  if(!exists('x_label', where=params)) params$x_label <- NULL
-  if(!exists('x_label_angle', where=params)) params$x_label_angle <- NULL # rotation counterclockwise
-  if(!exists('y_label', where=params)) params$y_label <- NULL
-  if(!exists('y_label_angle', where=params)) params$y_label_angle <- NULL # rotation counterclockwise
-  if(!exists('y_percent', where=params)) params$y_percent <- FALSE
-  if(!exists('st_theme', where=params)) params$st_theme <- NULL
-  if(!exists('add_points', where=params)) params$add_points <- FALSE
-  if(!exists('show_gridlines', where=params)) params$show_gridlines <- FALSE
-  if(!exists('show_axislines', where=params)) params$show_axislines <- TRUE
-  if(!exists('legend_title', where=params)) params$legend_title <- NULL
-  if(!exists('legend_position', where=params)) params$legend_position <- NULL # “left”, “top”, “right”, “bottom”, “none”
-  if(!exists('hline', where=params)) params$hline <- NULL
-  if(!exists('hline_colour', where=params)) params$hline_colour <- "red"
-  if(!exists('hline_label', where=params)) params$hline_label <- NULL
+  if (!exists('ci', where = params))
+    params$ci <- NULL
+  if (!exists('lower', where = params))
+    params$lower <- NULL
+  if (!exists('upper', where = params))
+    params$upper <- NULL
+  if (!exists('error_colour', where = params))
+    params$error_colour <- c("#f2c75c")
+  if (!exists('group_var', where = params))
+    params$upper <- NULL
+  if (!exists('line_colour', where = params))
+    params$line_colour <- c("blue")
+  if (!exists('line_type', where = params))
+    params$line_type <- "solid"
+  if (!exists('width', where = params))
+    params$width <- 1
+  if (!exists('title', where = params))
+    params$title <- NULL
+  if (!exists('x_label', where = params))
+    params$x_label <- NULL
+  if (!exists('x_label_angle', where = params))
+    params$x_label_angle <- NULL # rotation counterclockwise
+  if (!exists('y_label', where = params))
+    params$y_label <- NULL
+  if (!exists('y_label_angle', where = params))
+    params$y_label_angle <- NULL # rotation counterclockwise
+  if (!exists('y_percent', where = params))
+    params$y_percent <- FALSE
+  if (!exists('st_theme', where = params))
+    params$st_theme <- NULL
+  if (!exists('add_points', where = params))
+    params$add_points <- FALSE
+  if (!exists('show_gridlines', where = params))
+    params$show_gridlines <- FALSE
+  if (!exists('show_axislines', where = params))
+    params$show_axislines <- TRUE
+  if (!exists('legend_title', where = params))
+    params$legend_title <- NULL
+  if (!exists('legend_position', where = params))
+    params$legend_position <- NULL # “left”, “top”, “right”, “bottom”, “none”
+  if (!exists('hline', where = params))
+    params$hline <- NULL
+  if (!exists('hline_colour', where = params))
+    params$hline_colour <- "red"
+  if (!exists('hline_label', where = params))
+    params$hline_label <- NULL
 
   valid_line_types <-
     c("solid", "dotted", "dashed", "longdash", "dotdash")
@@ -179,37 +205,48 @@ line_chart<-  function(dynamic = FALSE,
   ##### Checks and warnings
 
   # Check if dfr is is.null
-  if (!exists('dfr',where=params)) stop("A data frame argument is required")
+  if (!exists('dfr', where = params))
+    stop("A data frame argument is required")
 
   # Check dfr is a dfr class
-  if(!is.data.frame(params$dfr)) stop("dfr is not a data frame object")
+  if (!is.data.frame(params$dfr))
+    stop("dfr is not a data frame object")
 
   # Check dfr is empty
-  if(!not_empty(params$dfr)) stop("dfr is empty")
+  if (!not_empty(params$dfr))
+    stop("dfr is empty")
 
   # Check if x argument is is.null
-  if ((is.null(params$x)) | !exists('x',where=params))
+  if ((is.null(params$x)) | !exists('x', where = params))
     stop("Please include a variable from dfr for x, i.e. x = \"variable_name\"")
 
   # Check if y argument is is.null
-  if ((is.null(params$y)) | !exists('y',where=params))
+  if ((is.null(params$y)) | !exists('y', where = params))
     stop("Please include a variable from dfr for y, i.e. y = \"variable_name\"")
 
   # Check if x is in dfr
   if (!params$x %in% colnames(params$dfr))
-    stop("x not found within dfr. Please include a variable from dfr for x, i.e. x = \"variable_name\"")
+    stop(
+      "x not found within dfr. Please include a variable from dfr for x, i.e. x = \"variable_name\""
+    )
 
   # Check if y is in dfr
   if (!params$y %in% colnames(params$dfr))
-    stop("y not found within dfr. Please include a variable from dfr for y, i.e. y = \"variable_name\"")
+    stop(
+      "y not found within dfr. Please include a variable from dfr for y, i.e. y = \"variable_name\""
+    )
 
   # Check if number of groups and number of point colours are the same
-  if (exists('group_var', where=params)) {
+  if (exists('group_var', where = params)) {
     if (length(params$line_colour) != length(unique(params$df[[params$group_var]])))
-      stop(paste0("The number of point_colours provided must equal the number of
+      stop(
+        paste0(
+          "The number of point_colours provided must equal the number of
                   unique groups in group_var. There are ",
-                  length(unique(params$df[[params$group_var]])),
-                  " groups in the data provided."))
+          length(unique(params$df[[params$group_var]])),
+          " groups in the data provided."
+        )
+      )
   }
 
   # Define parameters as variables using utils/param_assign() function
@@ -217,12 +254,37 @@ line_chart<-  function(dynamic = FALSE,
   #     list elements, assigns each element to a variable within the
   #     parent environment, and allocates a value of 'NULL' to anything
   #     it can't find within the reference list.
-  param_assign(params,
-               c("dfr", "x", "y", "ci", "lower", "upper", "error_colour", "group_var",
-                 "line_colour", "line_type", "width", "title", "x_label", "x_label_angle",
-                 "y_label", "y_label_angle", "y_percent", "st_theme", "add_points",
-                 "show_gridlines", "show_axislines", "legend_title", "legend_position",
-                 "hline", "hline_colour", "hline_label"))
+  param_assign(
+    params,
+    c(
+      "dfr",
+      "x",
+      "y",
+      "ci",
+      "lower",
+      "upper",
+      "error_colour",
+      "group_var",
+      "line_colour",
+      "line_type",
+      "width",
+      "title",
+      "x_label",
+      "x_label_angle",
+      "y_label",
+      "y_label_angle",
+      "y_percent",
+      "st_theme",
+      "add_points",
+      "show_gridlines",
+      "show_axislines",
+      "legend_title",
+      "legend_position",
+      "hline",
+      "hline_colour",
+      "hline_label"
+    )
+  )
 
   if (!dynamic) {
     # produce ggplot graph if 'dynamic' is set to FALSE
@@ -235,7 +297,9 @@ line_chart<-  function(dynamic = FALSE,
       }
     } else {
       if (!all(line_type %in% valid_line_types)) {
-        stop("One or more linetypes are invalid. Choose from: solid, dotted, dashed, longdash, dotdash")
+        stop(
+          "One or more linetypes are invalid. Choose from: solid, dotted, dashed, longdash, dotdash"
+        )
       }
     }
 
@@ -252,7 +316,7 @@ line_chart<-  function(dynamic = FALSE,
       base <- base + ggplot2::theme_classic()
     }
 
-    if (is.null(group_var)){
+    if (is.null(group_var)) {
       # creating base graph without groups
       base <-
         base + ggplot2::geom_line(
@@ -263,8 +327,7 @@ line_chart<-  function(dynamic = FALSE,
           linewidth = width
         )
     } else{
-
-       # creating base graph with groups
+      # creating base graph with groups
       base <-
         base + ggplot2::geom_line(
           data = dfr,
@@ -283,11 +346,11 @@ line_chart<-  function(dynamic = FALSE,
 
       # Legend parameters
 
-      if (!is.null(legend_title)){
+      if (!is.null(legend_title)) {
         base <-  base + labs(color = legend_title)
       }
 
-      if (!is.null(legend_position)){
+      if (!is.null(legend_position)) {
         base <-  base + theme(legend.position = legend_position)
       }
 
@@ -297,7 +360,7 @@ line_chart<-  function(dynamic = FALSE,
     ##### Titles and labels
 
     # Add title
-    if (!is.null(title)){
+    if (!is.null(title)) {
       base <- base + ggplot2::labs(title = title) +
         # centre title
         theme(plot.title = element_text(hjust = 0.5))
@@ -309,7 +372,7 @@ line_chart<-  function(dynamic = FALSE,
     }
 
     # Apply y label using arguments provided
-    if (!is.null(y_label)){
+    if (!is.null(y_label)) {
       base <- base + ggplot2::labs(y = y_label)
     }
 
@@ -342,11 +405,8 @@ line_chart<-  function(dynamic = FALSE,
         axis.line.x = element_line(colour = "black", linewidth = 1),
         axis.line.y = element_line(colour = "black", linewidth = 1)
       )
-    }else{
-      base <- base + theme(
-        axis.line.x = element_blank(),
-        axis.line.y = element_blank()
-      )
+    } else{
+      base <- base + theme(axis.line.x = element_blank(), axis.line.y = element_blank())
     }
 
     # adds horizontal line at the y value specified for hline
@@ -380,21 +440,26 @@ line_chart<-  function(dynamic = FALSE,
     ### Points in lines
 
     # if add points included then add geom
-    if(add_points) {
-       if(!is.null(group_var)){
+    if (add_points) {
+      if (!is.null(group_var)) {
         base <-
           base + ggplot2::geom_point(data = dfr, aes(
-            x = .data[[x]], y = .data[[y]], colour = .data[[group_var]], size=1
-          )) +
-        guides(size = FALSE) # hides size of point from legend
-
-        }else{
-
-        base <-
-          base + ggplot2::geom_point(data = dfr, aes(x = .data[[x]], y = .data[[y]], size=1
+            x = .data[[x]],
+            y = .data[[y]],
+            colour = .data[[group_var]],
+            size = 1
           )) +
           guides(size = FALSE) # hides size of point from legend
-        }
+
+      } else{
+        base <-
+          base + ggplot2::geom_point(data = dfr, aes(
+            x = .data[[x]],
+            y = .data[[y]],
+            size = 1
+          )) +
+          guides(size = FALSE) # hides size of point from legend
+      }
     }
 
 
@@ -493,23 +558,42 @@ line_chart<-  function(dynamic = FALSE,
   } else{
     # produce plotly graph if 'dynamic' is set to TRUE
 
-    # resolve line style
-    if (!(line_type %in% valid_line_types)) {
-      stop(
-        "Invalid line type. Please provide one of the following line types:
-           solid, dotted, dashed, longdash, dotdash"
-      )
-    } else{
-      plotly_line_style <- switch(
-        line_type,
+    # Mapping ggplot2 line types to plotly dash styles
+    plotly_line_types <- lapply(line_type, function(lt) {
+      switch(
+        lt,
         "solid" = "solid",
         "dotted" = "dot",
         "dashed" = "dash",
         "longdash" = "longdash",
         "dotdash" = "dashdot",
-        "solid"
+        stop(
+          "Invalid line type. Choose from: solid, dotted, dashed, longdash, dotdash"
+        )
       )
+    })
+
+    # Valid linetypes in plotly (after mapping)
+    valid_line_types <- c("solid", "dot", "dash", "longdash", "dashdot")
+
+    # Validation for line types
+    if (length(plotly_line_types) == 1) {
+      if (!(plotly_line_types[[1]] %in% valid_line_types)) {
+        stop("Invalid line type. Choose from: solid, dotted, dashed, longdash, dotdash")
+      }
+    } else {
+      if (!all(unlist(plotly_line_types) %in% valid_line_types)) {
+        invalid_types <- line_type[!(unlist(plotly_line_types) %in% valid_line_types)]
+        stop(
+          paste(
+            "Invalid line types:",
+            paste(invalid_types, collapse = ", "),
+            "Choose from: solid, dotted, dashed, longdash, dotdash"
+          )
+        )
+      }
     }
+
 
     # build list of line attributes
 
@@ -517,7 +601,7 @@ line_chart<-  function(dynamic = FALSE,
     line_attributes <- list()
 
     # Add line modifiers
-    if (!is.null(width)){
+    if (!is.null(width)) {
       line_attributes$width <- width * 2
     }
     if (!is.null(line_type)) {
@@ -527,55 +611,58 @@ line_chart<-  function(dynamic = FALSE,
       line_attributes$color <- line_colour
     }
 
-    if (add_points==TRUE) {
+    if (add_points == TRUE) {
       plt_mode = 'lines+markers'
     } else{
       plt_mode = 'lines'
     }
 
 
-    if (!is.null(group_var)) {
+    if (is.null(group_var)) {
       # create plotly base plot without groups
       base <- dfr |>
         plot_ly(
           x = ~ .data[[x]],
           y = ~ .data[[y]],
           type = 'scatter',
-          mode = plt_mode,
-          line = line_attributes
+          mode = 'lines',
+          line = list(
+            color = line_colour,
+            dash = plotly_line_types[[1]],
+            width = width
+          )
         ) |>
-        layout(xaxis = list(title = x),
-               yaxis = list(title = y))
+        layout(xaxis = list(title = x), yaxis = list(title = y))
 
     } else{
       # create plotly base plot groups
 
-      unique_names <- unique(dfr[[group_var]])
+      unique_groups <- unique(dfr[[group_var]])
+      base <- plot_ly()
 
-      base <- dfr |>
-        group_by({
-          {
-            group_var
-          }
-        })  |>
-        plot_ly(
-          x = ~ .data[[x]],
-          y = ~ .data[[y]],
-          type = "scatter",
-          color = ~ .data[[{
-            {
-              group_var
-            }
-          }]],
-          mode = plt_mode,
-          colors = line_colour,
-          line = line_attributes
-        )
+      for (i in 1:length(unique_groups)) {
+        group_name <- unique_groups[i]
+        group_data <- params$dfr[params$dfr[[group_var]] == group_name, ]
+
+        base <- base %>%
+          add_trace(
+            data = group_data,
+            x = ~ .data[[params$x]],
+            y = ~ .data[[params$y]],
+            type = 'scatter',
+            mode = 'lines',
+            name = group_name,
+            line = list(
+              color = params$line_colour[i],
+              dash = plotly_line_types[[i]],
+              width = params$width
+            )
+          )
+      }
 
 
       base <- base |>
-        layout(xaxis = list(title = x),
-               yaxis = list(title = y))
+        layout(xaxis = list(title = x), yaxis = list(title = y))
 
     }
 
@@ -583,12 +670,12 @@ line_chart<-  function(dynamic = FALSE,
     ##### Titles and labels
 
     # add title
-    if (!is.null(title)){
-      base <- base |> layout(title = list(text=title))
+    if (!is.null(title)) {
+      base <- base |> layout(title = list(text = title))
     }
 
     # add x axis label
-    if (!is.null(x_label)){
+    if (!is.null(x_label)) {
       base <- base |> layout(xaxis = list(title = x_label))
     }
 
@@ -598,13 +685,13 @@ line_chart<-  function(dynamic = FALSE,
     }
 
     # change x axis angle
-    if (!is.null(x_label_angle)){
+    if (!is.null(x_label_angle)) {
       # angle negated as this function following ggplot rotation direction
       base <- base |>  layout(xaxis = list(tickangle = -x_label_angle))
     }
 
     # change y axis angle
-    if (!is.null(y_label_angle)){
+    if (!is.null(y_label_angle)) {
       # angle negated as this function following ggplot rotation direction
       base <- base |>  layout(yaxis = list(tickangle = -y_label_angle))
     }
@@ -620,8 +707,7 @@ line_chart<-  function(dynamic = FALSE,
     if (show_axislines) {
       base <- base |> layout(
         xaxis = list(showline = TRUE),
-        yaxis = list(showline = TRUE,
-                     zeroline = FALSE)
+        yaxis = list(showline = TRUE, zeroline = FALSE)
       )
     }
 
@@ -638,14 +724,14 @@ line_chart<-  function(dynamic = FALSE,
         ))
     }
 
-    if (!is.null(hline_label)){
+    if (!is.null(hline_label)) {
       base <- base |> add_annotations(
         text = hline_label,
         x = min(dfr[[x]]),
         y = hline,
         showarrow = FALSE,
         bgcolor = "white",
-        font = list(weight="bold")
+        font = list(weight = "bold")
       )
     }
 
@@ -658,12 +744,11 @@ line_chart<-  function(dynamic = FALSE,
     ## Legend settings
 
     if (!is.null(legend_position)) {
-
       legend_orientation <-
         if (legend_position %in% c("top", "bottom"))
           "h"
       else
-          "v"
+        "v"
 
       # configure legend settings
       legend_settings <- switch(
@@ -699,9 +784,9 @@ line_chart<-  function(dynamic = FALSE,
 
       )  # Move legend outside of the plot area)
 
-      if(legend_position!="none"){
+      if (legend_position != "none") {
         base <- base |> layout(legend = legend_settings)
-      }else{
+      } else{
         base <- base |> layout(showlegend = F)
       }
     }
@@ -711,4 +796,3 @@ line_chart<-  function(dynamic = FALSE,
   # return either ggplot or base plot
   return(base)
 }
-
