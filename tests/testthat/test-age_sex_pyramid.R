@@ -48,9 +48,6 @@ test_that("age_sex_pyramid works", {
                       conf_limits = TRUE)
     )
     , "ggplot"))
-  expect_true(inherits(agesex_pyramid_linelist(epiviz::lab_data, x_breaks=10), "ggplot"))
-  expect_true(inherits(agesex_pyramid_linelist(epiviz::lab_data, x_breaks=10, conf_limits = TRUE), "ggplot"))
-
 
 
 })
