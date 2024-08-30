@@ -711,4 +711,3 @@ line_chart<-  function(dynamic = FALSE,
   # return either ggplot or base plot
   return(base)
 }
-
