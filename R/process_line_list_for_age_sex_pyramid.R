@@ -9,7 +9,8 @@
 #' \describe{
 #'   \item{age}{Name of the column containing age values (default is `'age'`).}
 #'   \item{date_of_birth}{Name of the column containing date of birth values (default is `'date_of_birth'`).}
-#'   \item{sex}{Name of the column containing sex values (default is `'sex'`).}
+#'   \item{sex}{Name of the column containing sex values (default is `'sex'`).
+#'   Permitted values for sex include M, F, Male, Female (not case sensitive)}
 #' }
 #' @param age_breakpoints A numeric vector specifying the breakpoints for age groups. The default is `c(0, 5, 19, 65, Inf)`.
 #' @param age_calc_refdate A Date object specifying the reference date for calculating age from date of birth.
@@ -43,6 +44,7 @@ process_line_list_for_age_sex_pyramid <- function(df,
     stop("'sex' must be provided in the var_map list.")
   }
 
+
   # Handle age calculation if 'age' is not provided
   if (!is.null(var_map$age) && var_map$age %in% names(df)) {
     df$age <- df[[var_map$age]]
@@ -52,6 +54,14 @@ process_line_list_for_age_sex_pyramid <- function(df,
   } else {
     stop("The specified 'age' or 'date_of_birth' variable was not found in the data frame.")
   }
+
+  # Standardise the 'sex' variable
+  df <- df %>%
+    mutate(!!var_map$sex := case_when(
+      grepl("^(M|Male)$", .data[[var_map$sex]], ignore.case = TRUE) ~ "Male",
+      grepl("^(F|Female)$", .data[[var_map$sex]], ignore.case = TRUE) ~ "Female",
+      TRUE ~ NA_character_  # This will handle cases where the sex is not recognized
+    ))
 
   # Filter out rows where 'sex' column is not "Male" or "Female"
   df <- df[df[[var_map$sex]] %in% c("Male", "Female"), ]
