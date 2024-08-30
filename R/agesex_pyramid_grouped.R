@@ -20,7 +20,6 @@
 #'
 #' @import ggplot2
 #' @import dplyr
-#' @export
 #'
 #' @examples
 #' \dontrun{
@@ -33,11 +32,11 @@
 #' agesex_pyramid_grouped(data, x_breaks=10)
 #' }
 agesex_pyramid_grouped <- function(df,
-                                   colours = c("#440154", "#fde725"),
-                                   x_breaks = 20,
-                                   y_title = "Proportion of People Percentage (%)",
-                                   text_size = 12,
-                                   conf_limits = FALSE)
+                                   colours,
+                                   x_breaks,
+                                   y_title,
+                                   text_size,
+                                   conf_limits)
 {
   ##### Data wrangling before plotting the chart
 

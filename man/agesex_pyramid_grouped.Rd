@@ -4,14 +4,7 @@
 \alias{agesex_pyramid_grouped}
 \title{Age Sex Pyramid using grouped data}
 \usage{
-agesex_pyramid_grouped(
-  df,
-  colours = c("#440154", "#fde725"),
-  x_breaks = 20,
-  y_title = "Proportion of People Percentage (\%)",
-  text_size = 12,
-  conf_limits = FALSE
-)
+agesex_pyramid_grouped(df, colours, x_breaks, y_title, text_size, conf_limits)
 }
 \arguments{
 \item{df}{Data frame which has the following columns with names given below
