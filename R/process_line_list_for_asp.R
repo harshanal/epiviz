@@ -55,13 +55,13 @@ process_line_list_for_age_sex_pyramid <- function(df,
     stop("The specified 'age' or 'date_of_birth' variable was not found in the data frame.")
   }
 
-  # Standardise the 'sex' variable
-  df <- df %>%
-    mutate(!!var_map$sex := case_when(
-      grepl("^(M|Male)$", .data[[var_map$sex]], ignore.case = TRUE) ~ "Male",
-      grepl("^(F|Female)$", .data[[var_map$sex]], ignore.case = TRUE) ~ "Female",
-      TRUE ~ NA_character_  # This will handle cases where the sex is not recognized
-    ))
+  # # Standardise the 'sex' variable
+  # df <- df %>%
+  #   mutate(!!var_map$sex := case_when(
+  #     grepl("^(M|Male)$", .data[[var_map$sex]], ignore.case = TRUE) ~ "Male",
+  #     grepl("^(F|Female)$", .data[[var_map$sex]], ignore.case = TRUE) ~ "Female",
+  #     TRUE ~ NA_character_  # This will handle cases where the sex is not recognized
+  #   ))
 
   # Filter out rows where 'sex' column is not "Male" or "Female"
   df <- df[df[[var_map$sex]] %in% c("Male", "Female"), ]

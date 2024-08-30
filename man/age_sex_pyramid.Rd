@@ -24,7 +24,7 @@ age_sex_pyramid(
 \item{df}{Data frame containing the data to be used.}
 \item{var_map}{A list mapping variable names in the data frame to the expected names used in the function.
 Expected elements include:
-\itemize{
+\describe{
 \item{age}{Name of the column containing age values. Default is \code{'age'}.}
 \item{date_of_birth}{Name of the column containing date of birth values. Default is \code{'date_of_birth'}.}
 \item{sex}{Name of the column containing sex values. Default is \code{'sex'}.}
