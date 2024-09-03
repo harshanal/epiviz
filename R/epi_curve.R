@@ -442,33 +442,11 @@ epi_curve <- function(
   #   stop("x_axis_break_labels cannot be provided with x_axis_date_breaks, please provide
   #          x_axis_break_labels OR x_axis_date_breaks")
   #
-  # # Warn that x_axis_date_breaks cannot be used with a reversed x-axis
-  # if ((params$x_axis_reverse == TRUE) & (!is.null(params$x_axis_date_breaks)))
-  #   warning("x_axis_date_breaks cannot be used with a reversed x-axis, consider using
-  #             x_axis_break_labels instead")
-  #
-  # # Warn that point_size_legend is not available for dynamic plot
-  # if ((params$point_size_legend == TRUE) & (dynamic == TRUE)) {
-  #   warning("point_size_legend is not available for dynamic plots")
-  # }
-  #
-  # # Error that base must be provided if sec_axis = TRUE
-  # if ((params$y_sec_axis == TRUE) & is.null(base)) {
-  #   stop("base must be provided if y_sec_axis = TRUE")
-  # }
-  #
-  # # Error that base must align with output type
-  # #   i.e. if dynamic = TRUE then base must be a plotly object
-  # if (!is.null(base)) {
-  #     # dynamic
-  #     if ((dynamic == TRUE) & !("plotly" %in% class(base))) {
-  #       stop("base must be a plotly object if dynamic = TRUE")
-  #     }
-  #     # static
-  #     if ((dynamic == FALSE) & !(is.ggplot(base))) {
-  #       stop("base must be a ggplot object if dynamic = FALSE")
-  #     }
-  # }
+
+
+
+
+
 
 
 
@@ -719,10 +697,6 @@ epi_curve <- function(
     # produce ggplot object if 'dynamic' is set to FALSE
 
 
-  # Supress spurious 'Scale for X is already present' messages
-  #   -Will suppress other messages
-  ###suppressMessages({
-
 
 
   ##### Create base ggplot object
@@ -738,6 +712,12 @@ epi_curve <- function(
   base <- base_return$base
   df <- base_return$df
 
+
+
+
+  # Supress spurious 'Scale for X is already present' messages
+  #   -Will suppress other messages
+  suppressMessages({
 
 
 
@@ -970,7 +950,7 @@ epi_curve <- function(
   ##### Return final output
   return(base)
 
-  ###}) # suppressMessage() end
+  }) # suppressMessage() end
 
   ### STATIC CHART END
 
@@ -1176,6 +1156,8 @@ epi_curve <- function(
 
     if (rolling_average_line == TRUE) {
 
+      #invisible(capture.output({
+
       base <- base |>
         add_trace(
           df_rolling_average,
@@ -1183,7 +1165,9 @@ epi_curve <- function(
           y = ~ df_rolling_average$rolling_average,
           type = 'scatter',
           mode = 'line',
+          #mode = 'lines+markers',
           line = list(color = "red"), #width = 0.5),
+          #marker = list(color = 'transparent', size = 0),
           name = rolling_average_line_legend_label,
           #legendgroup = 'lines',
           hovertemplate = paste0('<b>%{x}</b>',
