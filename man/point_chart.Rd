@@ -41,9 +41,9 @@ then \code{base} must be a ggplot object.}
 \item{df}{A data frame containing values used to create the point chart.}
 \item{x}{Name of the variable in \code{df} used to populate the x-axis.}
 \item{y}{Name of the variable in \code{df} used to populate the y-axis.}
-\item{point_shape}{Shape of the plotted points. Permitted values of c('circle',
-'triangle','square','plus','square cross','asterisk','diamond')}. When \code{group_var}
-is provided, point shapes will be automatically assigned based on group.
+\item{point_shape}{Shape of the plotted points. Permitted values of \code{c('circle',
+   'triangle','square','plus','square cross','asterisk','diamond')}. When \code{group_var}
+is provided, point shapes will be automatically assigned based on group.}
 \item{point_size}{Size of the plotted point symbols. If supplied as a number, all points
 will be plotted with this size. If supplied as the name of a numeric variable
 within \code{df}, then the size of each point will be relative to the value of
