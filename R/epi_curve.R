@@ -86,7 +86,7 @@
 #'    \item{legend_title}{Text used for legend title.}
 #'    \item{legend_pos}{Position of the legend. Permitted values = c("top","bootom","right","left")}
 #'    \item{legend_font_size}{Font size used in the legend.}
-#'    \item{legend_font_size}{Font size used for the legend title.}
+#'    \item{legend_title_font_size}{Font size used for the legend title.}
 #'    \item{hline}{Adds horizontal line across the chart at the corresponding y-value. Multiple
 #'    values may be provided as a vector to add multiple horizontal lines.}
 #'    \item{hline_colour}{Colour of the horizontal lines if \code{hline} is provided. A vector of colours
