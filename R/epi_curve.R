@@ -85,6 +85,8 @@
 #'    \item{show_axislines}{Logical to show chart axis lines. Default = \code{TRUE}.}
 #'    \item{legend_title}{Text used for legend title.}
 #'    \item{legend_pos}{Position of the legend. Permitted values = c("top","bootom","right","left")}
+#'    \item{legend_font_size}{Font size used in the legend.}
+#'    \item{legend_font_size}{Font size used for the legend title.}
 #'    \item{hline}{Adds horizontal line across the chart at the corresponding y-value. Multiple
 #'    values may be provided as a vector to add multiple horizontal lines.}
 #'    \item{hline_colour}{Colour of the horizontal lines if \code{hline} is provided. A vector of colours
@@ -310,6 +312,8 @@ epi_curve <- function(
                           show_axislines = TRUE,
                           legend_title = "",
                           legend_pos = "right",
+                          legend_font_size = 8,
+                          legend_title_font_size = 8,
                           hline = NULL,
                           hline_colour = "black",
                           hline_width = 0.5,
@@ -353,6 +357,8 @@ epi_curve <- function(
   if(!exists('show_axislines',where=params)) params$show_axislines <- TRUE
   if(!exists('legend_title',where=params)) params$legend_title <- ""
   if(!exists('legend_pos',where=params)) params$legend_pos <- "right"
+  if(!exists('legend_font_size',where=params)) params$legend_font_size <- 8
+  if(!exists('legend_title_font_size',where=params)) params$legend_title_font_size <- 8
   if(!exists('hline_colour',where=params)) params$hline_colour <- "black"
   if(!exists('hline_width',where=params)) params$hline_width <- 0.5
   if(!exists('hline_type',where=params)) params$hline_type <- "dashed"
@@ -503,6 +509,8 @@ epi_curve <- function(
                  "show_axislines",
                  "legend_title",
                  "legend_pos",
+                 "legend_font_size",
+                 "legend_title_font_size",
                  "hline",
                  "hline_colour",
                  "hline_width",
@@ -1156,8 +1164,6 @@ epi_curve <- function(
 
     if (rolling_average_line == TRUE) {
 
-      #invisible(capture.output({
-
       base <- base |>
         add_trace(
           df_rolling_average,
@@ -1244,8 +1250,8 @@ epi_curve <- function(
       layout(
         legend = list(
           #traceorder = "grouped+reversed",
-          title=list(text = legend_title),
-          font=list(size = 8)
+          title=list(text = legend_title, font = list(size = legend_title_font_size)),
+          font=list(size = legend_font_size)
           )
         )
 

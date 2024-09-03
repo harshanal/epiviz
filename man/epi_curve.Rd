@@ -22,9 +22,10 @@ epi_curve(
     y_limit_min = NULL, y_limit_max = NULL, x_axis_break_labels = NULL,
     y_axis_break_labels = NULL, y_axis_n_breaks = NULL, 
      show_gridlines = TRUE,
-    show_axislines = TRUE, legend_title = "", legend_pos = "right", hline = NULL,
-    hline_colour = "black", hline_width = 0.5, hline_type = "dashed", hline_label = NULL,
-    hline_label_colour = "black", hover_labels = NULL)
+    show_axislines = TRUE, legend_title = "", legend_pos = "right", legend_font_size = 8,
+    legend_title_font_size = 8, hline = NULL, hline_colour = "black", hline_width = 0.5,
+    hline_type = "dashed", hline_label = NULL, hline_label_colour = "black", hover_labels
+    = NULL)
 )
 }
 \arguments{
@@ -111,6 +112,8 @@ if \code{y_axis_break_labels} is also provided.}
 \item{show_axislines}{Logical to show chart axis lines. Default = \code{TRUE}.}
 \item{legend_title}{Text used for legend title.}
 \item{legend_pos}{Position of the legend. Permitted values = c("top","bootom","right","left")}
+\item{legend_font_size}{Font size used in the legend.}
+\item{legend_font_size}{Font size used for the legend title.}
 \item{hline}{Adds horizontal line across the chart at the corresponding y-value. Multiple
 values may be provided as a vector to add multiple horizontal lines.}
 \item{hline_colour}{Colour of the horizontal lines if \code{hline} is provided. A vector of colours

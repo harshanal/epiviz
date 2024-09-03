@@ -116,6 +116,18 @@ base_gg <- function() {
 
 
 
+  ##### Legend formatting
+  if(exists("legend_font_size")) {
+    base <- base +
+      theme(legend.text=element_text(size=legend_font_size))
+  }
+  if(exists("legend_title_font_size")) {
+    base <- base +
+      theme(legend.title=element_text(size=legend_title_font_size))
+  }
+
+
+
   ##### Define secondary axis
 
   # Applied separately below
