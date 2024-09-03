@@ -50,7 +50,7 @@
 #'    mean will be calculated from the 4 available values.)}
 #'    \item{rolling_average_line_colour}{character Colour of the rolling average line. Default = \code{"red"}.}
 #'    \item{rolling_average_line_width}{numeric Width of the rolling average line. Default = 1.}
-#'    \item{rolling_average_line_legend_label} {character Label to be used for the rolling average line
+#'    \item{rolling_average_line_legend_label}{character Label to be used for the rolling average line
 #'    in the chart legend.}
 #'    \item{cumulative_sum_line}{boolean, If \code{cumulative_sum_line_line = TRUE}, then a line showing
 #'    the cumulative sum will be added to the plot. Default = \code{FALSE}. Values for the cumulative sum
@@ -84,7 +84,7 @@
 #'    \item{show_gridlines}{Logical to show chart gridlines. Default = \code{TRUE}.}
 #'    \item{show_axislines}{Logical to show chart axis lines. Default = \code{TRUE}.}
 #'    \item{legend_title}{Text used for legend title.}
-#'    \item{legend_pos}{Position of the legend. Permitted values = c("top","bootom","right","left")}
+#'    \item{legend_pos}{Position of the legend. Permitted values = c("top","bottom","right","left")}
 #'    \item{legend_font_size}{Font size used in the legend.}
 #'    \item{legend_title_font_size}{Font size used for the legend title.}
 #'    \item{hline}{Adds horizontal line across the chart at the corresponding y-value. Multiple
