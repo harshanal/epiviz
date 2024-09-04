@@ -409,23 +409,35 @@ epi_curve <- function(
   # Check df is empty
   if(!not_empty(params$df)) stop("df is empty")
 
+  # Check if date_var argument is null (date_var renamed to 'x' at this stage)
+  if ((is.null(params$x)) | !exists('x',where=params))
+    stop("Please include a variable from df for date_var, i.e. date_var = \"variable_name\"")
+
+  # Check if date_var is in df (date_var renamed to 'x' at this stage)
+  if (!params$x %in% colnames(params$df))
+    stop("date_var not found within df. Please include a variable from df for date_var, i.e. date_var = \"variable_name\"")
+
   # Check group_var_barmode valid
   if (!is.null(params$group_var) & !(params$group_var_barmode %in% c('stack', 'group'))) {
     stop("group_var_barmode must equal 'stack' or 'group'")
   }
 
+  # Check time_period valid
+  if (!(params$time_period %in% c("day","year","month","quarter","year_month","year_quarter",
+                                  "iso_year","iso_week","start_iso_year_week","iso_year_week",
+                                  "use_date_var"))) {
+    stop("time_period must equal 'day', 'year', 'month', 'quarter', 'year_month', 'year_quarter',
+              'iso_year', 'iso_week', 'start_iso_year_week', 'iso_year_week', or 'use_date_var'")
+  }
 
-  # # Check if x argument is is.null
-  # if ((is.null(params$x)) | !exists('x',where=params))
-  #   stop("Please include a variable from df for x, i.e. x = \"variable_name\"")
+
+
   #
   # # Check if y argument is is.null
   # if ((is.null(params$y)) | !exists('y',where=params))
   #   stop("Please include a variable from df for y, i.e. y = \"variable_name\"")
   #
-  # # Check if x is in df
-  # if (!params$x %in% colnames(params$df))
-  #   stop("x not found within df. Please include a variable from df for x, i.e. x = \"variable_name\"")
+
   #
   # # Check if y is in df
   # if (!params$y %in% colnames(params$df))
