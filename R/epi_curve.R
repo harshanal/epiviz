@@ -309,8 +309,8 @@ epi_curve <- function(
                           y_axis_title_font_size = 11,
                           x_axis_label_angle = NULL,
                           y_axis_label_angle = NULL,
-                          x_axis_label_font_size = 11,
-                          y_axis_label_font_size = 11,
+                          x_axis_label_font_size = 9,
+                          y_axis_label_font_size = 9,
                           y_limit_min = NULL,
                           y_limit_max = NULL,
                           x_axis_break_labels = NULL,
@@ -362,8 +362,8 @@ epi_curve <- function(
   if(!exists('y_axis_title_font_size',where=params)) params$y_axis_title_font_size <- 11
   if(!exists('x_axis_label_angle',where=params)) params$x_axis_label_angle <- 0
   if(!exists('y_axis_label_angle',where=params)) params$y_axis_label_angle <- 0
-  if(!exists('x_axis_label_font_size',where=params)) params$x_axis_label_font_size <- 11
-  if(!exists('y_axis_label_font_size',where=params)) params$y_axis_label_font_size <- 11
+  if(!exists('x_axis_label_font_size',where=params)) params$x_axis_label_font_size <- 9
+  if(!exists('y_axis_label_font_size',where=params)) params$y_axis_label_font_size <- 9
   if(!exists('x_axis_reverse',where=params)) params$x_axis_reverse <- FALSE
   if(!exists('show_gridlines',where=params)) params$show_gridlines <- TRUE
   if(!exists('show_axislines',where=params)) params$show_axislines <- TRUE

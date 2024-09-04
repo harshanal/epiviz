@@ -47,12 +47,12 @@ base_plotly <- function() {
 
     x_axis_label_font <- list(
       family = chart_font,
-      size = if (exists("x_axis_label_font_size")) {x_axis_label_font_size} else {11},
+      size = if (exists("x_axis_label_font_size")) {x_axis_label_font_size} else {9},
       color = "black")
 
     y_axis_label_font <- list(
       family = chart_font,
-      size = if (exists("y_axis_label_font_size")) {y_axis_label_font_size} else {11},
+      size = if (exists("y_axis_label_font_size")) {y_axis_label_font_size} else {9},
       color = "black")
 
     axis_break_font <- list(
