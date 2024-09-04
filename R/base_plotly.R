@@ -35,9 +35,24 @@ base_plotly <- function() {
       size = chart_footer_size,
       color = chart_footer_colour)
 
-    axis_label_font <- list(
+    x_axis_title_font <- list(
       family = chart_font,
-      size = 11,
+      size = if (exists("x_axis_title_font_size")) {x_axis_title_font_size} else {11},
+      color = "black")
+
+    y_axis_title_font <- list(
+      family = chart_font,
+      size = if (exists("y_axis_title_font_size")) {y_axis_title_font_size} else {11},
+      color = "black")
+
+    x_axis_label_font <- list(
+      family = chart_font,
+      size = if (exists("x_axis_label_font_size")) {x_axis_label_font_size} else {11},
+      color = "black")
+
+    y_axis_label_font <- list(
+      family = chart_font,
+      size = if (exists("y_axis_label_font_size")) {y_axis_label_font_size} else {11},
       color = "black")
 
     axis_break_font <- list(
@@ -83,39 +98,49 @@ base_plotly <- function() {
 
     # Note:- utils/html_bold function used to apply <b> </b> tags to axis titles for bold font
 
-    # Add x axis label
+    # Add x axis title
     if (!is.null(x_axis_title)) {
       base <- base |>
         layout(xaxis = list(title =
                               list(text = html_bold(x_axis_title),
-                                   font = axis_label_font)))
+                                   font = x_axis_title_font)))
     } else {
       base <- base |>
         layout(xaxis = list(title =
                               list(text = html_bold(x),
-                                   font = axis_label_font)))
+                                   font = x_axis_title_font)))
     }
 
 
-    # Add y axis label
+    # Add y axis title
     #    (but only if base_chart isn't provided and sec y-axis isn't specified, otherwise leave y-axis title as is)
     if (!exists("base_chart") & y_sec_axis == FALSE) {
       if (!is.null(y_axis_title)) {
         base <- base |>
           layout(yaxis = list(title =
                                 list(text = html_bold(y_axis_title),
-                                     font = axis_label_font)))
+                                     font = y_axis_title_font)))
       } else {
         base <- base |>
           layout(yaxis = list(title =
                                 list(text = html_bold(y),
-                                     font = axis_label_font)))
+                                     font = y_axis_title_font)))
       }
     }
 
 
     # Set font for axis break text
     base <- base |> layout(font = axis_break_font)
+
+
+    # Set axis tick font
+    base <- base |>
+      layout(xaxis = list(tickfont = x_axis_label_font))
+
+    base <- base |>
+      layout(yaxis = list(tickfont = y_axis_label_font))
+
+
 
     # Change x axis text angle
     if (!is.null(x_axis_label_angle)){
@@ -341,12 +366,12 @@ base_plotly <- function() {
         base <- base |>
           layout(yaxis2 = list(title =
                                  list(text = html_bold(y_axis_title),
-                                      font = axis_label_font)))
+                                      font = y_axis_title_font)))
       } else {
         base <- base |>
           layout(yaxis2 = list(title =
                                  list(text = html_bold(y),
-                                      font = axis_label_font)))
+                                      font = y_axis_title_font)))
       }
 
       # Change sec y axis text angle
@@ -486,7 +511,8 @@ base_plotly <- function() {
 
     return_list <- list("base" = base, "df" = df,
                         "y_axis_choice" = y_axis_choice,
-                        "axis_label_font" = axis_label_font)
+                        "x_axis_title_font" = x_axis_title_font,
+                        "y_axis_title_font" = y_axis_title_font)
 
     return(return_list)
 

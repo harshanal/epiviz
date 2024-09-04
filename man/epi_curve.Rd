@@ -18,14 +18,15 @@ epi_curve(
     "Cumulative sum", cumulative_sum_line_axis_title = "Cumulative Sum", chart_title =
     NULL, chart_title_size = 13, chart_title_colour = "black", chart_footer = NULL,
     chart_footer_size = 12, chart_footer_colour = "black", x_axis_title = NULL,
-    y_axis_title = NULL, x_axis_label_angle = NULL, y_axis_label_angle = NULL,
-    y_limit_min = NULL, y_limit_max = NULL, x_axis_break_labels = NULL,
-    y_axis_break_labels = NULL, y_axis_n_breaks = NULL, 
-     show_gridlines = TRUE,
-    show_axislines = TRUE, legend_title = "", legend_pos = "right", legend_font_size = 8,
-    legend_title_font_size = 8, hline = NULL, hline_colour = "black", hline_width = 0.5,
-    hline_type = "dashed", hline_label = NULL, hline_label_colour = "black", hover_labels
-    = NULL)
+    y_axis_title = NULL, x_axis_title_font_size = 11, y_axis_title_font_size = 11,
+    x_axis_label_angle = NULL, y_axis_label_angle = NULL, x_axis_label_font_size = 11,
+    y_axis_label_font_size = 11, y_limit_min = NULL, 
+     y_limit_max = NULL,
+    x_axis_break_labels = NULL, y_axis_break_labels = NULL, y_axis_n_breaks = NULL,
+    show_gridlines = TRUE, show_axislines = TRUE, legend_title = "", legend_pos =
+    "right", legend_font_size = 8, legend_title_font_size = 8, hline = NULL, hline_colour
+    = "black", hline_width = 0.5, hline_type = "dashed", hline_label = NULL,
+    hline_label_colour = "black", hover_labels = NULL)
 )
 }
 \arguments{
@@ -98,8 +99,12 @@ axis.}
 not stated.}
 \item{y_axis_title}{Text used for y-axis title. Defaults to name of y-variable if
 not stated.}
+\item{x_axis_title_font_size}{Font size of the x-axis title.}
+\item{y_axis_title_font_size}{Font size of the y-axis title.}
 \item{x_axis_label_angle}{Angle for x-axis label text.}
 \item{y_axis_label_angle}{Angle for y-axis label text.}
+\item{x_axis_label_font_size}{Font size for the x-axis tick labels.}
+\item{y_axis_label_font_size}{Font size for the y-axis tick labels.}
 \item{y_limit_min}{Lower limit for the y-axis. Default used if not provided.}
 \item{y_limit_max}{Upper limit for the y-axis. Default used if not provided.}
 \item{x_axis_break_labels}{Vector of values to use for x-axis breaks. Defaults

@@ -82,6 +82,26 @@ base_gg <- function() {
   }
 
 
+  # Axis title font formatting
+  if (exists("x_axis_title_font_size")) {
+    base <- base + theme(axis.title.x = element_text(size = x_axis_title_font_size))
+  }
+
+  if (exists("y_axis_title_font_size")) {
+    base <- base + theme(axis.title.y = element_text(size = y_axis_title_font_size))
+  }
+
+
+  # Axis label font formatting
+  if (exists("x_axis_label_font_size")) {
+    base <- base + theme(axis.text.x = element_text(size = x_axis_label_font_size))
+  }
+
+  if (exists("y_axis_label_font_size")) {
+    base <- base + theme(axis.text.y = element_text(size = y_axis_label_font_size))
+  }
+
+
 
   ##### Grid and axis lines
 

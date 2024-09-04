@@ -71,8 +71,12 @@
 #'    not stated.}
 #'    \item{y_axis_title}{Text used for y-axis title. Defaults to name of y-variable if
 #'    not stated.}
+#'    \item{x_axis_title_font_size}{Font size of the x-axis title.}
+#'    \item{y_axis_title_font_size}{Font size of the y-axis title.}
 #'    \item{x_axis_label_angle}{Angle for x-axis label text.}
 #'    \item{y_axis_label_angle}{Angle for y-axis label text.}
+#'    \item{x_axis_label_font_size}{Font size for the x-axis tick labels.}
+#'    \item{y_axis_label_font_size}{Font size for the y-axis tick labels.}
 #'    \item{y_limit_min}{Lower limit for the y-axis. Default used if not provided.}
 #'    \item{y_limit_max}{Upper limit for the y-axis. Default used if not provided.}
 #'    \item{x_axis_break_labels}{Vector of values to use for x-axis breaks. Defaults
@@ -301,8 +305,12 @@ epi_curve <- function(
                           chart_footer_colour = "black",
                           x_axis_title = NULL,
                           y_axis_title = NULL,
+                          x_axis_title_font_size = 11,
+                          y_axis_title_font_size = 11,
                           x_axis_label_angle = NULL,
                           y_axis_label_angle = NULL,
+                          x_axis_label_font_size = 11,
+                          y_axis_label_font_size = 11,
                           y_limit_min = NULL,
                           y_limit_max = NULL,
                           x_axis_break_labels = NULL,
@@ -350,8 +358,12 @@ epi_curve <- function(
   if(!exists('chart_title_colour',where=params)) params$chart_title_colour <- "black"
   if(!exists('chart_footer_size',where=params)) params$chart_footer_size <- 10
   if(!exists('chart_footer_colour',where=params)) params$chart_footer_colour <- "black"
+  if(!exists('x_axis_title_font_size',where=params)) params$x_axis_title_font_size <- 11
+  if(!exists('y_axis_title_font_size',where=params)) params$y_axis_title_font_size <- 11
   if(!exists('x_axis_label_angle',where=params)) params$x_axis_label_angle <- 0
   if(!exists('y_axis_label_angle',where=params)) params$y_axis_label_angle <- 0
+  if(!exists('x_axis_label_font_size',where=params)) params$x_axis_label_font_size <- 11
+  if(!exists('y_axis_label_font_size',where=params)) params$y_axis_label_font_size <- 11
   if(!exists('x_axis_reverse',where=params)) params$x_axis_reverse <- FALSE
   if(!exists('show_gridlines',where=params)) params$show_gridlines <- TRUE
   if(!exists('show_axislines',where=params)) params$show_axislines <- TRUE
@@ -491,9 +503,13 @@ epi_curve <- function(
                  "chart_footer_size",
                  "chart_footer_colour",
                  "x_axis_title",
-                 "x_axis_label_angle",
                  "y_axis_title",
+                 "x_axis_title_font_size",
+                 "y_axis_title_font_size",
+                 "x_axis_label_angle",
                  "y_axis_label_angle",
+                 "x_axis_label_font_size",
+                 "y_axis_label_font_size",
                  "st_theme",
                  "x_axis_reverse",
                  "y_limit_min",
@@ -1022,8 +1038,8 @@ epi_curve <- function(
     base <- base_return$base
     df <- base_return$df
     y_axis_choice <- base_return$y_axis_choice
-    axis_label_font <- base_return$axis_label_font
-
+    x_axis_title_font <- base_return$x_axis_title_font
+    y_axis_title_font <- base_return$y_axis_title_font
 
 
 
@@ -1203,7 +1219,7 @@ epi_curve <- function(
             tickangle = -y_axis_label_angle,
             # autorange = TRUE,
             title = list(text = html_bold(cumulative_sum_line_axis_title),
-                         font = axis_label_font)
+                         font = y_axis_title_font)
           )
         )
 
