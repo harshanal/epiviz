@@ -82,6 +82,26 @@ base_gg <- function() {
   }
 
 
+  # Axis title font formatting
+  if (exists("x_axis_title_font_size")) {
+    base <- base + theme(axis.title.x = element_text(size = x_axis_title_font_size))
+  }
+
+  if (exists("y_axis_title_font_size")) {
+    base <- base + theme(axis.title.y = element_text(size = y_axis_title_font_size))
+  }
+
+
+  # Axis label font formatting
+  if (exists("x_axis_label_font_size")) {
+    base <- base + theme(axis.text.x = element_text(size = x_axis_label_font_size))
+  }
+
+  if (exists("y_axis_label_font_size")) {
+    base <- base + theme(axis.text.y = element_text(size = y_axis_label_font_size))
+  }
+
+
 
   ##### Grid and axis lines
 
@@ -112,6 +132,18 @@ base_gg <- function() {
       axis.line.x = element_blank(),
       axis.line.y = element_blank()
     )
+  }
+
+
+
+  ##### Legend formatting
+  if(exists("legend_font_size")) {
+    base <- base +
+      theme(legend.text=element_text(size=legend_font_size))
+  }
+  if(exists("legend_title_font_size")) {
+    base <- base +
+      theme(legend.title=element_text(size=legend_title_font_size))
   }
 
 
@@ -239,7 +271,12 @@ base_gg <- function() {
   # Apply specified axis_break_labels
 
   if (!is.null(x_axis_break_labels)) {
-    base <- base + scale_x_continuous(breaks = x_axis_break_labels)
+    # handle factor axis
+    if (!is.factor(df[[x]])) {
+      base <- base + scale_x_continuous(breaks = x_axis_break_labels)
+    } else {
+      base <- base + scale_x_discrete(breaks = x_axis_break_labels)
+    }
   }
 
   if (!is.null(y_axis_break_labels)) {
@@ -358,9 +395,17 @@ base_gg <- function() {
     xlim <- c(NA,NA)
   }
 
+
   # Convert any date axis limits to dates if necessary
   if (lubridate::is.Date(df[[y]]) & !is.null(ylim)) {ylim <- as.Date(ylim)}
   if (lubridate::is.Date(df[[x]]) & !is.null(xlim)) {xlim <- as.Date(xlim)}
+
+
+  # Handle base_gg() being called inside epi_curve()
+  if (substr(deparse(sys.calls()[[sys.nframe()-1]]),1,9)[1] == "epi_curve") {
+    xlim <- c(NA,NA)
+  }
+
 
   # Apply axis limits to base plot
   if (!is.null(ylim) & is.null(xlim)) {
@@ -385,6 +430,8 @@ base_gg <- function() {
                         colour = hline_colour,
                         linewidth = hline_width,
                         linetype = hline_type)
+  } else {
+    hline_xpos <- NULL    # if no hline, return hline_xpos = NULL for function export list at end
   }
 
   # If specified, add label to the start of the horizontal line
@@ -396,7 +443,12 @@ base_gg <- function() {
       hline_xpos <- base$coordinates$limits$x[[1]]
     } else {
       # else use min value of x, or max if values reversed
-      hline_xpos <- if (x_axis_reverse == TRUE) {max(df[[x]])} else {min(df[[x]])}
+      if (!is.factor(df[[x]])) {
+        hline_xpos <- if (x_axis_reverse == TRUE) {max(df[[x]])} else {min(df[[x]])}
+      } else {
+        # handle factor x-axes
+        hline_xpos <- if (x_axis_reverse == TRUE) {last(df[[x]])} else {first(df[[x]])}
+      }
     }
 
     # Apply hline label to plot
@@ -457,10 +509,11 @@ base_gg <- function() {
 
 
 
-  ##### Return both df and base
+  ##### Return df, base, and hline_xpos as list
   #       (df$y may have been modified through sec axis scaling)
+  #       (hline_xpos required in case hline needs to be reapplied over other plots)
 
-  return_list <- list("base" = base, "df" = df)
+  return_list <- list("base" = base, "df" = df, "hline_xpos" = hline_xpos)
 
   return(return_list)
 
