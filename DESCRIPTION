@@ -35,14 +35,11 @@ Imports:
     scales,
     tidyr,
     yarrr,
-<<<<<<< HEAD
-    lubridate
-=======
     lubridate,
     magrittr,
     ISOweek,
     forcats,
-    slider
->>>>>>> epi_curve
+    slider,
+    rlang
 Depends: 
     R (>= 2.10)

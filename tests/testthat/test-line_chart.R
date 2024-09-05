@@ -1,3 +1,45 @@
+test_that("line_chart works without group_var", {
+  library(dplyr)
+  library(epiviz)
+
+  # Import df lab_data from epiviz and do some manipulation before passing for the test
+  test_df <- epiviz::lab_data
+
+  # Manipulating date within df
+  test_df$specimen_date <- as.Date(test_df$specimen_date)
+
+  # Setting start date and end date for filtering
+  start_date <- as.Date("2023-01-01")
+  end_date <- as.Date("2023-01-31")
+
+  # Filter data for 'KLEBSIELLA PNEUMONIAE' and within the date range
+  filtered_df <- test_df |>
+    filter(organism_species_name == "KLEBSIELLA PNEUMONIAE",
+           specimen_date >= start_date & specimen_date <= end_date) |>
+    group_by(specimen_date) |>
+    summarize(count = n(), .groups = 'drop')
+
+  # Ensure that filtered_df is a data frame
+  filtered_df <- as.data.frame(filtered_df)
+
+  # Create params list without group_var
+  params <- list(
+    dfr = filtered_df,  # Ensure this is correctly referencing the data frame
+    x = "specimen_date", # Ensure this matches the column name exactly
+    y = "count",         # Ensure this matches the column name exactly
+    line_colour = c("blue"),  # Single colour for single line
+    line_type = c("solid")
+  )
+
+  # Generate the line chart without group_var
+  result <- epiviz::line_chart(params = params, dynamic = FALSE)
+
+  # Check that the output is a ggplot object
+  expect_true(inherits(result, "ggplot"))
+
+})
+
+
 # test to chceck if the function returns a plotly object using the mandatory fields
 
 test_that("line_chart static works", {
@@ -88,4 +130,3 @@ test_that("line_chart dynamic works", {
   expect_true(inherits(result, "plotly"))
 
 })
-
