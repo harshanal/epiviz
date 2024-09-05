@@ -19,8 +19,8 @@ epi_curve(
     NULL, chart_title_size = 13, chart_title_colour = "black", chart_footer = NULL,
     chart_footer_size = 12, chart_footer_colour = "black", x_axis_title = NULL,
     y_axis_title = NULL, x_axis_title_font_size = 11, y_axis_title_font_size = 11,
-    x_axis_label_angle = NULL, y_axis_label_angle = NULL, x_axis_label_font_size = 11,
-    y_axis_label_font_size = 11, y_limit_min = NULL, 
+    x_axis_label_angle = NULL, y_axis_label_angle = NULL, x_axis_label_font_size = 9,
+    y_axis_label_font_size = 9, y_limit_min = NULL, 
      y_limit_max = NULL,
     x_axis_break_labels = NULL, y_axis_break_labels = NULL, y_axis_n_breaks = NULL,
     show_gridlines = TRUE, show_axislines = TRUE, legend_title = "", legend_pos =

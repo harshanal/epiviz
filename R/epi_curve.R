@@ -119,6 +119,7 @@
 #' @import ISOweek
 #' @import forcats
 #' @import slider
+#' @importFrom graphics box
 #' @rawNamespace import(plotly, except = last_plot)
 #'
 #' @return A ggplot or plotly object.

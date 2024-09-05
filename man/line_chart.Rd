@@ -78,7 +78,6 @@ summarised_df <- test_df |>
 # Ensure that summarised_df is a data frame
 summarised_df <- as.data.frame(summarised_df)
 
-<<<<<<< HEAD
  # Create params list
  params <- list(
    dfr = summarised_df,  # Ensure this is correctly referencing the data frame
@@ -89,23 +88,11 @@ summarised_df <- as.data.frame(summarised_df)
    line_type = c("solid", "dotted", "dashed")
  )
  # Generate the line chart
- epiviz::line_chart(params = params, dynamic = FALSE)
-=======
-# Create params list
-params <- list(
-  dfr = summarised_df,  # Ensure this is correctly referencing the data frame
-  x = "specimen_date", # Ensure this matches the column name exactly
-  y = "count",         # Ensure this matches the column name exactly
-  group_var = "organism_species_name",  # Ensure this matches the column name exactly
-  line_colour = c("blue","green","orange"),
-  line_type = c("solid", "dotted", "dashed")
-)
->>>>>>> merge-fns
+line_chart(params = params, dynamic = FALSE)
 
 # Generate the line chart
 result <- epiviz::line_chart(params = params, dynamic = FALSE)
 
-<<<<<<< HEAD
  # Import df lab_data from epiviz and do some manipulation before passing for the test
  test_df <- epiviz::lab_data
 
@@ -138,7 +125,5 @@ result <- epiviz::line_chart(params = params, dynamic = FALSE)
 
  # Generate the line chart
  epiviz::line_chart(params = params, dynamic = TRUE)
-=======
->>>>>>> merge-fns
 
 }
