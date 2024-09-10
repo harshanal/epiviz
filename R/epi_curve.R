@@ -1104,12 +1104,12 @@ epi_curve <- function(
 
       # Ungrouped
       if (!is.null(group_var)) {
-        hoverlabels <- paste0('<b>%{x}</b>',
-                               '<br>%',hover_n)
+        hoverlabels <- paste0('<b>Date:</b> %{x}',
+                               '<br><b>Count:</b> %',hover_n)
       # Grouped
       } else {
-        hoverlabels <- paste0('<b>%{x}</b>',
-                               '<br>%',hover_n,
+        hoverlabels <- paste0('<b>Date:</b> %{x}',
+                               '<br><b>Count:</b> %',hover_n,
                                '<extra></extra>') # Remove tooltip for ungrouped data
       }
 
