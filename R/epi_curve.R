@@ -6,7 +6,7 @@
 #' @param dynamic Logical indicating whether to produce a dynamic (plotly) output.
 #' Default is \code{FALSE}, which will return a static ggplot output.
 #' @param params A named list containing arguements used to create the plot.
-#' ' \describe{
+#' \describe{
 #'    \item{df}{A data frame containing data used to create the epi curve.}
 #'    \item{date_var}{character, Name of the variable in \code{df} containing the dates used
 #'    to populate the x-axis.}
@@ -104,7 +104,10 @@
 #'    can be provided to label individual hlines if multiple hlines have been provided.}
 #'    \item{hline_label_colour}{Colour of the horizontal line labels if \code{hline_labels} is provided.
 #'    A vector of colours can be provided to colour individual hline_labels if multiple hline_labels have been provided.}
-#'
+#'    \item{hover_labels}{string, Text to be used in the hover-over labels in a dynamic chart.
+#'    Accepts html, use \code{'\%{x}'} to reference corresponding x-axis values (i.e. date intervals)
+#'    and \code{'\%{y}'} to reference y-axis values, e.g. \code{hover_labels = "<b>Date:</b>
+#'    \%{x}<br><b>Count:</b> \%{y}"}.}
 #'
 #'  }
 #'
@@ -329,7 +332,7 @@ epi_curve <- function(
                           hline_type = "dashed",
                           hline_label = NULL,
                           hline_label_colour = "black",
-                          hover_labels = NULL             # requires implementation
+                          hover_labels = NULL
                         )
                   ) {
 
@@ -1104,23 +1107,26 @@ epi_curve <- function(
 
       # Ungrouped
       if (!is.null(group_var)) {
-        hoverlabels <- paste0('<b>Date:</b> %{x}',
-                               '<br><b>Count:</b> %',hover_n)
+        hoverlabels <- paste0('<b>%{x}</b>',
+                              '<br>%',hover_n)
       # Grouped
       } else {
-        hoverlabels <- paste0('<b>Date:</b> %{x}',
-                               '<br><b>Count:</b> %',hover_n,
-                               '<extra></extra>') # Remove tooltip for ungrouped data
+        hoverlabels <- paste0('<b>%{x}</b>',
+                              '<br>%',hover_n,
+                              '<extra></extra>') # Remove tooltip for ungrouped data
+      }
+
+    } else {
+
+      # Hover labels specified by user input parameter hover_labels
+      if (case_boxes == FALSE) {
+        hoverlabels <- hover_labels
+      } else {
+        hoverlabels <- gsub('\\{y\\}','{customdata}',hover_labels)
       }
 
     }
 
-    # # Replace defaults if hover_labels defined by user
-    # } else {
-    #   hoverlabels <- as.character(df[[hover_labels]])
-    # }
-### TO IMPLEMENT: If user defines hover labels in df, these will
-###               be removed when df is aggregated.
 
 
 

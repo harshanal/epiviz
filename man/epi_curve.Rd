@@ -34,7 +34,7 @@ epi_curve(
 Default is \code{FALSE}, which will return a static ggplot output.}
 
 \item{params}{A named list containing arguements used to create the plot.
-' \describe{
+\describe{
 \item{df}{A data frame containing data used to create the epi curve.}
 \item{date_var}{character, Name of the variable in \code{df} containing the dates used
 to populate the x-axis.}
@@ -132,6 +132,10 @@ can be provided to style hlines if multiple hlines have been provided. Permitted
 can be provided to label individual hlines if multiple hlines have been provided.}
 \item{hline_label_colour}{Colour of the horizontal line labels if \code{hline_labels} is provided.
 A vector of colours can be provided to colour individual hline_labels if multiple hline_labels have been provided.}
+\item{hover_labels}{string, Text to be used in the hover-over labels in a dynamic chart.
+Accepts html, use \code{'\%{x}'} to reference corresponding x-axis values (i.e. date intervals)
+and \code{'\%{y}'} to reference y-axis values, e.g. \code{hover_labels = "<b>Date:</b>
+   \%{x}<br><b>Count:</b> \%{y}"}.}
 
 }}
 }
