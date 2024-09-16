@@ -651,6 +651,12 @@ epi_curve <- function(
     date_end <- as.Date(x_limit_max)
   }
 
+  # Filter out any rows outside date range so that they aren't included in aggregates
+  df <- df |>
+    filter(get(x) >= date_start & get(x) <= date_end) # & date_factor <= x_limit_max
+
+
+
 
   ### Add time periods to df
 
@@ -697,7 +703,6 @@ epi_curve <- function(
   # Define limits converted to time_period
   x_limit_min <- df_x_limits[[time_period]][1]
   x_limit_max <- df_x_limits[[time_period]][2]
-
 
 
 
