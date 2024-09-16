@@ -12,8 +12,10 @@
 #'    to populate the x-axis.}
 #'    \item{y}{If data is pre-aggregated, the name of the variable in \code{df} containing the
 #'    aggregated values (i.e. the values used to populate the y-axis.)}
-#'    \item{date_start}{A date that will determine the minimum value along the x-axis.}
-#'    \item{date_end}{A date that will determine the maximum value along the x-axis.}
+#'    \item{date_start}{A date that will determine the minimum value along the x-axis. Any rows
+#'    with \code{date_var < date_start} will be excluded from aggregates.}
+#'    \item{date_end}{A date that will determine the maximum value along the x-axis. Any rows
+#'    with \code{date_var > date_end} will be excluded from aggregates.}
 #'    \item{time_period}{The time period to be used along the x-axis. Options include
 #'    \code{c("day","year","month","quarter","year_month","year_quarter",
 #'      "iso_year","iso_week","start_iso_year_week","iso_year_week",
