@@ -499,54 +499,30 @@ epi_curve <- function(
   }
 
 
-
-  #
-  # # Check if y argument is is.null
-  # if ((is.null(params$y)) | !exists('y',where=params))
-  #   stop("Please include a variable from df for y, i.e. y = \"variable_name\"")
-  #
-
-  # Check if y is in df
+  # If provided, check if y is in df
   if (exists('y',where=params)) {
     if (!params$y %in% colnames(params$df))
       stop("y not found within df. Please include a variable from df for y, i.e. y = \"variable_name\"")
   }
 
-  # Check if group_var is in df
+  # If provided, check if group_var is in df
   if ("group_var" %in% names(params)) {
     if (!params$group_var %in% colnames(params$df))
       stop("group_var not found within df. Please include a variable from df for group_var, i.e. group_var = \"variable_name\"")
   }
 
-  # # Check if number of groups and number of point colours are the same
-  # if (exists('group_var', where=params)) {
-  #     if (length(params$point_colours) != length(unique(params$df[[params$group_var]])))
-  #       stop("The number of point_colours provided must equal the number of unique groups in group_var")
-  # }
-  #
-  # # Check if number of groups and number of error colours are the same
-  # if (exists('group_var', where=params) & exists('ci_colours', where=params) & (exists('ci', where=params))) {
-  #     if (length(params$ci_colours) != length(unique(params$df[[params$group_var]])))
-  #       stop("The number of error_colours provided must equal the number of unique groups in group_var")
-  # }
-  #
-  # # Warn that multiple colours have been provided but group_var absent
-  # if (length(params$point_colours) >1 & !exists('group_var',where=params))
-  #   warning("Multiple point_colours have been provided but group_var is absent")
-  #
-  # # Allow axis_break_labels or axis_n_breaks
-  # if ((!is.null(params$x_axis_break_labels)) & (!is.null(params$x_axis_n_breaks)))
-  #   stop("x_axis_break_labels cannot be provided with x_axis_n_breaks, please provide
-  #        x_axis_break_labels OR x_axis_n_breaks")
-  # if ((!is.null(params$y_axis_break_labels)) & (!is.null(params$y_axis_n_breaks)))
-  #   stop("y_axis_break_labels cannot be provided with y_axis_n_breaks, please provide
-  #          y_axis_break_labels OR y_axis_n_breaks")
-  #
-  # # Allow x_axis_break_labels or x_axis_date_breaks
-  # if ((!is.null(params$x_axis_break_labels)) & (!is.null(params$x_axis_date_breaks)))
-  #   stop("x_axis_break_labels cannot be provided with x_axis_date_breaks, please provide
-  #          x_axis_break_labels OR x_axis_date_breaks")
-  #
+  # Check if number of groups and number of point colours are the same
+  if (exists('group_var', where=params) & length(params$fill_colours) > 1) {
+      if (length(params$fill_colours) != length(unique(params$df[[params$group_var]])))
+        stop("The number of fill_colours provided must equal the number of unique groups in group_var")
+  }
+
+
+  # Warn that multiple colours have been provided but group_var absent
+  if (length(params$fill_colours) >1 & !exists('group_var',where=params))
+    warning("Multiple fill_colours have been provided but group_var is absent")
+
+
 
 
 
