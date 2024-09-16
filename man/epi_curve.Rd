@@ -38,6 +38,8 @@ Default is \code{FALSE}, which will return a static ggplot output.}
 \item{df}{A data frame containing data used to create the epi curve.}
 \item{date_var}{character, Name of the variable in \code{df} containing the dates used
 to populate the x-axis.}
+\item{y}{If data is pre-aggregated, the name of the variable in \code{df} containing the
+aggregated values (i.e. the values used to populate the y-axis.)}
 \item{date_start}{A date that will determine the minimum value along the x-axis.}
 \item{date_end}{A date that will determine the maximum value along the x-axis.}
 \item{time_period}{The time period to be used along the x-axis. Options include
@@ -277,6 +279,66 @@ params_cases <- list(
 # Create static and dynamic curves
 static_curve <- epi_curve(params = params_cases, dynamic = FALSE)
 dynamic_curve <- epi_curve(params = params_cases, dynamic = TRUE)
+
+# View both simultaneously using shiny app
+library(shiny)
+library(plotly)
+ui <- fluidPage(
+  plotOutput('static_curve'),
+  plotlyOutput('dynamic_curve')
+)
+server <- function(input, output, session) {
+  output$static_curve <- renderPlot(static_curve)
+  output$dynamic_curve <- renderPlotly(dynamic_curve)
+}
+shinyApp(ui, server)
+
+
+
+
+# Example 4: Create static and dynamic curves using pre-aggregated data
+
+library(epiviz)
+
+# Define a dataframe containing the number of detections by region
+regional_detections <- lab_data |>
+  group_by(specimen_date, region) |>
+  summarise(detections = n()) |>
+  ungroup()
+
+
+# Create parameter list
+params_regions <- list(
+  df = regional_detections,
+  y = "detections",
+  date_var = "specimen_date",
+  date_start = "2021-10-01",
+  date_end = "2022-03-31",
+  time_period = "iso_year_week",
+  group_var = "region",
+  group_var_barmode = "stack",
+  rolling_average_line = TRUE,
+  rolling_average_line_lookback = 3,
+  rolling_average_line_legend_label = "3-week rolling average",
+  rolling_average_line_colour = "#007C91",
+  rolling_average_line_width = 1.5,
+  cumulative_sum_line = TRUE,
+  cumulative_sum_line_colour = "orange",
+  chart_title = "Laboratory Detections by Region \nWinter 2021-22",
+  chart_title_colour = "#007C91",
+  legend_title = "Region",
+  legend_pos = "right",
+  y_axis_break_labels = seq(0, 300, 50),
+  x_axis_title = "ISO Week",
+  y_axis_title = "Number of detections",
+  x_axis_label_angle = -90,
+  hover_labels = "<b>Week:</b> \%{x}<br><b>Count:</b> \%{y}"
+)
+
+
+# Create static and dynamic curves
+static_curve <- epi_curve(params = params_regions, dynamic = FALSE)
+dynamic_curve <- epi_curve(params = params_regions, dynamic = TRUE)
 
 # View both simultaneously using shiny app
 library(shiny)

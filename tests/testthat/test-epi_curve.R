@@ -243,7 +243,188 @@ test_that("epi_curve produces a dynamic chart with grouped data,
 
 
 
+test_that("epi_curve produces a static chart with pre-aggregated un-grouped data,
+          with chart lines", {
+
+            # Define a test dataframe containing the number of detections by date
+            pre_agg_data <- lab_data |>
+              group_by(specimen_date) |>
+              summarise(detections = n()) |>
+              ungroup()
+
+            # Create parameter list
+            params <- list(
+              df = pre_agg_data,
+              y = "detections",
+              date_var = "specimen_date",
+              date_start = "2021-10-01",
+              date_end = "2022-03-31",
+              time_period = "iso_year_week",
+              rolling_average_line = TRUE,
+              rolling_average_line_lookback = 3,
+              rolling_average_line_legend_label = "3-week rolling average",
+              rolling_average_line_colour = "#007C91",
+              rolling_average_line_width = 1.5,
+              cumulative_sum_line = TRUE,
+              cumulative_sum_line_colour = "orange",
+              chart_title = "Laboratory Detections by Region \nWinter 2021-22",
+              chart_title_colour = "#007C91",
+              legend_title = "Region",
+              legend_pos = "right",
+              y_axis_break_labels = seq(0, 300, 50),
+              x_axis_title = "ISO Week",
+              y_axis_title = "Number of detections",
+              x_axis_label_angle = -90,
+              hover_labels = "<b>Week:</b> %{x}<br><b>Count:</b> %{y}"
+            )
+
+            # Create static epi curve
+            result <- epi_curve(params = params, dynamic = FALSE)
+
+            # check that the output is a ggplot object
+            expect_true(inherits(result, "ggplot"))
+
+})
 
 
 
+
+test_that("epi_curve produces a dynamic chart with pre-aggregated un-grouped data,
+          with chart lines", {
+
+            # Define a test dataframe containing the number of detections by date
+            pre_agg_data <- lab_data |>
+              group_by(specimen_date) |>
+              summarise(detections = n()) |>
+              ungroup()
+
+            # Create parameter list
+            params <- list(
+              df = pre_agg_data,
+              y = "detections",
+              date_var = "specimen_date",
+              date_start = "2021-10-01",
+              date_end = "2022-03-31",
+              time_period = "iso_year_week",
+              rolling_average_line = TRUE,
+              rolling_average_line_lookback = 3,
+              rolling_average_line_legend_label = "3-week rolling average",
+              rolling_average_line_colour = "#007C91",
+              rolling_average_line_width = 1.5,
+              cumulative_sum_line = TRUE,
+              cumulative_sum_line_colour = "orange",
+              chart_title = "Laboratory Detections by Region \nWinter 2021-22",
+              chart_title_colour = "#007C91",
+              legend_title = "Region",
+              legend_pos = "right",
+              y_axis_break_labels = seq(0, 300, 50),
+              x_axis_title = "ISO Week",
+              y_axis_title = "Number of detections",
+              x_axis_label_angle = -90,
+              hover_labels = "<b>Week:</b> %{x}<br><b>Count:</b> %{y}"
+            )
+
+            # Create static epi curve
+            result <- epi_curve(params = params, dynamic = TRUE)
+
+            # check that the output is a ggplot object
+            expect_true(inherits(result, "plotly"))
+
+})
+
+
+
+
+
+test_that("epi_curve produces a static chart with pre-aggregated grouped data,
+          with chart lines", {
+
+            # Define a test dataframe containing the number of detections by region
+            pre_agg_data <- lab_data |>
+              group_by(specimen_date, region) |>
+              summarise(detections = n()) |>
+              ungroup()
+
+            # Create parameter list
+            params <- list(
+              df = pre_agg_data,
+              y = "detections",
+              date_var = "specimen_date",
+              date_start = "2021-10-01",
+              date_end = "2022-03-31",
+              time_period = "iso_year_week",
+              group_var = "region",
+              group_var_barmode = "stack",
+              rolling_average_line = TRUE,
+              rolling_average_line_lookback = 3,
+              rolling_average_line_legend_label = "3-week rolling average",
+              rolling_average_line_colour = "#007C91",
+              rolling_average_line_width = 1.5,
+              cumulative_sum_line = TRUE,
+              cumulative_sum_line_colour = "orange",
+              chart_title = "Laboratory Detections by Region \nWinter 2021-22",
+              chart_title_colour = "#007C91",
+              legend_title = "Region",
+              legend_pos = "right",
+              y_axis_break_labels = seq(0, 300, 50),
+              x_axis_title = "ISO Week",
+              y_axis_title = "Number of detections",
+              x_axis_label_angle = -90,
+              hover_labels = "<b>Week:</b> %{x}<br><b>Count:</b> %{y}"
+            )
+
+            # Create static epi curve
+            result <- epi_curve(params = params, dynamic = FALSE)
+
+            # check that the output is a ggplot object
+            expect_true(inherits(result, "ggplot"))
+
+})
+
+
+
+test_that("epi_curve produces a dynamic chart with pre-aggregated grouped data,
+          with chart lines", {
+
+            # Define a test dataframe containing the number of detections by region
+            pre_agg_data <- lab_data |>
+              group_by(specimen_date, region) |>
+              summarise(detections = n()) |>
+              ungroup()
+
+            # Create parameter list
+            params <- list(
+              df = pre_agg_data,
+              y = "detections",
+              date_var = "specimen_date",
+              date_start = "2021-10-01",
+              date_end = "2022-03-31",
+              time_period = "iso_year_week",
+              group_var = "region",
+              group_var_barmode = "stack",
+              rolling_average_line = TRUE,
+              rolling_average_line_lookback = 3,
+              rolling_average_line_legend_label = "3-week rolling average",
+              rolling_average_line_colour = "#007C91",
+              rolling_average_line_width = 1.5,
+              cumulative_sum_line = TRUE,
+              cumulative_sum_line_colour = "orange",
+              chart_title = "Laboratory Detections by Region \nWinter 2021-22",
+              chart_title_colour = "#007C91",
+              legend_title = "Region",
+              legend_pos = "right",
+              y_axis_break_labels = seq(0, 300, 50),
+              x_axis_title = "ISO Week",
+              y_axis_title = "Number of detections",
+              x_axis_label_angle = -90,
+              hover_labels = "<b>Week:</b> %{x}<br><b>Count:</b> %{y}"
+            )
+
+            # Create static epi curve
+            result <- epi_curve(params = params, dynamic = TRUE)
+
+            # check that the output is a ggplot object
+            expect_true(inherits(result, "plotly"))
+
+})
 
