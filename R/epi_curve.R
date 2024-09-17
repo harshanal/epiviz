@@ -822,7 +822,7 @@ epi_curve <- function(
           fill = fill_colours[1],
           stat = 'identity',
           color = bar_border_colour,
-          size = 0.25
+          linewidth = 0.25
         )
 
   } else {
@@ -842,7 +842,7 @@ epi_curve <- function(
           ),
           stat = 'identity',
           color = bar_border_colour,
-          size = 0.25,
+          linewidth = 0.25,
           position = group_var_barmode
         ) +
         scale_fill_manual(values = fill_colours)
@@ -884,7 +884,7 @@ epi_curve <- function(
         fill = "transparent",
         stat = 'identity',
         color = case_boxes_colour,
-        size = 0.5
+        linewidth = 0.5
       )
 
   }
@@ -903,7 +903,7 @@ epi_curve <- function(
                       color = rolling_average_line_legend_label,
                       group = 1   # group = 1 as x is a factor
         ),
-        size = rolling_average_line_width
+        linewidth = rolling_average_line_width
       )
 
   }
@@ -937,7 +937,7 @@ epi_curve <- function(
                       color = cumulative_sum_line_legend_label,
                       group = 1   # group = 1 as x is a factor
         ),
-        size = cumulative_sum_line_width
+        linewidth = cumulative_sum_line_width
       )
 
     # Define variable for use in scale_y_continuous below
