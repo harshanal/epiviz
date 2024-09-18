@@ -10,8 +10,12 @@
 #'    \item{df}{A data frame containing data used to create the epi curve.}
 #'    \item{date_var}{character, Name of the variable in \code{df} containing the dates used
 #'    to populate the x-axis.}
-#'    \item{date_start}{A date that will determine the minimum value along the x-axis.}
-#'    \item{date_end}{A date that will determine the maximum value along the x-axis.}
+#'    \item{y}{If data is pre-aggregated, the name of the variable in \code{df} containing the
+#'    aggregated values (i.e. the values used to populate the y-axis.)}
+#'    \item{date_start}{A date that will determine the minimum value along the x-axis. Any rows
+#'    with \code{date_var < date_start} will be excluded from aggregates.}
+#'    \item{date_end}{A date that will determine the maximum value along the x-axis. Any rows
+#'    with \code{date_var > date_end} will be excluded from aggregates.}
 #'    \item{time_period}{The time period to be used along the x-axis. Options include
 #'    \code{c("day","year","month","quarter","year_month","year_quarter",
 #'      "iso_year","iso_week","start_iso_year_week","iso_year_week",
@@ -274,6 +278,66 @@
 #' shinyApp(ui, server)
 #'
 #'
+#'
+#'
+#' # Example 4: Create static and dynamic curves using pre-aggregated data
+#'
+#' library(epiviz)
+#'
+#' # Define a dataframe containing the number of detections by region
+#' regional_detections <- lab_data |>
+#'   group_by(specimen_date, region) |>
+#'   summarise(detections = n()) |>
+#'   ungroup()
+#'
+#'
+#' # Create parameter list
+#' params_regions <- list(
+#'   df = regional_detections,
+#'   y = "detections",
+#'   date_var = "specimen_date",
+#'   date_start = "2021-10-01",
+#'   date_end = "2022-03-31",
+#'   time_period = "iso_year_week",
+#'   group_var = "region",
+#'   group_var_barmode = "stack",
+#'   rolling_average_line = TRUE,
+#'   rolling_average_line_lookback = 3,
+#'   rolling_average_line_legend_label = "3-week rolling average",
+#'   rolling_average_line_colour = "#007C91",
+#'   rolling_average_line_width = 1.5,
+#'   cumulative_sum_line = TRUE,
+#'   cumulative_sum_line_colour = "orange",
+#'   chart_title = "Laboratory Detections by Region \nWinter 2021-22",
+#'   chart_title_colour = "#007C91",
+#'   legend_title = "Region",
+#'   legend_pos = "right",
+#'   y_axis_break_labels = seq(0, 300, 50),
+#'   x_axis_title = "ISO Week",
+#'   y_axis_title = "Number of detections",
+#'   x_axis_label_angle = -90,
+#'   hover_labels = "<b>Week:</b> %{x}<br><b>Count:</b> %{y}"
+#' )
+#'
+#'
+#' # Create static and dynamic curves
+#' static_curve <- epi_curve(params = params_regions, dynamic = FALSE)
+#' dynamic_curve <- epi_curve(params = params_regions, dynamic = TRUE)
+#'
+#' # View both simultaneously using shiny app
+#' library(shiny)
+#' library(plotly)
+#' ui <- fluidPage(
+#'   plotOutput('static_curve'),
+#'   plotlyOutput('dynamic_curve')
+#' )
+#' server <- function(input, output, session) {
+#'   output$static_curve <- renderPlot(static_curve)
+#'   output$dynamic_curve <- renderPlotly(dynamic_curve)
+#' }
+#' shinyApp(ui, server)
+#'
+#'
 #' }
 #'
 epi_curve <- function(
@@ -435,47 +499,30 @@ epi_curve <- function(
   }
 
 
+  # If provided, check if y is in df
+  if (exists('y',where=params)) {
+    if (!params$y %in% colnames(params$df))
+      stop("y not found within df. Please include a variable from df for y, i.e. y = \"variable_name\"")
+  }
 
-  #
-  # # Check if y argument is is.null
-  # if ((is.null(params$y)) | !exists('y',where=params))
-  #   stop("Please include a variable from df for y, i.e. y = \"variable_name\"")
-  #
+  # If provided, check if group_var is in df
+  if ("group_var" %in% names(params)) {
+    if (!params$group_var %in% colnames(params$df))
+      stop("group_var not found within df. Please include a variable from df for group_var, i.e. group_var = \"variable_name\"")
+  }
 
-  #
-  # # Check if y is in df
-  # if (!params$y %in% colnames(params$df))
-  #   stop("y not found within df. Please include a variable from df for y, i.e. y = \"variable_name\"")
-  #
-  # # Check if number of groups and number of point colours are the same
-  # if (exists('group_var', where=params)) {
-  #     if (length(params$point_colours) != length(unique(params$df[[params$group_var]])))
-  #       stop("The number of point_colours provided must equal the number of unique groups in group_var")
-  # }
-  #
-  # # Check if number of groups and number of error colours are the same
-  # if (exists('group_var', where=params) & exists('ci_colours', where=params) & (exists('ci', where=params))) {
-  #     if (length(params$ci_colours) != length(unique(params$df[[params$group_var]])))
-  #       stop("The number of error_colours provided must equal the number of unique groups in group_var")
-  # }
-  #
-  # # Warn that multiple colours have been provided but group_var absent
-  # if (length(params$point_colours) >1 & !exists('group_var',where=params))
-  #   warning("Multiple point_colours have been provided but group_var is absent")
-  #
-  # # Allow axis_break_labels or axis_n_breaks
-  # if ((!is.null(params$x_axis_break_labels)) & (!is.null(params$x_axis_n_breaks)))
-  #   stop("x_axis_break_labels cannot be provided with x_axis_n_breaks, please provide
-  #        x_axis_break_labels OR x_axis_n_breaks")
-  # if ((!is.null(params$y_axis_break_labels)) & (!is.null(params$y_axis_n_breaks)))
-  #   stop("y_axis_break_labels cannot be provided with y_axis_n_breaks, please provide
-  #          y_axis_break_labels OR y_axis_n_breaks")
-  #
-  # # Allow x_axis_break_labels or x_axis_date_breaks
-  # if ((!is.null(params$x_axis_break_labels)) & (!is.null(params$x_axis_date_breaks)))
-  #   stop("x_axis_break_labels cannot be provided with x_axis_date_breaks, please provide
-  #          x_axis_break_labels OR x_axis_date_breaks")
-  #
+  # Check if number of groups and number of point colours are the same
+  if (exists('group_var', where=params) & length(params$fill_colours) > 1) {
+      if (length(params$fill_colours) != length(unique(params$df[[params$group_var]])))
+        stop("The number of fill_colours provided must equal the number of unique groups in group_var")
+  }
+
+
+  # Warn that multiple colours have been provided but group_var absent
+  if (length(params$fill_colours) >1 & !exists('group_var',where=params))
+    warning("Multiple fill_colours have been provided but group_var is absent")
+
+
 
 
 
@@ -582,6 +629,12 @@ epi_curve <- function(
     date_end <- as.Date(x_limit_max)
   }
 
+  # Filter out any rows outside date range so that they aren't included in aggregates
+  df <- df |>
+    filter(get(x) >= date_start & get(x) <= date_end) # & date_factor <= x_limit_max
+
+
+
 
   ### Add time periods to df
 
@@ -613,6 +666,9 @@ epi_curve <- function(
     mutate(date_factor = factor(as.character(get(x)), levels = unique_dates)) |>
     filter(!is.na(date_factor)) # filter out NAs, i.e. dates that fall outside of range
 
+  # Redefine x so that it points towards date_factor
+  x <- "date_factor"
+
 
 
   ### Change x_limit_max and x_limit_min to match time_period choice
@@ -634,97 +690,86 @@ epi_curve <- function(
 
   if (is.null(y)) {
 
+    # Count rows by date if y is not specified (i.e. count rows by date if data is not pre-aggregated)
+
     if(is.null(group_var)) {
 
+      # Un-grouped
       df <- df |>
         group_by(date_factor) |>
-        #group_by(.data[[x]]) |>
         summarise(n = n()) |>
         ungroup()
 
     } else {
 
+      # Grouped
       df <- df |>
         group_by(date_factor, .data[[group_var]]) |>
-        #group_by(.data[[x]], .data[[group_var]]) |>
         summarise(n = n()) |>
         ungroup()
 
     }
 
-    # Redefine x so that it points towards date_factor
-    x <- "date_factor"
-    # Re-define y so that it points towards n
-    y <- "n"
+  } else {
+    # Sum values by date if y is specified (i.e. sum values by date if data is pre-aggregated)
 
-  }
-
-
-
-  # Add rolling average df if specified
-  if (rolling_average_line == TRUE) {
-
-    # Create df for rolling average depending on whether data is grouped
     if(is.null(group_var)) {
 
       # Un-grouped
-      df_rolling_average <- df |>
-        mutate(
-               # rolling_averge = zoo::rollmean(x = get(y),
-               #                                k = rolling_average_line_lookback,
-               #                                fill = NA,
-               #                                align = "right"),
-               rolling_average = slider::slide_dbl(
-                                            .x = get(y),
-                                            .f = mean,
-                                            .before = rolling_average_line_lookback - 1, # -1 as .before includes current time interval
-                                            .complete = FALSE
-                                            )
-               )
+      df <- df |>
+        group_by(date_factor) |>
+        summarise(n = sum(.data[[y]])) |>
+        ungroup()
 
     } else {
 
       # Grouped
+      df <- df |>
+        group_by(date_factor, .data[[group_var]]) |>
+        summarise(n = sum(.data[[y]])) |>
+        ungroup()
+
+    }
+
+  }
+
+  # Re-define y so that it points towards n
+  y <- "n"
+
+
+
+
+  # Add rolling average df for rolling average line if specified
+  if (rolling_average_line == TRUE) {
+
       df_rolling_average <- df |>
         group_by(date_factor) |>
-        summarise(n = sum(n)) |>
+        summarise(n = sum(.data[[y]])) |>
         ungroup() |>
         mutate(rolling_average = slider::slide_dbl(
-                  .x = get(y),
+                  .x = n,
                   .f = mean,
                   .before = rolling_average_line_lookback - 1, # -1 as .before includes current time interval
                   .complete = FALSE
                 )
               )
 
-    }
-
   }
 
 
 
-  # Add cumulative sum df if specified
+  # Add cumulative sum df for cumulative sum line if specified
   if (cumulative_sum_line == TRUE) {
 
-    # Create df for rolling average depending on whether data is grouped
-    if(is.null(group_var)) {
-
-      # Un-grouped
-      df_cumulative_sum <- df |>
-        mutate(cumulative_sum = cumsum(get(y)))
-
-    } else {
-
-      # Grouped
       df_cumulative_sum <- df |>
         group_by(date_factor) |>
-        summarise(n = sum(n)) |>
+        summarise(n = sum(.data[[y]])) |>
         ungroup() |>
-        mutate(cumulative_sum = cumsum(get(y)))
-
-    }
+        mutate(cumulative_sum = cumsum(n))
 
   }
+
+
 
 
 
@@ -777,7 +822,7 @@ epi_curve <- function(
           fill = fill_colours[1],
           stat = 'identity',
           color = bar_border_colour,
-          size = 0.25
+          linewidth = 0.25
         )
 
   } else {
@@ -797,7 +842,7 @@ epi_curve <- function(
           ),
           stat = 'identity',
           color = bar_border_colour,
-          size = 0.25,
+          linewidth = 0.25,
           position = group_var_barmode
         ) +
         scale_fill_manual(values = fill_colours)
@@ -839,7 +884,7 @@ epi_curve <- function(
         fill = "transparent",
         stat = 'identity',
         color = case_boxes_colour,
-        size = 0.5
+        linewidth = 0.5
       )
 
   }
@@ -858,7 +903,7 @@ epi_curve <- function(
                       color = rolling_average_line_legend_label,
                       group = 1   # group = 1 as x is a factor
         ),
-        size = rolling_average_line_width
+        linewidth = rolling_average_line_width
       )
 
   }
@@ -892,7 +937,7 @@ epi_curve <- function(
                       color = cumulative_sum_line_legend_label,
                       group = 1   # group = 1 as x is a factor
         ),
-        size = cumulative_sum_line_width
+        linewidth = cumulative_sum_line_width
       )
 
     # Define variable for use in scale_y_continuous below
@@ -1058,7 +1103,6 @@ epi_curve <- function(
     y_axis_title_font <- base_return$y_axis_title_font
 
 
-
     ##### Define colour parameters for bar plot
 
     # Ungrouped data
@@ -1083,7 +1127,7 @@ epi_curve <- function(
 
       # Add colour field to df
       df <- df |>
-        mutate(fill_colour = get(group_var))
+        mutate(fill_colour = if (is.factor(get(group_var))) {get(group_var)} else {as.factor(get(group_var))} )
 
     }
 
@@ -1094,6 +1138,7 @@ epi_curve <- function(
     } else {
       colour_field <- df$fill_colour
     }
+
 
 
 
@@ -1207,7 +1252,8 @@ epi_curve <- function(
           type = 'scatter',
           mode = 'line',
           #mode = 'lines+markers',
-          line = list(color = "red"), #width = 0.5),
+          line = list(color = rolling_average_line_colour,
+                      width = rolling_average_line_width*2), # *2 to match ggplot formatting),
           #marker = list(color = 'transparent', size = 0),
           name = rolling_average_line_legend_label,
           #legendgroup = 'lines',
@@ -1251,7 +1297,8 @@ epi_curve <- function(
             yaxis = "y2",
             type = 'scatter',
             mode = 'line',
-            line = list(color = "darkblue"), #width = 0.5),
+            line = list(color = cumulative_sum_line_colour,
+                        width = cumulative_sum_line_width*2), # *2 to match ggplot formatting
             name = cumulative_sum_line_legend_label,
             #legendgroup = 'lines',
             hovertemplate = paste0('<b>%{x}</b>',
