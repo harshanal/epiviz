@@ -40,6 +40,7 @@ Imports:
     ISOweek,
     forcats,
     slider,
-    rlang
+    rlang,
+    elmer
 Depends: 
     R (>= 3.5.0)
