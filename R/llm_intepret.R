@@ -67,7 +67,7 @@ llm_interpret <- function(input,
     # Remove temporary file after use
     unlink(temp_file)
 
-    return(response)
+    return(as.character(response))
   }
 
   # Handle unexpected input types
