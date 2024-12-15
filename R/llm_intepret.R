@@ -43,7 +43,7 @@ llm_interpret <- function(input,
     provider,
     "openai" = chat_openai(model = model, api_key = api_key),
     "gemini" = chat_gemini(model = model, api_key = api_key),
-    "bedrock" = chat_bedrock(model = model, api_key = api_key),
+    "bedrock" = chat_bedrock(model = model),
     "claude" = chat_claude(model = model, api_key = api_key),
     stop("Unsupported LLM provider specified.")
   )
