@@ -39,12 +39,6 @@ jobs:
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
 
-      - name: Install renv
-        run: install.packages('renv')
-
-      - name: Restore dependencies
-        run: Rscript -e 'renv::restore()'
-
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::rcmdcheck
