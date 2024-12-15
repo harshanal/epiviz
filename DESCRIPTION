@@ -45,3 +45,5 @@ Imports:
     jsonlite
 Depends: 
     R (>= 3.5.0)
+Remotes:
+    tidyverse/elmer
