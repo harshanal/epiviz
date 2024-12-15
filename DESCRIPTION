@@ -40,9 +40,10 @@ Imports:
     ISOweek,
     forcats,
     slider,
-    rlang
-Suggests:
+    rlang,
     elmer,
     jsonlite
 Depends: 
     R (>= 3.5.0)
+Remotes:
+    tidyverse/elmer
