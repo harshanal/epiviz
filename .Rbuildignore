@@ -9,12 +9,4 @@
 ^_pkgdown\.yml$
 ^\.github$
 docs
-<<<<<<< HEAD
-<<<<<<< HEAD
-dev/
-=======
 dev
->>>>>>> 8b0e595 (update repo config)
-=======
-dev
->>>>>>> 2edb3be32e4df96056207080181d31f126de345b
