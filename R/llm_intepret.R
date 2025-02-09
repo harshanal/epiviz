@@ -34,89 +34,141 @@
 llm_interpret <- function(input,
                           word_limit = 100,
                           prompt_extension = NULL) {
-
- # Check for required environment variables
-  provider <- Sys.getenv("LLM_PROVIDER")
-  if (provider == "") {
-    stop(
-      "LLM_PROVIDER environment variable is not set. ",
-      "Please set it to one of: 'openai', 'gemini', or 'claude'"
-    )
+  lifecycle::signal_stage("experimental", "llm_interpret()")
+  
+  # Validate input parameters
+  if (!is.numeric(word_limit) || word_limit <= 0) {
+    stop("word_limit must be a positive number")
   }
-
-  api_key <- Sys.getenv("LLM_API_KEY")
-  if (api_key == "") {
-    stop(
-      "LLM_API_KEY environment variable is not set. ",
-      sprintf("For %s, please set the appropriate API key.", toupper(provider))
-    )
+  
+  if (!is.null(prompt_extension) && !is.character(prompt_extension)) {
+    stop("prompt_extension must be NULL or a character string")
   }
+  
+  # Check for required environment variables with informative messages
+  tryCatch({
+    provider <- Sys.getenv("LLM_PROVIDER")
+    if (provider == "") {
+      stop("LLM_PROVIDER environment variable is not set. ",
+           "Please set it to one of: 'openai', 'gemini', or 'claude'")
+    }
+    
+    api_key <- Sys.getenv("LLM_API_KEY")
+    if (api_key == "") {
+      stop("LLM_API_KEY environment variable is not set. ",
+           sprintf("For %s, please set the appropriate API key.", 
+                   toupper(provider)))
+    }
+    
+    model <- Sys.getenv("LLM_MODEL")
+    if (model == "") {
+      stop("LLM_MODEL environment variable is not set. ",
+           sprintf("For %s, please set an appropriate model identifier.", 
+                   toupper(provider)))
+    }
+  }, error = function(e) {
+    stop("Error checking environment variables: ", conditionMessage(e))
+  })
 
-  model <- Sys.getenv("LLM_MODEL")
-  if (model == "") {
-    stop(
-      "LLM_MODEL environment variable is not set. ",
-      sprintf("For %s, please set an appropriate model identifier.", 
-              toupper(provider))
+  # Initialize the chat client with error handling
+  chat <- tryCatch({
+    switch(
+      provider,
+      "openai" = chat_openai(model = model, api_key = api_key),
+      "gemini" = chat_gemini(model = model, api_key = api_key),
+      "claude" = chat_claude(model = model, api_key = api_key),
+      stop(sprintf("Unsupported LLM provider: '%s'", provider))
     )
-  }
-
-  # Initialize the chat client based on the provider
-  chat <- switch(
-    provider,
-    "openai" = chat_openai(model = model, api_key = api_key),
-    "gemini" = chat_gemini(model = model, api_key = api_key),
-    "claude" = chat_claude(model = model, api_key = api_key),
-    stop("Unsupported LLM provider specified.")
-  )
-  # Set the system prompt
-  chat$set_system_prompt("You are a concise assistant focusing on epidemiologically relevant observations.")
+  }, error = function(e) {
+    stop("Failed to initialize chat client: ", conditionMessage(e))
+  })
+  
+  # Set the system prompt with error handling
+  tryCatch({
+    chat$set_system_prompt(
+      "You are a concise assistant focusing on epidemiologically relevant observations."
+    )
+  }, error = function(e) {
+    stop("Failed to set system prompt: ", conditionMessage(e))
+  })
 
   # Define the standard prompt
-  standard_prompt <- paste(
-    "Please provide an interpretation focusing on the most epidemiologically relevant observations in",
-    word_limit,
-    "words or fewer."
-  )
-
-  # Append the prompt extension if provided
-  if (!is.null(prompt_extension)) {
-    standard_prompt <- paste(standard_prompt, prompt_extension)
-  }
-
-  # Case: Input is a data frame
-  if (is.data.frame(input)) {
-    # Convert data frame to JSON
-    json_data <- jsonlite::toJSON(input, pretty = TRUE, auto_unbox = TRUE)
-
-    # Send JSON data to the API
-    response <- chat$chat(standard_prompt, json_data)
-
-    return(response)
-  }
-  # Case: Input is a ggplot object
-  else if (inherits(input, "ggplot")) {
-    # Save the ggplot object as a temporary image
-    temp_file <- tempfile(fileext = ".png")
-    ggplot2::ggsave(
-      temp_file,
-      plot = input,
-      width = 6,
-      height = 4,
-      dpi = 300
+  standard_prompt <- tryCatch({
+    prompt <- paste(
+      "Please provide an interpretation focusing on the most",
+      "epidemiologically relevant observations in",
+      word_limit,
+      "words or fewer."
     )
+    if (!is.null(prompt_extension)) {
+      prompt <- paste(prompt, prompt_extension)
+    }
+    prompt
+  }, error = function(e) {
+    stop("Failed to construct prompt: ", conditionMessage(e))
+  })
 
-    # Send image file to the API
-    response <- chat$chat(content_image_file(temp_file), standard_prompt)
+  # Process input based on type
+  if (is.data.frame(input)) {
+    if (nrow(input) == 0) {
+      stop("Input data frame is empty")
+    }
+    
+    # Convert data frame to JSON with error handling
+    json_data <- tryCatch({
+      jsonlite::toJSON(input, pretty = TRUE, auto_unbox = TRUE)
+    }, error = function(e) {
+      stop("Failed to convert data frame to JSON: ", conditionMessage(e))
+    })
 
-    # Remove temporary file after use
-    unlink(temp_file)
-
-    return(as.character(response))
+    # Send JSON data to the API with error handling
+    tryCatch({
+      response <- chat$chat(standard_prompt, json_data)
+      return(response)
+    }, error = function(e) {
+      stop("API request failed for data frame input: ", conditionMessage(e))
+    })
   }
+  else if (inherits(input, "ggplot")) {
+    temp_file <- NULL
+    
+    # Use withCallingHandlers for cleanup even if error occurs
+    withCallingHandlers({
+      # Save the ggplot object as a temporary image
+      temp_file <- tempfile(fileext = ".png")
+      tryCatch({
+        ggplot2::ggsave(
+          temp_file,
+          plot = input,
+          width = 6,
+          height = 4,
+          dpi = 300
+        )
+      }, error = function(e) {
+        stop("Failed to save plot as image: ", conditionMessage(e))
+      })
 
-  # Handle unexpected input types
+      # Send image file to the API
+      response <- tryCatch({
+        chat$chat(content_image_file(temp_file), standard_prompt)
+      }, error = function(e) {
+        stop("API request failed for plot input: ", conditionMessage(e))
+      })
+
+      return(as.character(response))
+    }, finally = {
+      # Clean up temporary file
+      if (!is.null(temp_file) && file.exists(temp_file)) {
+        unlink(temp_file)
+      }
+    })
+  }
   else {
-    stop("Input must be a data frame or a ggplot object.")
+    stop(
+      sprintf(
+        "Unsupported input type: %s. Input must be a data frame or ggplot object.",
+        class(input)[1]
+      )
+    )
   }
 }
