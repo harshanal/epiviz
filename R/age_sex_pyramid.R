@@ -70,7 +70,7 @@
 #' }
 #'
 #' @import ggplot2
-#' @importFrom dplyr %>% group_by summarise
+#' @importFrom dplyr group_by summarise
 #' @importFrom rlang .data
 #' @export
 

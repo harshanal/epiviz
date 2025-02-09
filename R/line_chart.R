@@ -642,7 +642,7 @@ line_chart <-  function(dynamic = FALSE,
         group_name <- unique_groups[i]
         group_data <- params$dfr[params$dfr[[group_var]] == group_name, ]
 
-        base <- base %>%
+        base <- base |>
           add_trace(
             data = group_data,
             x = ~ .data[[params$x]],

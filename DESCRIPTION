@@ -36,7 +36,6 @@ Imports:
     tidyr,
     yarrr,
     lubridate,
-    magrittr,
     ISOweek,
     forcats,
     slider,
