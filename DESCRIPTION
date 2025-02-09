@@ -20,7 +20,8 @@ RoxygenNote: 7.3.2
 LazyData: true
 Suggests: 
     testthat (>= 3.0.0),
-    mockery
+    mockery,
+    withr
 Config/testthat/edition: 3
 Imports: 
     assertthat,
@@ -42,7 +43,8 @@ Imports:
     slider,
     rlang,
     ellmer,
-    jsonlite
+    jsonlite,
+    lifecycle
 Depends: 
     R (>= 3.5.0)
 Remotes:
