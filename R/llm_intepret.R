@@ -14,13 +14,11 @@
 #'   - `"o1-mini"`
 #' - **Google Gemini**: Utilizes Google's Gemini models via `chat_gemini()`. Requires setting the `GOOGLE_API_KEY` environment variable. Applicable models include:
 #'   - `"gemini-1.5-flash"`
-#' - **Amazon Bedrock**: Utilizes Amazon Bedrock models via `chat_bedrock()`. Requires setting the `BEDROCK_API_KEY` environment variable. Applicable models include:
-#'   - `"bedrock-model-1"`
 #' - **Anthropic Claude**: Utilizes Anthropic's Claude models via `chat_claude()`. Requires setting the `CLAUDE_API_KEY` environment variable. Applicable models include:
 #'   - `"claude-1"`
 #'
 #' **Environment Variables:**
-#' - `LLM_PROVIDER`: Specifies the LLM provider ("openai", "gemini", "bedrock", "claude").
+#' - `LLM_PROVIDER`: Specifies the LLM provider ("openai", "gemini", "claude").
 #' - `LLM_API_KEY`: The API key corresponding to the chosen provider.
 #' - `LLM_MODEL`: The model identifier to use.
 #'
@@ -33,17 +31,38 @@
 llm_interpret <- function(input,
                           word_limit = 100,
                           prompt_extension = NULL) {
-  # Retrieve environment variables
+                            
+ # Check for required environment variables
   provider <- Sys.getenv("LLM_PROVIDER")
+  if (provider == "") {
+    stop(
+      "LLM_PROVIDER environment variable is not set. ",
+      "Please set it to one of: 'openai', 'gemini', or 'claude'"
+    )
+  }
+
   api_key <- Sys.getenv("LLM_API_KEY")
+  if (api_key == "") {
+    stop(
+      "LLM_API_KEY environment variable is not set. ",
+      sprintf("For %s, please set the appropriate API key.", toupper(provider))
+    )
+  }
+
   model <- Sys.getenv("LLM_MODEL")
+  if (model == "") {
+    stop(
+      "LLM_MODEL environment variable is not set. ",
+      sprintf("For %s, please set an appropriate model identifier.", 
+              toupper(provider))
+    )
+  }
 
   # Initialize the chat client based on the provider
   chat <- switch(
     provider,
     "openai" = chat_openai(model = model, api_key = api_key),
     "gemini" = chat_gemini(model = model, api_key = api_key),
-    "bedrock" = chat_bedrock(model = model),
     "claude" = chat_claude(model = model, api_key = api_key),
     stop("Unsupported LLM provider specified.")
   )
