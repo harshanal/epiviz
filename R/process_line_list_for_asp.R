@@ -56,7 +56,7 @@ process_line_list_for_age_sex_pyramid <- function(df,
   }
 
   # Standardise the 'sex' variable
-  df <- df %>%
+  df <- df |>
     mutate(sex = case_when(
       str_detect(sex, regex("^(M|Male)$", ignore_case = TRUE)) ~ "Male",
       str_detect(sex, regex("^(F|Female)$", ignore_case = TRUE)) ~ "Female",
@@ -81,12 +81,12 @@ process_line_list_for_age_sex_pyramid <- function(df,
                       right = FALSE) # right = FALSE ensures that age_group includes the lower bound and excludes the upper bound
 
   # Remove rows with NA in the age_group column
-  df <- df %>% filter(!is.na(age_group))
+  df <- df |> filter(!is.na(age_group))
 
 
   # Aggregate data by age group and sex
-  df <- df %>%
-    dplyr::group_by(age_group, sex = df[[var_map$sex]]) %>%
+  df <- df |>
+    dplyr::group_by(age_group, sex = df[[var_map$sex]]) |>
     dplyr::summarise(
       value = n(),
       lowercl = -1.96 * sqrt(value),

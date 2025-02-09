@@ -118,7 +118,6 @@
 #'
 #'
 #' @import dplyr
-#' @import magrittr
 #' @import grDevices
 #' @import scales
 #' @import tidyr
