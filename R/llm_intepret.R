@@ -30,6 +30,7 @@
 #' @import ggplot2
 #' @importFrom jsonlite toJSON
 #' @import ellmer
+#' @importFrom lifecycle badge signal_stage
 #' @export
 llm_interpret <- function(input,
                           word_limit = 100,

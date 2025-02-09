@@ -122,7 +122,6 @@
 #' @import grDevices
 #' @import scales
 #' @import tidyr
-#' @import yarrr
 #' @import lubridate
 #' @rawNamespace import(plotly, except = last_plot)
 #'
@@ -985,6 +984,18 @@ point_chart <- function(
     y_axis_choice <- base_return$y_axis_choice
 
 
+  # Function to handle transparency with or without yarrr
+  add_transparency <- function(color, trans.val = 0.5) {
+    if (requireNamespace("yarrr", quietly = TRUE)) {
+      return(yarrr::transparent(color, trans.val = trans.val))
+    } else {
+      # Fallback to base R transparency
+      rgb_col <- col2rgb(color)
+      return(rgb(rgb_col[1], rgb_col[2], rgb_col[3], 
+                 alpha = (1 - trans.val) * 255, 
+                 maxColorValue = 255))
+    }
+  }
 
 
     ##### Apply confidence intervals
