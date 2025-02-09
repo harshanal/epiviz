@@ -28,7 +28,7 @@
 #'
 #' @import ggplot2
 #' @importFrom jsonlite toJSON
-#' @import elmer
+#' @import ellmer
 #' @export
 llm_interpret <- function(input,
                           word_limit = 100,

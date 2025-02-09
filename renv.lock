@@ -400,13 +400,13 @@
     },
     "curl": {
       "Package": "curl",
-      "Version": "6.0.1",
+      "Version": "6.2.0",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
         "R"
       ],
-      "Hash": "e8ba62486230951fcd2b881c5be23f96"
+      "Hash": "b580cbb010099fd990df6bfe44459e1a"
     },
     "data.table": {
       "Package": "data.table",
@@ -541,6 +541,26 @@
         "R"
       ],
       "Hash": "4ad4fc696f70fece9399140246f409f3"
+    },
+    "ellmer": {
+      "Package": "ellmer",
+      "Version": "0.1.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R6",
+        "S7",
+        "cli",
+        "coro",
+        "glue",
+        "httr2",
+        "jsonlite",
+        "later",
+        "lifecycle",
+        "promises",
+        "rlang"
+      ],
+      "Hash": "754d3a8cbb25b05be2058892f579422f"
     },
     "elmer": {
       "Package": "elmer",
@@ -764,7 +784,7 @@
     },
     "httr2": {
       "Package": "httr2",
-      "Version": "1.0.7",
+      "Version": "1.1.0",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -781,7 +801,7 @@
         "vctrs",
         "withr"
       ],
-      "Hash": "5a76da345ed4f3e6430517e08441edaf"
+      "Hash": "0f14199bbd820a9fca398f2df40994f1"
     },
     "hypergeo": {
       "Package": "hypergeo",
@@ -1333,14 +1353,14 @@
     },
     "rlang": {
       "Package": "rlang",
-      "Version": "1.1.4",
+      "Version": "1.1.5",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
         "R",
         "utils"
       ],
-      "Hash": "3eec01f8b1dee337674b2e34ab1f9bc1"
+      "Hash": "724dcc1490cd7071ee75ca2994a5446e"
     },
     "rmarkdown": {
       "Package": "rmarkdown",

@@ -40,7 +40,7 @@ Imports:
     forcats,
     slider,
     rlang,
-    elmer,
+    ellmer,
     jsonlite
 Depends: 
     R (>= 3.5.0)
