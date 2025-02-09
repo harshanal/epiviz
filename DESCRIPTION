@@ -21,7 +21,8 @@ LazyData: true
 Suggests: 
     testthat (>= 3.0.0),
     mockery,
-    withr
+    withr,
+    yarrr
 Config/testthat/edition: 3
 Imports: 
     assertthat,
@@ -36,7 +37,6 @@ Imports:
     stringr,
     scales,
     tidyr,
-    yarrr,
     lubridate,
     ISOweek,
     forcats,
