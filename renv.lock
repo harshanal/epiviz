@@ -562,31 +562,6 @@
       ],
       "Hash": "754d3a8cbb25b05be2058892f579422f"
     },
-    "elmer": {
-      "Package": "elmer",
-      "Version": "0.0.0.9000",
-      "Source": "GitHub",
-      "Remotes": "jcheng5/shinychat",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteRepo": "elmer",
-      "RemoteUsername": "tidyverse",
-      "RemoteRef": "HEAD",
-      "RemoteSha": "0378ce2edd18f6249b5bfaa4851e4b77f4f87eea",
-      "Requirements": [
-        "R6",
-        "S7",
-        "cli",
-        "coro",
-        "glue",
-        "httr2",
-        "jsonlite",
-        "later",
-        "promises",
-        "rlang"
-      ],
-      "Hash": "12c82703a94c564c4697a6ca615d8c10"
-    },
     "evaluate": {
       "Package": "evaluate",
       "Version": "1.0.3",
