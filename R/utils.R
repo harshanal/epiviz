@@ -63,26 +63,25 @@ get_os <- function(){
 
 
 
-#' Set Arial font
+#' Function to set chart_font variable to Arial in order to resolve warnings
 #'
-#' @return NULL
-#' @noRd
+#' @return chart_font string
+#'
+#' @examples
+#' \dontrun{
+#' set_Arial()
+#' }
 set_Arial <- function() {
-  # Check if running on Windows
-  if (.Platform$OS.type == "windows") {
-    # Use windowsFonts if available
-    if (requireNamespace("grDevices", quietly = TRUE)) {
-      grDevices::windowsFonts(Arial = grDevices::windowsFont("Arial"))
-    }
+  if(get_os()[[1]] == "windows") {
+    windowsFonts("Arial" = windowsFont("Arial"))
+    chart_font <- "Arial"
+  } else if(get_os()[[1]] == "osx") {
+    chart_font <- "Arial"
   } else {
-    # For non-Windows systems, use a fallback font
-    if (requireNamespace("grDevices", quietly = TRUE)) {
-      grDevices::quartzFonts(Arial = grDevices::quartzFont(
-        c("Arial", "Arial Bold", "Arial Italic", "Arial Bold Italic")
-      ))
-    }
+    # Arial not included with linux as standard, so default to sans
+    chart_font <- "sans"
   }
-  return(invisible(NULL))
+  assign("chart_font", chart_font, envir = parent.frame())
 }
 
 
@@ -436,6 +435,3 @@ adorn_dates <- function(df, date_var) {
   return(df)
 
 }
-
-
-

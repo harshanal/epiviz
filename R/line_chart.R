@@ -287,32 +287,32 @@ line_chart <-  function(dynamic = FALSE,
   if (!dynamic) {
     # produce ggplot graph if 'dynamic' is set to FALSE
 
-
-    # Validation for line types
-    if (length(line_type) == 1) {
-      if (!(line_type %in% valid_line_types)) {
-        stop("Invalid line type. Choose from: solid, dotted, dashed, longdash, dotdash")
-      }
-    } else {
-      if (!all(line_type %in% valid_line_types)) {
-        stop(
-          "One or more linetypes are invalid. Choose from: solid, dotted, dashed, longdash, dotdash"
-        )
-      }
-    }
-
     # create base plot
     if (is.null(base)) {
-      base <- ggplot2::ggplot() + ggplot2::theme_classic()
+      base <- ggplot2::ggplot() + theme_minimal()  # Change to minimal theme
     }
 
     # add default theme if theme argument not provided
     if (!is.null(st_theme)) {
       base <- base + st_theme
     } else {
-      # If not provided, use the default theme
-      base <- base + ggplot2::theme_classic()
+      # If not provided, use the consistent theme
+      base <- base + 
+        theme_minimal() +
+        theme(
+          axis.title.x = element_text(size = params$text_size, face = "bold"),
+          axis.title.y = element_text(size = params$text_size, face = "bold"),
+          axis.text = element_text(size = params$text_size),
+          legend.position = params$legend_position,
+          legend.title = element_blank(),
+          legend.text = element_text(size = params$text_size),
+          panel.grid = element_blank(),  # Remove grid lines
+          axis.line = element_line(color = "black"),  # Add axis lines in black
+          plot.title = element_text(size = params$text_size + 2, face = "bold", hjust = 0.5)
+        )
     }
+
+    
 
     if (is.null(group_var)) {
       # creating base graph without groups

@@ -81,15 +81,31 @@ col_chart <- function(df,
   if (missing(x)) stop('Please inlcude argument data frame variable for x axis, ie x = "variable_name"')
   if (missing(y)) stop('Please include argument data frame variable for y axis, ie y = "variable_name"')
 
-
-
   # Check that the data frame provided is not empty, else stop
   assertthat::assert_that(not_empty(df))
 
-
-
   if (is.null(base)) {
-    base <- ggplot2::ggplot()
+    base <- ggplot2::ggplot() + theme_minimal() + # Change to minimal theme
+        theme(
+      axis.title.x = element_text(size = 10, face = "bold"),
+      axis.title.y = element_text(size = 10, face = "bold"),
+      axis.text = element_text(size = 10),
+      legend.position = legend_pos,
+      legend.title = element_blank(),
+      legend.text = element_text(size = 10),
+      panel.grid = element_blank(),  # Remove grid lines by default
+      axis.line = element_line(color = "black", linewidth = 0.5),  # Add axis lines in black
+      plot.title = element_text(size = 14, face = "bold", hjust = 0.5),  # Center-align and bold title
+      plot.caption = element_text(size = 10, hjust = 0),  # Left-align caption
+      plot.margin = margin(t = 10, r = 10, b = 10, l = 10)  # Add consistent margins
+    )
+  # Add gridlines back if remove_gridlines is not specified
+  if(is.null(remove_gridlines)) {
+    base <- base + theme(
+      panel.grid.major = element_line(color = "grey90", linewidth = 0.2),
+      panel.grid.minor = element_line(color = "grey95", linewidth = 0.1)
+    )
+  }
   }
 
   # If user wants to plot on the secondary y-axis
@@ -173,8 +189,6 @@ col_chart <- function(df,
                            position = position)
   }
 
-
-
   # confidence interval; ribbon \ error bar
   if(!(missing(ci)) && missing(group_var)){
 
@@ -192,7 +206,6 @@ col_chart <- function(df,
                   base <- base + ggplot2::geom_ribbon(data = df, aes(x = .data[[x]], ymin = .data[[lower]], ymax = .data[[upper]], group = 1), fill = error_colour, alpha = .5))
 
            )
-
 
   }
 
@@ -217,8 +230,6 @@ col_chart <- function(df,
 
            )}
 
-
-
   # apply horizontal line if h_line argument exists
   if(!(missing(h_line))){
 
@@ -226,25 +237,22 @@ col_chart <- function(df,
 
   }
 
-  # Theme settings
-  base <- base + ggplot2::theme(legend.title=element_blank(), legend.position = legend_pos,
-                                axis.text.x = element_text(angle  = x_label_angle, vjust = 0.5))
+  # Theme settings - Update to match age_sex_pyramid style
+  base <- base + 
+    theme_minimal() +  # Use minimal theme as base
+    theme(
+      axis.title.x = element_text(size = 12, face = "bold"),
+      axis.title.y = element_text(size = 12, face = "bold"),
+      axis.text = element_text(size = 12),
+      legend.position = legend_pos,
+      legend.title = element_blank(),
+      legend.text = element_text(size = 12),
+      panel.grid = element_blank(),  # Remove grid lines
+      axis.line = element_line(color = "black"),  # Add axis lines in black
+      axis.text.x = element_text(angle = x_label_angle, vjust = 0.5)
+    )
 
-
-  # Set styling
-  base <- base + ggplot2::theme(text = element_text(size=12, family="Arial"),
-                                axis.title.x = element_text(face="bold"),
-                                axis.title.y = element_text(face="bold")
-  )
-
-  #remove major y grid lines
-  if(!(missing(remove_gridlines))){
-
-    base <-   base + ggplot2::theme(panel.grid.major.y = element_blank())
-
-  }
-
-
+  # Remove old theme settings that are now handled above
 
   #append percentage labels
   if(!(missing(percent))){
@@ -252,7 +260,6 @@ col_chart <- function(df,
     base <- base + ggplot2::scale_y_continuous(labels = function(x) paste0(x, "%"))
 
   }
-
 
   if(y_axis == "y2") {
     current_y_axis_name <- ggplot_build(base)$layout$panel_params[[1]]$y$name
