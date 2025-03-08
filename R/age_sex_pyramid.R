@@ -195,122 +195,140 @@ age_sex_pyramid <- function(
     # plotly implementation of dynamic age-sex-pyramid
     
     # Process data similarly to static version
-    var_map <- params$var_map
-    
-    if(params$grouped == FALSE){
-      .grp_df <- process_line_list_for_age_sex_pyramid(
-        df = params$df,
-        var_map = var_map,
-        age_breakpoints = params$age_breakpoints,
-        age_calc_refdate = params$age_calc_refdate
-      )
-    } else {
-      .grp_df <- params$df
-    }
-    
-    # Create the plotly visualization
-    male_data <- .grp_df[.grp_df$sex == "Male", ]
-    female_data <- .grp_df[.grp_df$sex == "Female", ]
-    
-    # Convert values for males to negative for visualization
-    male_data$value <- -male_data$value
-    if(params$conf_limits) {
-      male_data$lowercl <- -male_data$lowercl
-      male_data$uppercl <- -male_data$uppercl
-    }
-    
-    # Create the plot
-    p <- plot_ly(showlegend = TRUE)
-    
-    # Add male bars
+# plotly implementation of dynamic age-sex-pyramid
+  var_map <- params$var_map
+  
+  if (params$grouped == FALSE) {
+    .grp_df <- process_line_list_for_age_sex_pyramid(
+      df = params$df,
+      var_map = var_map,
+      age_breakpoints = params$age_breakpoints,
+      age_calc_refdate = params$age_calc_refdate
+    )
+  } else {
+    .grp_df <- params$df
+  }
+  
+  # Create the plotly visualization
+  male_data <- .grp_df[.grp_df$sex == "Male", ]
+  female_data <- .grp_df[.grp_df$sex == "Female", ]
+  
+  # Convert values for males to negative for visualization
+  male_data$value <- -male_data$value
+  if (params$conf_limits) {
+    male_data$lowercl <- -male_data$lowercl
+    male_data$uppercl <- -male_data$uppercl
+  }
+  
+  # Calculate maximum range for symmetric axis
+  if (params$conf_limits) {
+    all_x <- c(male_data$value, female_data$value, male_data$lowercl, male_data$uppercl, 
+               female_data$lowercl, female_data$uppercl)
+  } else {
+    all_x <- c(male_data$value, female_data$value)
+  }
+  min_x <- min(all_x)
+  max_x <- max(all_x)
+  max_range <- max(abs(min_x), max_x)
+  
+  # Generate symmetric tick values and positive labels
+  positive_ticks <- pretty(c(0, max_range), n = ceiling(params$x_breaks / 2))
+  tickvals <- sort(unique(c(-positive_ticks, positive_ticks)))
+  ticktext <- as.character(abs(tickvals))
+  
+  # Create the plot
+  p <- plot_ly(showlegend = TRUE)
+  
+  # Add male bars
+  p <- add_trace(p,
+                 x = male_data$value,
+                 y = male_data$age_group,
+                 type = "bar",
+                 name = "Male",
+                 marker = list(color = params$colours[1]),
+                 orientation = 'h',
+                 hoverinfo = "none")
+  
+  # Add female bars
+  p <- add_trace(p,
+                 x = female_data$value,
+                 y = female_data$age_group,
+                 type = "bar",
+                 name = "Female",
+                 marker = list(color = params$colours[2]),
+                 orientation = 'h',
+                 hoverinfo = "none")
+  
+  # Add confidence limits if requested
+  if (params$conf_limits) {
     p <- add_trace(p,
-                   x = male_data$value,
+                   x = male_data$lowercl,
                    y = male_data$age_group,
-                   type = "bar",
-                   name = "Male",
+                   type = "scatter",
+                   mode = "markers",
+                   name = "Male CI",
                    marker = list(color = params$colours[1]),
-                   orientation = 'h',
-                   hoverinfo = "none")  # Remove numbers on the graph squares themselves
-    
-    # Add female bars
+                   showlegend = FALSE)
     p <- add_trace(p,
-                   x = female_data$value,
+                   x = male_data$uppercl,
+                   y = male_data$age_group,
+                   type = "scatter",
+                   mode = "markers",
+                   name = "Male CI",
+                   marker = list(color = params$colours[1]),
+                   showlegend = FALSE)
+    p <- add_trace(p,
+                   x = female_data$lowercl,
                    y = female_data$age_group,
-                   type = "bar",
-                   name = "Female",
+                   type = "scatter",
+                   mode = "markers",
+                   name = "Female CI",
                    marker = list(color = params$colours[2]),
-                   orientation = 'h',
-                   hoverinfo = "none")  # Remove numbers on the graph squares themselves
-    
-    # Add confidence limits if requested
-    if(params$conf_limits) {
-      # Male confidence limits
-      p <- add_trace(p,
-                     x = male_data$lowercl,
-                     y = male_data$age_group,
-                     type = "scatter",
-                     mode = "markers",
-                     name = "Male CI",
-                     marker = list(color = params$colours[1]),
-                     showlegend = FALSE)
-      
-      p <- add_trace(p,
-                     x = male_data$uppercl,
-                     y = male_data$age_group,
-                     type = "scatter",
-                     mode = "markers",
-                     name = "Male CI",
-                     marker = list(color = params$colours[1]),
-                     showlegend = FALSE)
-      
-      # Female confidence limits
-      p <- add_trace(p,
-                     x = female_data$lowercl,
-                     y = female_data$age_group,
-                     type = "scatter",
-                     mode = "markers",
-                     name = "Female CI",
-                     marker = list(color = params$colours[2]),
-                     showlegend = FALSE)
-      
-      p <- add_trace(p,
-                     x = female_data$uppercl,
-                     y = female_data$age_group,
-                     type = "scatter",
-                     mode = "markers",
-                     name = "Female CI",
-                     marker = list(color = params$colours[2]),
-                     showlegend = FALSE)
-    }
-    
-    # Update layout
-    p <- layout(p,
-                title = params$legend_title,  # Updated plot title
-                xaxis = list(title = list(text = params$y_title,  # Swap y_title to x-axis
-                                        font = list(size = params$text_size)),
-                            tickfont = list(size = params$text_size),
-                            zeroline = TRUE,
-                            showgrid = FALSE,  # Remove grid lines
-                            showline = TRUE,  # Add axis lines
-                            linecolor = "black"),
-                yaxis = list(title = list(text = params$x_title,  # Swap x_title to y-axis
-                                        font = list(size = params$text_size)),
-                            tickfont = list(size = params$text_size),
-                            zeroline = TRUE,
-                            showgrid = FALSE,  # Remove grid lines
-                            showline = TRUE,  # Add axis lines
-                            linecolor = "black"),
-                barmode = 'overlay',
-                font = list(family = "Arial"),
-                hoverlabel = list(bgcolor = "white",
-                                font = list(size = 12)),
-                showlegend = TRUE,
-                legend = list(orientation = "h",
+                   showlegend = FALSE)
+    p <- add_trace(p,
+                   x = female_data$uppercl,
+                   y = female_data$age_group,
+                   type = "scatter",
+                   mode = "markers",
+                   name = "Female CI",
+                   marker = list(color = params$colours[2]),
+                   showlegend = FALSE)
+  }
+  
+  # Update layout with corrected titles and custom ticks
+  p <- layout(p,
+              title = params$legend_title,
+              xaxis = list(
+                title = list(text = params$x_title, font = list(size = params$text_size)),
+                tickfont = list(size = params$text_size),
+                zeroline = TRUE,
+                showgrid = FALSE,
+                showline = TRUE,
+                linecolor = "black",
+                tickmode = "array",
+                tickvals = tickvals,
+                ticktext = ticktext,
+                range = c(-max_range * 1.05, max_range * 1.05)
+              ),
+              yaxis = list(
+                title = list(text = params$y_title, font = list(size = params$text_size)),
+                tickfont = list(size = params$text_size),
+                zeroline = TRUE,
+                showgrid = FALSE,
+                showline = TRUE,
+                linecolor = "black"
+              ),
+              barmode = 'overlay',
+              font = list(family = "Arial"),
+              hoverlabel = list(bgcolor = "white", font = list(size = 12)),
+              showlegend = TRUE,
+              legend = list(orientation = "h",
                             xanchor = "center",
                             x = 0.5,
-                            y = -0.2))
-
-    return(p)
+                            y = -0.2)
+  )
+  
+  return(p)
   }
 }
 
