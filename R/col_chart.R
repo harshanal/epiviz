@@ -73,6 +73,9 @@ col_chart <- function(df,
                       no_shift = FALSE
 ){
 
+  # Set Arial font
+  set_Arial()
+
   # check for any missing mandatory arguments
   if (missing(df)) stop("A data frame argument is required")
   if (missing(x)) stop('Please inlcude argument data frame variable for x axis, ie x = "variable_name"')
