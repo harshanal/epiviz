@@ -158,13 +158,19 @@ col_chart <- function(df,
 
   # if group variable not provided build plot accordingly
   if(missing(group_var)){
-
-    base <- base + geom_col(data = df, aes(x = .data[[x]], y =  .data[[y]], fill = fill), position = position)
-
+    base <- base + geom_col(data = df, 
+                           aes(x = .data[[x]], y = .data[[y]]), 
+                           fill = fill,  # Move fill outside aes()
+                           position = position)
   } else if (!missing(group_var) && missing(fill)) {
-    base <- base + geom_col(data = df, aes(x = .data[[x]], y =  .data[[y]], fill = .data[[group_var]]), position = position)
+    base <- base + geom_col(data = df, 
+                           aes(x = .data[[x]], y = .data[[y]], fill = .data[[group_var]]), 
+                           position = position)
   } else if (!missing(group_var) && !missing(fill)) {
-    base <- base + geom_col(data = df, aes(x = .data[[x]], y =  .data[[y]], group = .data[[group_var]], fill = .data[[group_var]]), position = position) #+scale_fill_manual(values = fill)
+    base <- base + geom_col(data = df, 
+                           aes(x = .data[[x]], y = .data[[y]], 
+                               group = .data[[group_var]], fill = .data[[group_var]]), 
+                           position = position)
   }
 
 

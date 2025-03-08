@@ -4,7 +4,7 @@ test_that("col_chart basic functionality works", {
   # Create summarized test data from lab_data
   test_data <- epiviz::lab_data |>
     dplyr::group_by(organism_species_name) |>
-    dplyr::summarise(count = n())
+    dplyr::summarise(count = dplyr::n())
 
   # Basic column chart
   expect_true(inherits(
@@ -39,7 +39,7 @@ test_that("col_chart grouping works", {
   # Create grouped test data from lab_data
   test_data <- epiviz::lab_data |>
     dplyr::group_by(organism_species_name, region) |>
-    dplyr::summarise(count = n(), .groups = "drop")
+    dplyr::summarise(count = dplyr::n(), .groups = "drop")
 
   # Test with grouping
   expect_true(inherits(
@@ -73,7 +73,7 @@ test_that("col_chart axis customization works", {
 
   test_data <- epiviz::lab_data |>
     dplyr::group_by(organism_species_name) |>
-    dplyr::summarise(count = n())
+    dplyr::summarise(count = dplyr::n())
 
   # Test with custom labels
   p <- col_chart(
