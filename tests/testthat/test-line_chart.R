@@ -130,3 +130,66 @@ test_that("line_chart dynamic works", {
   expect_true(inherits(result, "plotly"))
 
 })
+
+test_that("line_chart handles ellipsis arguments", {
+  library(dplyr)
+  library(epiviz)
+
+  # Create test data
+  test_df <- epiviz::lab_data |>
+    filter(organism_species_name == "KLEBSIELLA PNEUMONIAE") |>
+    mutate(specimen_date = as.Date(specimen_date)) |>
+    group_by(specimen_date) |>
+    summarize(count = n(), .groups = 'drop')
+
+  # Basic params
+  params <- list(
+    dfr = test_df,
+    x = "specimen_date",
+    y = "count",
+    line_colour = "blue"
+  )
+
+  # Test static plot with custom line properties
+  result <- line_chart(
+    params = params, 
+    dynamic = FALSE,
+    alpha = 0.7,  # Test passing alpha through ...
+    linewidth = 1.5    # Changed from size to linewidth
+  )
+  expect_true(inherits(result, "ggplot"))
+
+  # Test dynamic plot with custom line properties
+  result_dynamic <- line_chart(
+    params = params, 
+    dynamic = TRUE,
+    opacity = 0.7,    # Test passing opacity through ...
+    line = list(     # Test passing complex attributes through ...
+      dash = "dot",
+      width = 3
+    )
+  )
+  expect_true(inherits(result_dynamic, "plotly"))
+
+  # Test grouped plot with custom aesthetics
+  grouped_df <- epiviz::lab_data |>
+    mutate(specimen_date = as.Date(specimen_date)) |>
+    group_by(organism_species_name, specimen_date) |>
+    summarize(count = n(), .groups = 'drop') |>
+    filter(specimen_date >= as.Date("2023-01-01"))
+
+  grouped_params <- list(
+    dfr = grouped_df,
+    x = "specimen_date",
+    y = "count",
+    group_var = "organism_species_name",
+    line_colour = c("blue", "green", "red")
+  )
+
+  result_grouped <- line_chart(
+    params = grouped_params,
+    dynamic = FALSE,
+    alpha = 0.8      # Test transparency
+  )
+  expect_true(inherits(result_grouped, "ggplot"))
+})

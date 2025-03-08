@@ -31,6 +31,9 @@
 #'   \item \code{st_theme} Optional. A ggplot2 theme object to customize the style of the plot.
 #'   \item \code{add_points} Optional. A logical value. If `TRUE`, points will be added to the line chart.
 #' }
+#' @param ... Additional arguments passed to \code{geom_line} for static (ggplot2) plots
+#'   or to \code{plot_ly}/\code{add_trace} for dynamic (Plotly) plots, allowing custom
+#'   styling of the lines (e.g., \code{alpha}, \code{size}, \code{marker}, etc.).
 #'
 #' @import ggplot2
 #' @rawNamespace import(plotly, except = last_plot)
@@ -141,7 +144,8 @@ line_chart <-  function(dynamic = FALSE,
                           hline = NULL,
                           hline_colour = "red",
                           hline_label = NULL
-                        )) {
+                        ),
+                        ...) {
   # Solve warnings regarding font family not found using utils/set_Arial() function
   set_Arial()
 
@@ -322,7 +326,8 @@ line_chart <-  function(dynamic = FALSE,
           aes(x = .data[[x]], y = .data[[y]]),
           linetype = line_type,
           colour = line_colour,
-          linewidth = width
+          linewidth = width,
+          ...
         )
     } else{
       # creating base graph with groups
@@ -336,7 +341,8 @@ line_chart <-  function(dynamic = FALSE,
             colour = .data[[group_var]],
             linetype = .data[[group_var]]
           ),
-          linewidth = width
+          linewidth = width,
+          ...
         ) +
         scale_colour_manual(values = line_colour) +
         scale_linetype_manual(values = line_type)
@@ -628,7 +634,8 @@ line_chart <-  function(dynamic = FALSE,
             color = line_colour,
             dash = plotly_line_types[[1]],
             width = width
-          )
+          ),
+          ...
         ) |>
         layout(xaxis = list(title = x), yaxis = list(title = y))
 
@@ -654,7 +661,8 @@ line_chart <-  function(dynamic = FALSE,
               color = params$line_colour[i],
               dash = plotly_line_types[[i]],
               width = params$width
-            )
+            ),
+            ...
           )
       }
 
