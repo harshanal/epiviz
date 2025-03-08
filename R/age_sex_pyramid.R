@@ -11,15 +11,16 @@
 #' \describe{
 #'   \item{df}{Data frame containing the data to be used.}
 #'   \item{var_map}{A list mapping variable names in the data frame to the expected names used in the function.
-#'                  Expected elements include:
-#'                    \item{age}{Name of the column containing age values. Default is `'age'`.}
-#'                    \item{date_of_birth}{Name of the column containing date of birth values. Default is `'date_of_birth'`.}
-#'                    \item{sex}{Name of the column containing sex values. Default is `'sex'`.}
-#'                    \item{age_group}{Name of the column containing pre-grouped age groups (if `grouped = TRUE`).}
-#'                    \item{value}{Name of the column containing the value counts (if `grouped = TRUE`).}
-#'                    \item{lowercl}{Name of the column containing lower confidence limits (if `conf_limits = TRUE`).}
-#'                    \item{uppercl}{Name of the column containing upper confidence limits (if `conf_limits = TRUE`).}
-#'                  }}
+#'     \describe{
+#'       \item{age}{Name of the column containing age values. Default is `'age'`.}
+#'       \item{date_of_birth}{Name of the column containing date of birth values. Default is `'date_of_birth'`.}
+#'       \item{sex}{Name of the column containing sex values. Default is `'sex'`.}
+#'       \item{age_group}{Name of the column containing pre-grouped age groups (if `grouped = TRUE`).}
+#'       \item{value}{Name of the column containing the value counts (if `grouped = TRUE`).}
+#'       \item{lowercl}{Name of the column containing lower confidence limits (if `conf_limits = TRUE`).}
+#'       \item{uppercl}{Name of the column containing upper confidence limits (if `conf_limits = TRUE`).}
+#'     }
+#'   }
 #'   \item{colours}{A vector of colours to be used in the plot. Default is `c("#440154", "#fde725")`.}
 #'   \item{x_breaks}{Number of breaks on the x-axis. Default is `10`.}
 #'   \item{y_title}{Title of the y-axis. Default is `"Individual count"`.}
