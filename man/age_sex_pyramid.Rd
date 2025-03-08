@@ -9,9 +9,10 @@ age_sex_pyramid(
   base = NULL,
   params = list(df, var_map = list(age = "age", date_of_birth = "date_of_birth", sex =
     "sex", age_group = "age_group", value = "value", lowercl = "lowercl", uppercl =
-    "uppercl"), colours = c("#440154", "#fde725"), x_breaks = 10, y_title =
-    "Individual count", text_size = 12, conf_limits = FALSE, age_breakpoints = c(0, 5,
-    19, 65, Inf), age_calc_refdate = Sys.Date(), grouped = FALSE)
+    "uppercl"), colours = c("#440154", "#2196F3"), x_breaks = 10, y_title =
+    "Age group (years)", x_title = "Number of cases", text_size = 12, conf_limits =
+    FALSE, age_breakpoints = c(0, 5, 19, 65, Inf), age_calc_refdate = Sys.Date(), grouped
+    = FALSE, legend_position = "top", legend_title = "")
 )
 }
 \arguments{
@@ -23,7 +24,6 @@ age_sex_pyramid(
 \describe{
 \item{df}{Data frame containing the data to be used.}
 \item{var_map}{A list mapping variable names in the data frame to the expected names used in the function.
-Expected elements include:
 \describe{
 \item{age}{Name of the column containing age values. Default is \code{'age'}.}
 \item{date_of_birth}{Name of the column containing date of birth values. Default is \code{'date_of_birth'}.}
@@ -32,15 +32,19 @@ Expected elements include:
 \item{value}{Name of the column containing the value counts (if \code{grouped = TRUE}).}
 \item{lowercl}{Name of the column containing lower confidence limits (if \code{conf_limits = TRUE}).}
 \item{uppercl}{Name of the column containing upper confidence limits (if \code{conf_limits = TRUE}).}
-}}
+}
+}
 \item{colours}{A vector of colours to be used in the plot. Default is \code{c("#440154", "#fde725")}.}
 \item{x_breaks}{Number of breaks on the x-axis. Default is \code{10}.}
 \item{y_title}{Title of the y-axis. Default is \code{"Individual count"}.}
+\item{x_title}{Title of the x-axis. Default is \code{"Number of cases"}.}
 \item{text_size}{Size of the text in the plot. Default is \code{12}.}
 \item{conf_limits}{Logical. If \code{TRUE}, confidence limits are displayed on the pyramid. Default is \code{FALSE}.}
 \item{age_breakpoints}{A numeric vector specifying the breakpoints for age groups. Default is \code{c(0, 5, 19, 65, Inf)}.}
 \item{age_calc_refdate}{Reference date for calculating age from date of birth. Default is \code{Sys.Date()}.}
 \item{grouped}{Logical. If \code{TRUE}, assumes the data is pre-grouped by age and sex. If \code{FALSE}, the function processes the line list data. Default is \code{FALSE}.}
+\item{legend_position}{Position of the legend. Default is \code{"top"}.}
+\item{legend_title}{Title of the legend. Default is \code{""}.}
 }}
 }
 \value{
