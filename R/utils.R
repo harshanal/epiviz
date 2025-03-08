@@ -63,25 +63,26 @@ get_os <- function(){
 
 
 
-#' Function to set chart_font variable to Arial in order to resolve warnings
+#' Set Arial font
 #'
-#' @return chart_font string
-#'
-#' @examples
-#' \dontrun{
-#' set_Arial()
-#' }
+#' @return NULL
+#' @noRd
 set_Arial <- function() {
-  if(get_os()[[1]] == "windows") {
-    windowsFonts("Arial" = windowsFont("Arial"))
-    chart_font <- "Arial"
-  } else if(get_os()[[1]] == "osx") {
-    chart_font <- "Arial"
+  # Check if running on Windows
+  if (.Platform$OS.type == "windows") {
+    # Use windowsFonts if available
+    if (requireNamespace("grDevices", quietly = TRUE)) {
+      grDevices::windowsFonts(Arial = grDevices::windowsFont("Arial"))
+    }
   } else {
-    # Arial not included with linux as standard, so default to sans
-    chart_font <- "sans"
+    # For non-Windows systems, use a fallback font
+    if (requireNamespace("grDevices", quietly = TRUE)) {
+      grDevices::quartzFonts(Arial = grDevices::quartzFont(
+        c("Arial", "Arial Bold", "Arial Italic", "Arial Bold Italic")
+      ))
+    }
   }
-  assign("chart_font", chart_font, envir = parent.frame())
+  return(invisible(NULL))
 }
 
 
@@ -312,7 +313,6 @@ plotly_legend_pos <- function(x) {
     return(legend_settings)
 
 }
-
 
 
 
