@@ -12,7 +12,6 @@
 #'   \item{df}{Data frame containing the data to be used.}
 #'   \item{var_map}{A list mapping variable names in the data frame to the expected names used in the function.
 #'                  Expected elements include:
-#'                  \describe{
 #'                    \item{age}{Name of the column containing age values. Default is `'age'`.}
 #'                    \item{date_of_birth}{Name of the column containing date of birth values. Default is `'date_of_birth'`.}
 #'                    \item{sex}{Name of the column containing sex values. Default is `'sex'`.}
@@ -24,11 +23,14 @@
 #'   \item{colours}{A vector of colours to be used in the plot. Default is `c("#440154", "#fde725")`.}
 #'   \item{x_breaks}{Number of breaks on the x-axis. Default is `10`.}
 #'   \item{y_title}{Title of the y-axis. Default is `"Individual count"`.}
+#'   \item{x_title}{Title of the x-axis. Default is `"Number of cases"`.}
 #'   \item{text_size}{Size of the text in the plot. Default is `12`.}
 #'   \item{conf_limits}{Logical. If `TRUE`, confidence limits are displayed on the pyramid. Default is `FALSE`.}
 #'   \item{age_breakpoints}{A numeric vector specifying the breakpoints for age groups. Default is `c(0, 5, 19, 65, Inf)`.}
 #'   \item{age_calc_refdate}{Reference date for calculating age from date of birth. Default is `Sys.Date()`.}
 #'   \item{grouped}{Logical. If `TRUE`, assumes the data is pre-grouped by age and sex. If `FALSE`, the function processes the line list data. Default is `FALSE`.}
+#'   \item{legend_position}{Position of the legend. Default is `"top"`.}
+#'   \item{legend_title}{Title of the legend. Default is `""`.}
 #' }
 #'
 #' @return A ggplot or plotly object representing the age-sex pyramid, depending on the value of `dynamic`.
@@ -86,14 +88,17 @@ age_sex_pyramid <- function(
                      value = 'value',
                      lowercl = 'lowercl',
                      uppercl = 'uppercl'),
-      colours = c("#440154", "#fde725"),
+      colours = c("#440154", "#2196F3"),  # Updated colors to match the example
       x_breaks = 10,
-      y_title = "Individual count",
+      y_title = "Age group (years)",  # Updated y-axis title
+      x_title = "Number of cases",  # Added x-axis title parameter
       text_size = 12,
       conf_limits = FALSE,
       age_breakpoints = c(0, 5, 19, 65, Inf),
       age_calc_refdate = Sys.Date(),
-      grouped = FALSE
+      grouped = FALSE,
+      legend_position = "top",  # Added legend position parameter
+      legend_title = ""  # Added legend title parameter
     )
 ) {
 
@@ -101,14 +106,17 @@ age_sex_pyramid <- function(
   set_Arial()
 
   # Where relevant, assign defaults to any parameters not specified by the user
-  if(!exists('colours',where=params)) params$colours <- c("#440154", "#fde725")
+  if(!exists('colours',where=params)) params$colours <- c("#440154", "#2196F3")
   if(!exists('x_breaks',where=params)) params$x_breaks <- 10
-  if(!exists('y_title',where=params)) params$y_title <- "Proportion of People Percentage (%)"
+  if(!exists('y_title',where=params)) params$y_title <- "Age group (years)"
+  if(!exists('x_title',where=params)) params$x_title <- "Number of cases"
   if(!exists('text_size',where=params)) params$text_size <- 12
   if(!exists('conf_limits',where=params)) params$conf_limits <- FALSE
   if(!exists('age_breakpoints',where=params)) params$age_breakpoints <- c(0, 5, 19, 65, Inf)
   if(!exists('age_calc_refdate',where=params)) params$age_calc_refdate <- Sys.Date()
   if(!exists('grouped',where=params)) params$grouped <- FALSE
+  if(!exists('legend_position',where=params)) params$legend_position <- "top"
+  if(!exists('legend_title',where=params)) params$legend_title <- ""
 
 
   ##### Checks and warnings
@@ -162,10 +170,147 @@ age_sex_pyramid <- function(
                            text_size = params$text_size,
                            conf_limits = params$conf_limits)
 
+    # Customise the plot to match the example
+    result <- result +
+      theme_minimal() +
+      theme(
+        axis.title.x = element_text(size = params$text_size, face = "bold"),
+        axis.title.y = element_text(size = params$text_size, face = "bold"),
+        axis.text = element_text(size = params$text_size),
+        legend.position = params$legend_position,
+        legend.title = element_blank(),
+        legend.text = element_text(size = params$text_size),
+        plot.title = element_text(size = params$text_size + 2, face = "bold", hjust = 0.5),
+        panel.grid = element_blank(),  # Remove grid lines
+        axis.line = element_line(color = "black")  # Add axis lines in black
+      ) +
+      labs(
+        y = params$x_title,  # Swap x_title to y-axis
+        x = params$y_title,  # Swap y_title to x-axis
+        title = params$legend_title  # Updated plot title
+      )
 
     return(result)
   }else{
     # plotly implementation of dynamic age-sex-pyramid
+    
+    # Process data similarly to static version
+    var_map <- params$var_map
+    
+    if(params$grouped == FALSE){
+      .grp_df <- process_line_list_for_age_sex_pyramid(
+        df = params$df,
+        var_map = var_map,
+        age_breakpoints = params$age_breakpoints,
+        age_calc_refdate = params$age_calc_refdate
+      )
+    } else {
+      .grp_df <- params$df
+    }
+    
+    # Create the plotly visualization
+    male_data <- .grp_df[.grp_df$sex == "Male", ]
+    female_data <- .grp_df[.grp_df$sex == "Female", ]
+    
+    # Convert values for males to negative for visualization
+    male_data$value <- -male_data$value
+    if(params$conf_limits) {
+      male_data$lowercl <- -male_data$lowercl
+      male_data$uppercl <- -male_data$uppercl
+    }
+    
+    # Create the plot
+    p <- plot_ly(showlegend = TRUE)
+    
+    # Add male bars
+    p <- add_trace(p,
+                   x = male_data$value,
+                   y = male_data$age_group,
+                   type = "bar",
+                   name = "Male",
+                   marker = list(color = params$colours[1]),
+                   orientation = 'h',
+                   hoverinfo = "none")  # Remove numbers on the graph squares themselves
+    
+    # Add female bars
+    p <- add_trace(p,
+                   x = female_data$value,
+                   y = female_data$age_group,
+                   type = "bar",
+                   name = "Female",
+                   marker = list(color = params$colours[2]),
+                   orientation = 'h',
+                   hoverinfo = "none")  # Remove numbers on the graph squares themselves
+    
+    # Add confidence limits if requested
+    if(params$conf_limits) {
+      # Male confidence limits
+      p <- add_trace(p,
+                     x = male_data$lowercl,
+                     y = male_data$age_group,
+                     type = "scatter",
+                     mode = "markers",
+                     name = "Male CI",
+                     marker = list(color = params$colours[1]),
+                     showlegend = FALSE)
+      
+      p <- add_trace(p,
+                     x = male_data$uppercl,
+                     y = male_data$age_group,
+                     type = "scatter",
+                     mode = "markers",
+                     name = "Male CI",
+                     marker = list(color = params$colours[1]),
+                     showlegend = FALSE)
+      
+      # Female confidence limits
+      p <- add_trace(p,
+                     x = female_data$lowercl,
+                     y = female_data$age_group,
+                     type = "scatter",
+                     mode = "markers",
+                     name = "Female CI",
+                     marker = list(color = params$colours[2]),
+                     showlegend = FALSE)
+      
+      p <- add_trace(p,
+                     x = female_data$uppercl,
+                     y = female_data$age_group,
+                     type = "scatter",
+                     mode = "markers",
+                     name = "Female CI",
+                     marker = list(color = params$colours[2]),
+                     showlegend = FALSE)
+    }
+    
+    # Update layout
+    p <- layout(p,
+                title = params$legend_title,  # Updated plot title
+                xaxis = list(title = list(text = params$y_title,  # Swap y_title to x-axis
+                                        font = list(size = params$text_size)),
+                            tickfont = list(size = params$text_size),
+                            zeroline = TRUE,
+                            showgrid = FALSE,  # Remove grid lines
+                            showline = TRUE,  # Add axis lines
+                            linecolor = "black"),
+                yaxis = list(title = list(text = params$x_title,  # Swap x_title to y-axis
+                                        font = list(size = params$text_size)),
+                            tickfont = list(size = params$text_size),
+                            zeroline = TRUE,
+                            showgrid = FALSE,  # Remove grid lines
+                            showline = TRUE,  # Add axis lines
+                            linecolor = "black"),
+                barmode = 'overlay',
+                font = list(family = "Arial"),
+                hoverlabel = list(bgcolor = "white",
+                                font = list(size = 12)),
+                showlegend = TRUE,
+                legend = list(orientation = "h",
+                            xanchor = "center",
+                            x = 0.5,
+                            y = -0.2))
+
+    return(p)
   }
 }
 
