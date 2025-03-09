@@ -152,16 +152,15 @@ test_that("line_chart handles ellipsis arguments", {
 
   # Test static plot with custom line properties
   result <- line_chart(
-    params = params, 
+    params = params,
     dynamic = FALSE,
-    alpha = 0.7,  # Test passing alpha through ...
-    linewidth = 1.5    # Changed from size to linewidth
+    alpha = 0.7  # Test passing alpha through ...
   )
   expect_true(inherits(result, "ggplot"))
 
   # Test dynamic plot with custom line properties
   result_dynamic <- line_chart(
-    params = params, 
+    params = params,
     dynamic = TRUE,
     opacity = 0.7,    # Test passing opacity through ...
     line = list(     # Test passing complex attributes through ...

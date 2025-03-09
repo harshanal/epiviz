@@ -13,7 +13,8 @@ line_chart(
     title = NULL, x_label = NULL, x_label_angle = NULL, y_label = NULL, y_label_angle =
     NULL, y_percent = FALSE, st_theme = NULL, add_points = FALSE, show_gridlines = FALSE,
     show_axislines = TRUE, legend_title = NULL, legend_position = NULL, hline = NULL,
-    hline_colour = "red", hline_label = NULL)
+    hline_colour = "red", hline_label = NULL),
+  ...
 )
 }
 \arguments{
@@ -45,6 +46,10 @@ Permissable values: "solid", "dotted", "dashed", "longdash", "dotdash"
 \item \code{st_theme} Optional. A ggplot2 theme object to customize the style of the plot.
 \item \code{add_points} Optional. A logical value. If \code{TRUE}, points will be added to the line chart.
 }}
+
+\item{...}{Additional arguments passed to \code{geom_line} for static (ggplot2) plots
+or to \code{plot_ly}/\code{add_trace} for dynamic (Plotly) plots, allowing custom
+styling of the lines (e.g., \code{alpha}, \code{size}, \code{marker}, etc.).}
 }
 \value{
 A plotly or ggplot2 object representing the line chart.
