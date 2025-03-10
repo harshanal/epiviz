@@ -1,35 +1,42 @@
 #' Column Chart
 #'
-#' @param df the dataframe containing the data to be plotted
-#' @param base a ggplot instance or NULL if creating a new plot
-#' @param x the x value column name to be plotted
-#' @param y the y value column name to be plotted
-#' @param group_var the variable used to group the bars i.e. region if plotting by region
-#' @param fill the colour with which to fill the columns
-#' @param y_axis either "y1" for the primary y-axis or "y2" for the secondary y-axis.
-#' @param position the positions of the bars to be plotted i.e."dodge", "stack" etc
-#' @param ci indicator for using ribbon or error bar geom (if required), enter 'e' for error bar, enter any other value for ribbon
-#' @param lower lower value for error \ ribbon geom (mandatory if ci argument passed)
-#' @param upper upper upper value for error \ ribbon geom (mandatory if ci argument passed)
-#' @param error_colour if not plotting by group this is the colour of the error bars or ribbon
-#' @param h_line will display a horizontal line if valid inter passed
-#' @param y_label for provision of an y axis label
-#' @param x_label for provision of an x axis label
-#' @param x_label_angle to adjust the x axis label by the degrees of the integer provided
-#' @param y_label_angle to adjust the y axis label by the degrees of the integer provided
-#' @param x_labels_reverse enter an argument of any value i.e. 'y' to reverse the x labeling order when using categorical data
-#' @param y_min_limit set the limit on the y axis scaling by proving an integer
-#' @param y_max_limit set the limit on the x axis scaling by proving an integer
-#' @param x_axis_breaks modify the x axis breaks by providing an integer
-#' @param legend_pos modify the position of the legend (where applicable) with appropriate value i.e. bottom (default position), top, right, left
-#' @param remove_gridlines enter an argument of any value i.e. 'y' to remove the grid lines
-#' @param percent enter an argument of any value i.e. 'y' to include the % symbol for y axis labels
-#' @param cap_text enter text for a caption to appear below plot
-#' @param no_shift If no shift should be applied to the secondary y-axis
-#'
+#' @param dynamic Logical indicating whether to produce a dynamic (plotly) output.
+#' Default is \code{FALSE}, which will return a static ggplot output.
+#' @param base A base ggplot object to add the column chart to. Default is NULL.
+#' @param params A named list containing arguments used to create the plot.
+#' \describe{
+#'   \item{df}{The dataframe containing the data to be plotted}
+#'   \item{x}{The x value column name to be plotted}
+#'   \item{y}{The y value column name to be plotted}
+#'   \item{group_var}{The variable used to group the bars i.e. region if plotting by region}  
+#'   \item{fill}{The colour with which to fill the columns}
+#'   \item{y_axis}{Either "y1" for primary y-axis or "y2" for secondary y-axis}
+#'   \item{position}{The positions of the bars to be plotted i.e."dodge", "stack" etc}
+#'   \item{ci}{Indicator for using ribbon or error bar geom (if required), enter 'e' for error bar, enter any other value for ribbon}
+#'   \item{lower}{Lower value for error/ribbon geom (mandatory if ci argument passed)}
+#'   \item{upper}{Upper value for error/ribbon geom (mandatory if ci argument passed)}
+#'   \item{error_colour}{If not plotting by group this is the colour of the error bars or ribbon}
+#'   \item{h_line}{Will display a horizontal line if valid integer passed}
+#'   \item{y_label}{For provision of an y axis label}
+#'   \item{x_label}{For provision of an x axis label}
+#'   \item{x_label_angle}{To adjust the x axis label by the degrees of the integer provided}
+#'   \item{y_label_angle}{To adjust the y axis label by the degrees of the integer provided}
+#'   \item{x_labels_reverse}{Enter an argument of any value i.e. 'y' to reverse the x labeling order}
+#'   \item{y_min_limit}{Set the limit on the y axis scaling by proving an integer}
+#'   \item{y_max_limit}{Set the limit on the x axis scaling by proving an integer}
+#'   \item{x_axis_breaks}{Modify the x axis breaks by providing an integer}
+#'   \item{legend_pos}{Modify the position of the legend (where applicable)}
+#'   \item{remove_gridlines}{Enter an argument of any value i.e. 'y' to remove grid lines}
+#'   \item{percent}{Enter an argument of any value i.e. 'y' to include the % symbol}
+#'   \item{cap_text}{Enter text for a caption to appear below plot}
+#'   \item{no_shift}{If no shift should be applied to the secondary y-axis}
+#'   \item{...}{Additional arguments passed to \code{geom_col} for static (ggplot2) plots
+#'   or to \code{plot_ly}/\code{add_trace} for dynamic (Plotly) plots, allowing custom
+#'   styling of the columns (e.g., \code{alpha}, \code{width}, \code{marker}, etc.).}
+#' }
 #' @import assertthat
 #'
-#' @return a ggplot instance
+#' @return A ggplot instance 
 #' @export
 #'
 #' @examples
@@ -39,47 +46,87 @@
 #'  group_by(organism_species_name) |>
 #'  summarise(Count=n())
 #'
-#' col_chart(data,
-#'           x="organism_species_name",
-#'           y="Count"
-#' )
+#' col_chart(params = list(
+#'   df = data,
+#'   x = "organism_species_name",
+#'   y = "Count"
+#' ))
 #' }
-
-col_chart <- function(df,
-                      base = NULL,
-                      x = NULL,
-                      y = NULL,
-                      group_var = NULL,
-                      fill = "blue",
-                      y_axis = "y1",
-                      position = "dodge",
-                      ci = NULL,
-                      lower = NULL,
-                      upper = NULL,
-                      error_colour = "red",
-                      h_line = NULL,
-                      y_label = NULL,
-                      x_label = NULL,
-                      x_label_angle = NULL,
-                      y_label_angle = NULL,
-                      x_labels_reverse = NULL,
-                      y_min_limit = NULL,
-                      y_max_limit= NULL,
-                      x_axis_breaks = NULL,
-                      legend_pos = "bottom",
-                      remove_gridlines = NULL,
-                      percent = NULL,
-                      cap_text = NULL,
-                      no_shift = FALSE
-){
-
+col_chart <- function(
+    dynamic = FALSE,
+    base = NULL,
+    params = list(
+      df = NULL,
+      x = NULL,
+      y = NULL, 
+      group_var = NULL,
+      fill = "blue",
+      y_axis = "y1",
+      position = "dodge",
+      ci = NULL,
+      lower = NULL,
+      upper = NULL,
+      error_colour = "red",
+      h_line = NULL,
+      y_label = NULL,
+      x_label = NULL,
+      x_label_angle = NULL,
+      y_label_angle = NULL,
+      x_labels_reverse = NULL,
+      y_min_limit = NULL, 
+      y_max_limit = NULL,
+      x_axis_breaks = NULL,
+      legend_pos = "bottom",
+      remove_gridlines = NULL,
+      percent = NULL,
+      cap_text = NULL,
+      no_shift = FALSE
+    ),
+    ...  # Add ellipsis parameter
+) {
   # Set Arial font
   set_Arial()
 
-  # check for any missing mandatory arguments
-  if (missing(df)) stop("A data frame argument is required")
-  if (missing(x)) stop('Please inlcude argument data frame variable for x axis, ie x = "variable_name"')
-  if (missing(y)) stop('Please include argument data frame variable for y axis, ie y = "variable_name"')
+  # Where relevant, assign defaults to any parameters not specified by the user
+  if(!exists('df',where=params)) stop("A data frame argument is required")
+  if(!exists('x',where=params)) stop('Please include argument data frame variable for x axis, ie x = "variable_name"')
+  if(!exists('y',where=params)) stop('Please include argument data frame variable for y axis, ie y = "variable_name"')
+  if(!exists('fill',where=params)) params$fill <- "blue"
+  if(!exists('y_axis',where=params)) params$y_axis <- "y1"
+  if(!exists('position',where=params)) params$position <- "dodge"
+  if(!exists('error_colour',where=params)) params$error_colour <- "red"
+  if(!exists('legend_pos',where=params)) params$legend_pos <- "bottom"
+  if(!exists('no_shift',where=params)) params$no_shift <- FALSE
+
+  # Check that the data frame provided is not empty, else stop
+  assertthat::assert_that(not_empty(params$df))
+
+  # Assign variables from params list for easier referencing
+  df <- params$df
+  x <- params$x
+  y <- params$y
+  group_var <- params$group_var
+  fill <- params$fill
+  y_axis <- params$y_axis
+  position <- params$position
+  ci <- params$ci
+  lower <- params$lower
+  upper <- params$upper
+  error_colour <- params$error_colour
+  h_line <- params$h_line
+  y_label <- params$y_label
+  x_label <- params$x_label
+  x_label_angle <- params$x_label_angle
+  y_label_angle <- params$y_label_angle
+  x_labels_reverse <- params$x_labels_reverse
+  y_min_limit <- params$y_min_limit
+  y_max_limit <- params$y_max_limit
+  x_axis_breaks <- params$x_axis_breaks
+  legend_pos <- params$legend_pos
+  remove_gridlines <- params$remove_gridlines
+  percent <- params$percent
+  cap_text <- params$cap_text
+  no_shift <- params$no_shift
 
   # Check that the data frame provided is not empty, else stop
   assertthat::assert_that(not_empty(df))
@@ -177,16 +224,19 @@ col_chart <- function(df,
     base <- base + geom_col(data = df, 
                            aes(x = .data[[x]], y = .data[[y]]), 
                            fill = fill,  # Move fill outside aes()
-                           position = position)
+                           position = position,
+                           ...)  # Pass additional aesthetics
   } else if (!missing(group_var) && missing(fill)) {
     base <- base + geom_col(data = df, 
                            aes(x = .data[[x]], y = .data[[y]], fill = .data[[group_var]]), 
-                           position = position)
+                           position = position,
+                           ...)  # Pass additional aesthetics
   } else if (!missing(group_var) && !missing(fill)) {
     base <- base + geom_col(data = df, 
                            aes(x = .data[[x]], y = .data[[y]], 
                                group = .data[[group_var]], fill = .data[[group_var]]), 
-                           position = position)
+                           position = position,
+                           ...)  # Pass additional aesthetics
   }
 
   # confidence interval; ribbon \ error bar
@@ -279,6 +329,50 @@ col_chart <- function(df,
 
     base  <- base  + ggplot2::labs(caption = cap_text)
 
+  }
+
+  if (dynamic) {
+    # produce plotly graph if 'dynamic' is set to TRUE
+    
+    # Initialize plotly object
+    if(is.null(base)) {
+      base <- plot_ly()
+    }
+
+    # Handle grouped vs non-grouped plotting
+    if(is.null(group_var)) {
+      # Single group plotting
+      base <- add_bars(base,
+                      data = df,
+                      x = ~.data[[x]],
+                      y = ~.data[[y]],
+                      marker = list(color = fill),
+                      name = y,
+                      ...) # Pass additional plotly parameters
+    } else {
+      # Multiple group plotting
+      unique_groups <- unique(df[[group_var]])
+      
+      for(i in seq_along(unique_groups)) {
+        group_data <- df[df[[group_var]] == unique_groups[i],]
+        
+        base <- add_bars(base,
+                        data = group_data,
+                        x = ~.data[[x]],
+                        y = ~.data[[y]],
+                        name = unique_groups[i],
+                        marker = if(!missing(fill)) list(color = fill[i]) else list(),
+                        ...)  # Pass additional plotly parameters
+      }
+    }
+
+    # Add basic layout
+    base <- layout(base,
+                  xaxis = list(title = x_label %||% x),
+                  yaxis = list(title = y_label %||% y))
+
+    # Return plotly object
+    return(base)
   }
 
   return(base)
