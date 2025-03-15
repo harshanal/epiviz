@@ -227,18 +227,18 @@ col_chart <- function(
   }
 
   # if group variable not provided build plot accordingly
-  if(missing(group_var)){
+  if(is.null(group_var)){
     base <- base + geom_col(data = df, 
                            aes(x = .data[[x]], y = .data[[y]]), 
                            fill = fill,  # Move fill outside aes()
                            position = position,
                            !!!ggplot_dots)  # Pass filtered aesthetics
-  } else if (!missing(group_var) && missing(fill)) {
+  } else if (!is.null(group_var) && is.null(fill)) {
     base <- base + geom_col(data = df, 
                            aes(x = .data[[x]], y = .data[[y]], fill = .data[[group_var]]), 
                            position = position,
                            !!!ggplot_dots)  # Pass filtered aesthetics
-  } else if (!missing(group_var) && !missing(fill)) {
+  } else if (!is.null(group_var) && !is.null(fill)) {
     base <- base + geom_col(data = df, 
                            aes(x = .data[[x]], y = .data[[y]], 
                                group = .data[[group_var]], fill = .data[[group_var]]), 
@@ -247,10 +247,10 @@ col_chart <- function(
   }
 
   # confidence interval; ribbon \ error bar
-  if(!(missing(ci)) && missing(group_var)){
+  if(!is.null(ci) && is.null(group_var)){
 
-    # continue if  arguments for ci and bounds are provided
-    ifelse(!(missing(lower)) && !(missing(upper)),
+    # continue if arguments for ci and bounds are provided
+    ifelse(!is.null(lower) && !is.null(upper),
 
            # continue if type geom required is error else ribbon
            ifelse(ci == 'e',
@@ -266,10 +266,10 @@ col_chart <- function(
 
   }
 
-  if(!(missing(ci)) && !missing(group_var)){
+  if(!is.null(ci) && !is.null(group_var)){
 
-    # continue if  arguments for ci and bounds are provided
-    ifelse(!(missing(lower)) && !(missing(upper)),
+    # continue if arguments for ci and bounds are provided
+    ifelse(!is.null(lower) && !is.null(upper),
 
            # continue if type geom required is error else ribbon
            ifelse(ci == 'e',
@@ -288,7 +288,7 @@ col_chart <- function(
            )}
 
   # apply horizontal line if h_line argument exists
-  if(!(missing(h_line))){
+  if(!is.null(h_line)){
 
     base <- base + ggplot2::geom_hline(yintercept = h_line, linetype = "dashed", colour = "black")
 
@@ -312,7 +312,7 @@ col_chart <- function(
   # Remove old theme settings that are now handled above
 
   #append percentage labels
-  if(!(missing(percent))){
+  if(!is.null(percent)){
 
     base <- base + ggplot2::scale_y_continuous(labels = function(x) paste0(x, "%"))
 
@@ -326,13 +326,13 @@ col_chart <- function(
   }
 
   # Apply x label using arguments provided
-  if(!(missing(x_label))){
+  if(!is.null(x_label)){
 
     base <- base + ggplot2::labs(x = x_label)
 
   }
 
-  if(!(missing(cap_text))){
+  if(!is.null(cap_text)){
 
     base  <- base  + ggplot2::labs(caption = cap_text)
 
@@ -368,7 +368,7 @@ col_chart <- function(
                         x = group_data[[x]],
                         y = group_data[[y]],
                         name = as.character(unique_groups[i]),
-                        marker = if(!missing(fill)) list(color = fill[i]) else list())
+                        marker = if(!is.null(fill)) list(color = fill[i]) else list())
       }
     }
 

@@ -140,7 +140,7 @@ line_chart <-  function(dynamic = FALSE,
                           show_axislines = TRUE,
                           legend_title = NULL,
                           legend_position = NULL,
-                          #  “left”,“top”, “right”, “bottom”, “none”.
+                          #  "left","top","right","bottom","none".
                           hline = NULL,
                           hline_colour = "red",
                           hline_label = NULL
@@ -189,7 +189,7 @@ line_chart <-  function(dynamic = FALSE,
   if (!exists('legend_title', where = params))
     params$legend_title <- NULL
   if (!exists('legend_position', where = params))
-    params$legend_position <- NULL # “left”, “top”, “right”, “bottom”, “none”
+    params$legend_position <- NULL # "left","top","right","bottom","none"
   if (!exists('hline', where = params))
     params$hline <- NULL
   if (!exists('hline_colour', where = params))
@@ -471,7 +471,7 @@ line_chart <-  function(dynamic = FALSE,
     if ((!is.null(ci)) && (!is.null(group_var))) {
       # continue if  arguments for ci and bounds are provided
       ifelse(
-        !(missing(lower)) && !(missing(upper)),
+        !is.null(lower) && !is.null(upper),
 
         # continue if type geom required is error else ribbon
         ifelse(
@@ -509,51 +509,6 @@ line_chart <-  function(dynamic = FALSE,
       )
 
 
-    }
-
-    if ((!is.null(ci)) && (!is.null(group_var))) {
-      # continue if  arguments for ci and bounds are provided
-      ifelse(
-        (!is.null(lower)) && (!is.null(upper)),
-
-        # continue if type geom required is error else ribbon
-        ifelse(
-          ci == 'e',
-
-          # Apply error bar with  same legend and colour for line and ci
-          base <-
-            base + ggplot2::geom_errorbar(
-              data = dfr,
-              aes(
-                x = .data[[x]],
-                ymin = .data[[lower]],
-                ymax = .data[[upper]],
-                group = .data[[group_var]],
-                colour = .data[[group_var]]
-              ),
-
-            ) +
-            ggplot2::scale_colour_manual(values = line_colour)
-          ,
-
-          # Apply ribbon with  same legend and colour for line and ci
-          base <-
-            base + ggplot2::geom_ribbon(
-              data = dfr,
-              aes(
-                x = .data[[x]],
-                ymin = .data[[lower]],
-                ymax = .data[[upper]],
-                group =
-                  .data[[group_var]],
-                fill = .data[[group_var]]
-              ),
-              alpha = .5
-            ) +
-            ggplot2::scale_fill_manual(values = line_colour)
-        )
-
-      )
     }
 
 
