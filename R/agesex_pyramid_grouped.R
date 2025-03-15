@@ -48,7 +48,8 @@ agesex_pyramid_grouped <- function(df,
     #order age bands
     # Remove "<" and "+" from agebands, then take strings starting with one or more digits and arrange them
     arrange(as.integer(sub("^(\\d+).*", "\\1", sub("[<+]", "", age_group)))) |>
-    mutate(age_group = factor(age_group, levels = unique(df$age_group)[length(unique(df$age_group)):1])) |>
+    # Use the unique age groups in their original order (not reversed)
+    mutate(age_group = factor(age_group, levels = unique(df$age_group))) |>
     na.omit()
 
 
