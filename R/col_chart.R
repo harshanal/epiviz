@@ -390,10 +390,42 @@ col_chart <- function(
       }
     }
 
-    # Add basic layout
+    # Define fonts
+    title_font <- list(
+      family = "Arial",
+      size = 12,
+      color = "black")
+
+    # Add basic layout with standard formatting
     p <- plotly::layout(p,
-                  xaxis = list(title = x_label %||% x),
-                  yaxis = list(title = y_label %||% y))
+                  # Title and axis labels
+                  xaxis = list(
+                    title = list(text = x_label %||% x, font = title_font),
+                    showgrid = FALSE,  # Remove grid lines
+                    showline = TRUE,   # Show axis line
+                    linewidth = 1,     # Axis line width
+                    ticks = "outside", # Show ticks
+                    ticklen = 3,       # Tick length
+                    tickformat = ",",  # Use commas for thousands without 'k' suffix
+                    tickfont = list(family = "Arial", size = 10)
+                  ),
+                  yaxis = list(
+                    title = list(text = y_label %||% y, font = title_font),
+                    showgrid = FALSE,  # Remove grid lines
+                    showline = TRUE,   # Show axis line
+                    zeroline = FALSE,  # Don't show zero line
+                    linewidth = 1,     # Axis line width
+                    ticks = "outside", # Show ticks
+                    ticklen = 3,       # Tick length
+                    tickformat = ",",  # Use commas for thousands without 'k' suffix
+                    tickfont = list(family = "Arial", size = 10)
+                  ),
+                  # Set margins
+                  margin = list(l = 50, r = 50, b = 50, t = 30),
+                  # Paper and plot background
+                  paper_bgcolor = "white",
+                  plot_bgcolor = "white"
+    )
 
     # Return plotly object
     return(p)

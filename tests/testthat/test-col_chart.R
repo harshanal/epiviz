@@ -193,3 +193,34 @@ test_that("col_chart handles ellipsis arguments correctly", {
   )
   expect_true(inherits(result_grouped, "ggplot"))
 })
+
+test_that("col_chart handles NULL parameters correctly", {
+  # Create test data
+  test_data <- epiviz::lab_data |>
+    dplyr::group_by(organism_species_name) |>
+    dplyr::summarise(count = dplyr::n())
+
+  # Test with NULL group_var
+  result <- col_chart(
+    params = list(
+      df = test_data,
+      x = "organism_species_name",
+      y = "count",
+      group_var = NULL,  # Explicitly test NULL group_var
+      fill = "blue"
+    )
+  )
+  expect_true(inherits(result, "ggplot"))
+
+  # Test with NULL fill
+  result2 <- col_chart(
+    params = list(
+      df = test_data,
+      x = "organism_species_name",
+      y = "count",
+      group_var = "organism_species_name",
+      fill = NULL  # Explicitly test NULL fill
+    )
+  )
+  expect_true(inherits(result2, "ggplot"))
+})
