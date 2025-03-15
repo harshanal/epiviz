@@ -1,42 +1,44 @@
 #' Column Chart
 #'
+#' Creates a column chart using either ggplot2 (static) or plotly (dynamic).
+#'
 #' @param dynamic Logical indicating whether to produce a dynamic (plotly) output.
-#' Default is \code{FALSE}, which will return a static ggplot output.
+#'   Default is FALSE, which will return a static ggplot output.
 #' @param base A base ggplot object to add the column chart to. Default is NULL.
-#' @param params A named list containing arguments used to create the plot.
-#' \describe{
-#'   \item{df}{The dataframe containing the data to be plotted}
-#'   \item{x}{The x value column name to be plotted}
-#'   \item{y}{The y value column name to be plotted}
-#'   \item{group_var}{The variable used to group the bars i.e. region if plotting by region}  
-#'   \item{fill}{The colour with which to fill the columns}
-#'   \item{y_axis}{Either "y1" for primary y-axis or "y2" for secondary y-axis}
-#'   \item{position}{The positions of the bars to be plotted i.e."dodge", "stack" etc}
-#'   \item{ci}{Indicator for using ribbon or error bar geom (if required), enter 'e' for error bar, enter any other value for ribbon}
-#'   \item{lower}{Lower value for error/ribbon geom (mandatory if ci argument passed)}
-#'   \item{upper}{Upper value for error/ribbon geom (mandatory if ci argument passed)}
-#'   \item{error_colour}{If not plotting by group this is the colour of the error bars or ribbon}
-#'   \item{h_line}{Will display a horizontal line if valid integer passed}
-#'   \item{y_label}{For provision of an y axis label}
-#'   \item{x_label}{For provision of an x axis label}
-#'   \item{x_label_angle}{To adjust the x axis label by the degrees of the integer provided}
-#'   \item{y_label_angle}{To adjust the y axis label by the degrees of the integer provided}
-#'   \item{x_labels_reverse}{Enter an argument of any value i.e. 'y' to reverse the x labeling order}
-#'   \item{y_min_limit}{Set the limit on the y axis scaling by proving an integer}
-#'   \item{y_max_limit}{Set the limit on the x axis scaling by proving an integer}
-#'   \item{x_axis_breaks}{Modify the x axis breaks by providing an integer}
-#'   \item{legend_pos}{Modify the position of the legend (where applicable)}
-#'   \item{remove_gridlines}{Enter an argument of any value i.e. 'y' to remove grid lines}
-#'   \item{percent}{Enter an argument of any value i.e. 'y' to include the % symbol}
-#'   \item{cap_text}{Enter text for a caption to appear below plot}
-#'   \item{no_shift}{If no shift should be applied to the secondary y-axis}
-#'   \item{...}{Additional arguments passed to \code{geom_col} for static (ggplot2) plots
-#'   or to \code{plot_ly}/\code{add_trace} for dynamic (Plotly) plots, allowing custom
-#'   styling of the columns (e.g., \code{alpha}, \code{width}, \code{marker}, etc.).}
-#' }
+#' @param params A named list containing arguments used to create the plot:
+#'   \itemize{
+#'     \item df: The dataframe containing the data to be plotted
+#'     \item x: The x value column name to be plotted
+#'     \item y: The y value column name to be plotted
+#'     \item group_var: The variable used to group the bars i.e. region if plotting by region
+#'     \item fill: The colour with which to fill the columns
+#'     \item y_axis: Either "y1" for primary y-axis or "y2" for secondary y-axis
+#'     \item position: The positions of the bars to be plotted i.e."dodge", "stack" etc
+#'     \item ci: Indicator for using ribbon or error bar geom (if required), enter 'e' for error bar, enter any other value for ribbon
+#'     \item lower: Lower value for error/ribbon geom (mandatory if ci argument passed)
+#'     \item upper: Upper value for error/ribbon geom (mandatory if ci argument passed)
+#'     \item error_colour: If not plotting by group this is the colour of the error bars or ribbon
+#'     \item h_line: Will display a horizontal line if valid integer passed
+#'     \item y_label: For provision of an y axis label
+#'     \item x_label: For provision of an x axis label
+#'     \item x_label_angle: To adjust the x axis label by the degrees of the integer provided
+#'     \item y_label_angle: To adjust the y axis label by the degrees of the integer provided
+#'     \item x_labels_reverse: Enter an argument of any value i.e. 'y' to reverse the x labeling order
+#'     \item y_min_limit: Set the limit on the y axis scaling by proving an integer
+#'     \item y_max_limit: Set the limit on the x axis scaling by proving an integer
+#'     \item x_axis_breaks: Modify the x axis breaks by providing an integer
+#'     \item legend_pos: Modify the position of the legend (where applicable)
+#'     \item remove_gridlines: Enter an argument of any value i.e. 'y' to remove grid lines
+#'     \item percent: Enter an argument of any value i.e. 'y' to include the % symbol
+#'     \item cap_text: Enter text for a caption to appear below plot
+#'     \item no_shift: If no shift should be applied to the secondary y-axis
+#'   }
+#' @param ... Additional arguments passed to geom_col for static (ggplot2) plots
+#'   or to plot_ly/add_trace for dynamic (Plotly) plots, allowing custom
+#'   styling of the columns (e.g., alpha, width, marker, etc.).
 #' @import assertthat
 #'
-#' @return A ggplot instance 
+#' @return A ggplot or plotly object depending on the value of dynamic parameter
 #' @export
 #'
 #' @examples
@@ -87,6 +89,11 @@ col_chart <- function(
   # Set Arial font
   set_Arial()
 
+  # Filter out plotly-specific parameters from ellipsis for ggplot
+  dots <- list(...)
+  plotly_params <- c("opacity", "hoverlabel", "showlegend")
+  ggplot_dots <- dots[!names(dots) %in% plotly_params]
+  
   # Where relevant, assign defaults to any parameters not specified by the user
   if(!exists('df',where=params)) stop("A data frame argument is required")
   if(!exists('x',where=params)) stop('Please include argument data frame variable for x axis, ie x = "variable_name"')
@@ -225,18 +232,18 @@ col_chart <- function(
                            aes(x = .data[[x]], y = .data[[y]]), 
                            fill = fill,  # Move fill outside aes()
                            position = position,
-                           ...)  # Pass additional aesthetics
+                           !!!ggplot_dots)  # Pass filtered aesthetics
   } else if (!missing(group_var) && missing(fill)) {
     base <- base + geom_col(data = df, 
                            aes(x = .data[[x]], y = .data[[y]], fill = .data[[group_var]]), 
                            position = position,
-                           ...)  # Pass additional aesthetics
+                           !!!ggplot_dots)  # Pass filtered aesthetics
   } else if (!missing(group_var) && !missing(fill)) {
     base <- base + geom_col(data = df, 
                            aes(x = .data[[x]], y = .data[[y]], 
                                group = .data[[group_var]], fill = .data[[group_var]]), 
                            position = position,
-                           ...)  # Pass additional aesthetics
+                           !!!ggplot_dots)  # Pass filtered aesthetics
   }
 
   # confidence interval; ribbon \ error bar
@@ -334,21 +341,21 @@ col_chart <- function(
   if (dynamic) {
     # produce plotly graph if 'dynamic' is set to TRUE
     
-    # Initialize plotly object
-    if(is.null(base)) {
-      base <- plot_ly()
-    }
-
+    # Extract plotly-specific parameters from the ellipsis
+    plotly_params <- list(...)
+    
+    # Create a new plotly object directly instead of converting from ggplot
+    p <- plotly::plot_ly()
+    
     # Handle grouped vs non-grouped plotting
     if(is.null(group_var)) {
       # Single group plotting
-      base <- add_bars(base,
+      p <- plotly::add_bars(p,
                       data = df,
-                      x = ~.data[[x]],
-                      y = ~.data[[y]],
+                      x = df[[x]],
+                      y = df[[y]],
                       marker = list(color = fill),
-                      name = y,
-                      ...) # Pass additional plotly parameters
+                      name = y)
     } else {
       # Multiple group plotting
       unique_groups <- unique(df[[group_var]])
@@ -356,23 +363,40 @@ col_chart <- function(
       for(i in seq_along(unique_groups)) {
         group_data <- df[df[[group_var]] == unique_groups[i],]
         
-        base <- add_bars(base,
+        p <- plotly::add_bars(p,
                         data = group_data,
-                        x = ~.data[[x]],
-                        y = ~.data[[y]],
-                        name = unique_groups[i],
-                        marker = if(!missing(fill)) list(color = fill[i]) else list(),
-                        ...)  # Pass additional plotly parameters
+                        x = group_data[[x]],
+                        y = group_data[[y]],
+                        name = as.character(unique_groups[i]),
+                        marker = if(!missing(fill)) list(color = fill[i]) else list())
+      }
+    }
+
+    # Apply plotly-specific parameters
+    if(length(plotly_params) > 0) {
+      # Apply opacity if provided
+      if("opacity" %in% names(plotly_params)) {
+        p <- plotly::style(p, opacity = plotly_params$opacity)
+      }
+      
+      # Apply hoverlabel if provided
+      if("hoverlabel" %in% names(plotly_params)) {
+        p <- plotly::style(p, hoverlabel = plotly_params$hoverlabel)
+      }
+      
+      # Apply showlegend if provided
+      if("showlegend" %in% names(plotly_params)) {
+        p <- plotly::layout(p, showlegend = plotly_params$showlegend)
       }
     }
 
     # Add basic layout
-    base <- layout(base,
+    p <- plotly::layout(p,
                   xaxis = list(title = x_label %||% x),
                   yaxis = list(title = y_label %||% y))
 
     # Return plotly object
-    return(base)
+    return(p)
   }
 
   return(base)
