@@ -24,7 +24,7 @@ test_that("line_chart works without group_var", {
 
   # Create params list without group_var
   params <- list(
-    dfr = filtered_df,  # Ensure this is correctly referencing the data frame
+    df = filtered_df,  # Ensure this is correctly referencing the data frame
     x = "specimen_date", # Ensure this matches the column name exactly
     y = "count",         # Ensure this matches the column name exactly
     line_colour = c("blue"),  # Single colour for single line
@@ -68,7 +68,7 @@ test_that("line_chart static works", {
 
   # Create params list
   params <- list(
-    dfr = summarised_df,  # Ensure this is correctly referencing the data frame
+    df = summarised_df,  # Ensure this is correctly referencing the data frame
     x = "specimen_date", # Ensure this matches the column name exactly
     y = "count",         # Ensure this matches the column name exactly
     group_var = "organism_species_name",  # Ensure this matches the column name exactly
@@ -114,7 +114,7 @@ test_that("line_chart dynamic works", {
 
   # Create params list
   params <- list(
-    dfr = summarised_df,  # Ensure this is correctly referencing the data frame
+    df = summarised_df,  # Ensure this is correctly referencing the data frame
     x = "specimen_date", # Ensure this matches the column name exactly
     y = "count",         # Ensure this matches the column name exactly
     group_var = "organism_species_name",  # Ensure this matches the column name exactly
@@ -144,7 +144,7 @@ test_that("line_chart handles ellipsis arguments", {
 
   # Basic params
   params <- list(
-    dfr = test_df,
+    df = test_df,
     x = "specimen_date",
     y = "count",
     line_colour = "blue"
@@ -178,7 +178,7 @@ test_that("line_chart handles ellipsis arguments", {
     filter(specimen_date >= as.Date("2023-01-01"))
 
   grouped_params <- list(
-    dfr = grouped_df,
+    df = grouped_df,
     x = "specimen_date",
     y = "count",
     group_var = "organism_species_name",

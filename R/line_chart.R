@@ -10,13 +10,13 @@
 #' @param base A base plotly or ggplot2 object to add the line chart to. Default is `NULL`.
 #' @param params A list containing the following elements:
 #' \itemize{
-#'   \item \code{dfr} A data frame containing the data to be plotted.
-#'   \item \code{x} A character string specifying the name of the column in `dfr` to be used for the x-axis.
-#'   \item \code{y} A character string specifying the name of the column in `dfr` to be used for the y-axis.
-#'   \item \code{group_var} A character string specifying the name of the column in `dfr` to be used for grouping the data.
-#'   \item \code{ci} Optional. A character string specifying the column in `dfr` for confidence intervals.
-#'   \item \code{lower} Optional. A character string specifying the column in `dfr` for lower bounds of confidence intervals.
-#'   \item \code{upper} Optional. A character string specifying the column in `dfr` for upper bounds of confidence intervals.
+#'   \item \code{df} A data frame containing the data to be plotted.
+#'   \item \code{x} A character string specifying the name of the column in `df` to be used for the x-axis.
+#'   \item \code{y} A character string specifying the name of the column in `df` to be used for the y-axis.
+#'   \item \code{group_var} A character string specifying the name of the column in `df` to be used for grouping the data.
+#'   \item \code{ci} Optional. A character string specifying the column in `df` for confidence intervals.
+#'   \item \code{lower} Optional. A character string specifying the column in `df` for lower bounds of confidence intervals.
+#'   \item \code{upper} Optional. A character string specifying the column in `df` for upper bounds of confidence intervals.
 #'   \item \code{error_colour} The color for error bars. Default is `#f2c75c`.
 #'   \item \code{line_colour} List of colours for lines. Default is `blue`.
 #'   \item \code{line_type} Line type for single graph, or list of line types
@@ -65,7 +65,7 @@
 #'
 #'  # Create params list
 #'  params <- list(
-#'    dfr = summarised_df,  # Ensure this is correctly referencing the data frame
+#'    df = summarised_df,  # Ensure this is correctly referencing the data frame
 #'    x = "specimen_date", # Ensure this matches the column name exactly
 #'    y = "count",         # Ensure this matches the column name exactly
 #'    group_var = "organism_species_name",  # Ensure this matches the column name exactly
@@ -100,7 +100,7 @@
 #'
 #'  # Create params list
 #'  params <- list(
-#'    dfr = summarised_df,  # Ensure this is correctly referencing the data frame
+#'    df = summarised_df,  # Ensure this is correctly referencing the data frame
 #'    x = "specimen_date", # Ensure this matches the column name exactly
 #'    y = "count",         # Ensure this matches the column name exactly
 #'    group_var = "organism_species_name",  # Ensure this matches the column name exactly
@@ -115,7 +115,7 @@
 line_chart <-  function(dynamic = FALSE,
                         base = NULL,
                         params = list(
-                          dfr,
+                          df,
                           x,
                           y,
                           ci = NULL,
@@ -206,36 +206,36 @@ line_chart <-  function(dynamic = FALSE,
 
   ##### Checks and warnings
 
-  # Check if dfr is is.null
-  if (!exists('dfr', where = params))
+  # Check if df is is.null
+  if (!exists('df', where = params))
     stop("A data frame argument is required")
 
-  # Check dfr is a dfr class
-  if (!is.data.frame(params$dfr))
-    stop("dfr is not a data frame object")
+  # Check df is a df class
+  if (!is.data.frame(params$df))
+    stop("df is not a data frame object")
 
-  # Check dfr is empty
-  if (!not_empty(params$dfr))
-    stop("dfr is empty")
+  # Check df is empty
+  if (!not_empty(params$df))
+    stop("df is empty")
 
   # Check if x argument is is.null
   if ((is.null(params$x)) | !exists('x', where = params))
-    stop("Please include a variable from dfr for x, i.e. x = \"variable_name\"")
+    stop("Please include a variable from df for x, i.e. x = \"variable_name\"")
 
   # Check if y argument is is.null
   if ((is.null(params$y)) | !exists('y', where = params))
-    stop("Please include a variable from dfr for y, i.e. y = \"variable_name\"")
+    stop("Please include a variable from df for y, i.e. y = \"variable_name\"")
 
-  # Check if x is in dfr
-  if (!params$x %in% colnames(params$dfr))
+  # Check if x is in df
+  if (!params$x %in% colnames(params$df))
     stop(
-      "x not found within dfr. Please include a variable from dfr for x, i.e. x = \"variable_name\""
+      "x not found within df. Please include a variable from df for x, i.e. x = \"variable_name\""
     )
 
-  # Check if y is in dfr
-  if (!params$y %in% colnames(params$dfr))
+  # Check if y is in df
+  if (!params$y %in% colnames(params$df))
     stop(
-      "y not found within dfr. Please include a variable from dfr for y, i.e. y = \"variable_name\""
+      "y not found within df. Please include a variable from df for y, i.e. y = \"variable_name\""
     )
 
   # Check if number of groups and number of point colours are the same
@@ -259,7 +259,7 @@ line_chart <-  function(dynamic = FALSE,
   param_assign(
     params,
     c(
-      "dfr",
+      "df",
       "x",
       "y",
       "ci",
@@ -322,7 +322,7 @@ line_chart <-  function(dynamic = FALSE,
       # creating base graph without groups
       base <-
         base + ggplot2::geom_line(
-          data = dfr,
+          data = df,
           aes(x = .data[[x]], y = .data[[y]]),
           linetype = line_type,
           colour = line_colour,
@@ -333,7 +333,7 @@ line_chart <-  function(dynamic = FALSE,
       # creating base graph with groups
       base <-
         base + ggplot2::geom_line(
-          data = dfr,
+          data = df,
           aes(
             x = .data[[x]],
             y = .data[[y]],
@@ -425,7 +425,7 @@ line_chart <-  function(dynamic = FALSE,
     if (!is.null(hline) && !(!is.null(hline_label))) {
       base <-
         base + geom_text(aes(
-          x = min(dfr[[x]]),
+          x = min(df[[x]]),
           y = hline,
           label = hline_label,
           vjust = -1,
@@ -447,7 +447,7 @@ line_chart <-  function(dynamic = FALSE,
     if (add_points) {
       if (!is.null(group_var)) {
         base <-
-          base + ggplot2::geom_point(data = dfr, aes(
+          base + ggplot2::geom_point(data = df, aes(
             x = .data[[x]],
             y = .data[[y]],
             colour = .data[[group_var]],
@@ -457,7 +457,7 @@ line_chart <-  function(dynamic = FALSE,
 
       } else{
         base <-
-          base + ggplot2::geom_point(data = dfr, aes(
+          base + ggplot2::geom_point(data = df, aes(
             x = .data[[x]],
             y = .data[[y]],
             size = 1
@@ -480,7 +480,7 @@ line_chart <-  function(dynamic = FALSE,
           # Apply error bar with same legend and colour for line and ci
           base <-
             base + ggplot2::geom_errorbar(
-              data = dfr,
+              data = df,
               aes(
                 x = .data[[x]],
                 ymin = .data[[lower]],
@@ -494,7 +494,7 @@ line_chart <-  function(dynamic = FALSE,
           # Apply ribbon with same legend and colour for line and ci
           base <-
             base + ggplot2::geom_ribbon(
-              data = dfr,
+              data = df,
               aes(
                 x = .data[[x]],
                 ymin = .data[[lower]],
@@ -579,7 +579,7 @@ line_chart <-  function(dynamic = FALSE,
 
     if (is.null(group_var)) {
       # create plotly base plot without groups
-      base <- dfr |>
+      base <- df |>
         plot_ly(
           x = ~ .data[[x]],
           y = ~ .data[[y]],
@@ -597,12 +597,12 @@ line_chart <-  function(dynamic = FALSE,
     } else{
       # create plotly base plot groups
 
-      unique_groups <- unique(dfr[[group_var]])
+      unique_groups <- unique(df[[group_var]])
       base <- plot_ly()
 
       for (i in 1:length(unique_groups)) {
         group_name <- unique_groups[i]
-        group_data <- params$dfr[params$dfr[[group_var]] == group_name, ]
+        group_data <- params$df[params$df[[group_var]] == group_name, ]
 
         base <- base |>
           add_trace(
@@ -688,7 +688,7 @@ line_chart <-  function(dynamic = FALSE,
     if (!is.null(hline_label)) {
       base <- base |> add_annotations(
         text = hline_label,
-        x = min(dfr[[x]]),
+        x = min(df[[x]]),
         y = hline,
         showarrow = FALSE,
         bgcolor = "white",
