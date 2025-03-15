@@ -323,14 +323,51 @@ age_sex_pyramid <- function(
               font = list(family = "Arial"),
               hoverlabel = list(bgcolor = "white", font = list(size = 12)),
               showlegend = TRUE,
-              legend = list(orientation = "h",
-                            xanchor = "center",
-                            x = 0.5,
-                            y = -0.2)
+              legend = get_plotly_legend_position(params$legend_position)
   )
   
   return(p)
   }
+}
+
+# Helper function to get plotly legend position settings based on legend_position parameter
+get_plotly_legend_position <- function(position) {
+  switch(
+    position,
+    "top" = list(
+      orientation = "h",
+      xanchor = "center",
+      x = 0.5,
+      y = 1.1
+    ),
+    "bottom" = list(
+      orientation = "h",
+      xanchor = "center",
+      x = 0.5,
+      y = -0.2
+    ),
+    "left" = list(
+      orientation = "v",
+      xanchor = "right",
+      x = -0.1,
+      y = 0.5,
+      yanchor = "middle"
+    ),
+    "right" = list(
+      orientation = "v",
+      xanchor = "left",
+      x = 1.1,
+      y = 0.5,
+      yanchor = "middle"
+    ),
+    # Default to bottom if not recognized
+    list(
+      orientation = "h",
+      xanchor = "center",
+      x = 0.5,
+      y = -0.2
+    )
+  )
 }
 
 
