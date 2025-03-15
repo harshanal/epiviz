@@ -313,7 +313,8 @@ age_sex_pyramid <- function(
                    name = "Male",
                    marker = list(color = params$colours[1]),
                    orientation = 'h',
-                   hoverinfo = "none")
+                   hoverinfo = "text",
+                   hovertext = paste0("Male: ", round(abs(male_data$value), 2), "<br>Age: ", male_data$age_group))
     
     # Add female bars
     p <- add_trace(p,
@@ -323,7 +324,8 @@ age_sex_pyramid <- function(
                    name = "Female",
                    marker = list(color = params$colours[2]),
                    orientation = 'h',
-                   hoverinfo = "none")
+                   hoverinfo = "text",
+                   hovertext = paste0("Female: ", round(female_data$value, 2), "<br>Age: ", female_data$age_group))
     
     # Add confidence limits if requested
     if (params$conf_limits) {
@@ -334,7 +336,9 @@ age_sex_pyramid <- function(
                      mode = "markers",
                      name = "Male CI",
                      marker = list(color = params$colours[1]),
-                     showlegend = FALSE)
+                     showlegend = FALSE,
+                     hoverinfo = "text",
+                     hovertext = paste0("Male Lower CI: ", round(abs(male_data$lowercl), 2), "<br>Age: ", male_data$age_group))
       p <- add_trace(p,
                      x = male_data$uppercl,
                      y = male_data$age_group,
@@ -342,7 +346,9 @@ age_sex_pyramid <- function(
                      mode = "markers",
                      name = "Male CI",
                      marker = list(color = params$colours[1]),
-                     showlegend = FALSE)
+                     showlegend = FALSE,
+                     hoverinfo = "text",
+                     hovertext = paste0("Male Upper CI: ", round(abs(male_data$uppercl), 2), "<br>Age: ", male_data$age_group))
       p <- add_trace(p,
                      x = female_data$lowercl,
                      y = female_data$age_group,
@@ -350,7 +356,9 @@ age_sex_pyramid <- function(
                      mode = "markers",
                      name = "Female CI",
                      marker = list(color = params$colours[2]),
-                     showlegend = FALSE)
+                     showlegend = FALSE,
+                     hoverinfo = "text",
+                     hovertext = paste0("Female Lower CI: ", round(female_data$lowercl, 2), "<br>Age: ", female_data$age_group))
       p <- add_trace(p,
                      x = female_data$uppercl,
                      y = female_data$age_group,
@@ -358,7 +366,9 @@ age_sex_pyramid <- function(
                      mode = "markers",
                      name = "Female CI",
                      marker = list(color = params$colours[2]),
-                     showlegend = FALSE)
+                     showlegend = FALSE,
+                     hoverinfo = "text",
+                     hovertext = paste0("Female Upper CI: ", round(female_data$uppercl, 2), "<br>Age: ", female_data$age_group))
     }
     
     # Update layout with corrected titles and custom ticks
