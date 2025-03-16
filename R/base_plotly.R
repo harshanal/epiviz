@@ -1,9 +1,10 @@
-
 #' Creates base plotly object for use across other functions.
 #' Parameters are not passed explicitly to the function, so
 #' function call needs to be proceeded by environment(base_plotly) <- environment()
 #'
 #' @return plotly object
+#' @keywords internal
+#' @export
 #'
 #' @examples
 #' \dontrun{

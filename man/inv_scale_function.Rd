@@ -24,3 +24,4 @@ Function to scale/shift secondary y axis data
 inv_scale_function(2,4,5)
 }
 }
+\keyword{internal}

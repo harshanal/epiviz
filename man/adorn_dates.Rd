@@ -2,25 +2,11 @@
 % Please edit documentation in R/utils.R
 \name{adorn_dates}
 \alias{adorn_dates}
-\title{A function to add assorted date lookups to an existing
-dataframe with a date variable.}
+\title{Function to adorn dates with appropriate formatting}
 \usage{
 adorn_dates(df, date_var)
 }
-\arguments{
-\item{df}{A dataframe}
-
-\item{date_var}{character, the name of a date column within df}
-}
-\value{
-A dataframe
-}
 \description{
-A function to add assorted date lookups to an existing
-dataframe with a date variable.
+Function to adorn dates with appropriate formatting
 }
-\examples{
-\dontrun{
-dataframe_out <- adorn_date(df = dataframe, date_var = "date_column")
-}
-}
+\keyword{internal}

@@ -19,3 +19,4 @@ credit: https://www.r-bloggers.com/2015/06/identifying-the-os-from-r/
 get_os()
 }
 }
+\keyword{internal}

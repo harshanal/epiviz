@@ -1,5 +1,5 @@
 ---
-title: "epiviz: Easy Data Visualization for R"
+title: "epiviz: Epidemiological Visualisations for R"
 output:
   html_document:
     theme: cosmo
@@ -12,7 +12,7 @@ output:
 [![R-CMD-check](https://github.com/ukhsa-collaboration/epiviz/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/ukhsa-collaboration/epiviz/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-`epiviz` provides easy-to-use data visualisation functions for R data science products. The package includes functions to create a range of static and interactive visualisations. Each visualisation function can produce either a static (ggplot2) or dynamic (plotly/leaflet) output using the same set of parameters, allowing users to easily switch between visualisation types by simply changing the `dynamic` flag.
+`epiviz` provides easy-to-use data visualisation functions for R epidemiological data science products. The package includes functions to create a range of static and interactive visualisations. Each visualisation function can produce either a static (ggplot2) or dynamic (plotly/leaflet) output using the same set of parameters, allowing users to easily switch between visualisation types by simply changing the `dynamic` flag.
 
 ## Installation
 

@@ -22,3 +22,4 @@ plotly font definitions.
 html_bold("Chart Title")
 }
 }
+\keyword{internal}

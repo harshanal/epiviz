@@ -22,3 +22,4 @@ parameters for plotly layout
 plotly_legend_pos("right")
 }
 }
+\keyword{internal}

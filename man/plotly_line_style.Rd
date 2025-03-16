@@ -21,3 +21,4 @@ Function to translate ggplot linetypes into plotly linetypes
 plotly_line_style("dotdash")
 }
 }
+\keyword{internal}

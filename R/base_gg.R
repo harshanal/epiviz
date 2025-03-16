@@ -1,15 +1,15 @@
-
-#' Creates base ggplot object for use across other functions.
-#' Parameters are not passed explicitly to the function, so
-#' function call needs to be proceeded by environment(base_gg) <- environment()
+#' Base ggplot object for line_chart, point_chart, and epi_curve
 #'
-#' @return ggplot object
+#' @description Internal function to create base ggplot object. Note that the
+#' function call needs to be proceeded by environment(base_gg) <- environment()
+#' to ensure that the function can find variables in the calling environment.
 #'
 #' @examples
 #' \dontrun{
 #' environment(base_gg) <- environment()
 #' base <- base_gg()
 #' }
+#' @keywords internal
 base_gg <- function() {
 
 

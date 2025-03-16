@@ -2,8 +2,5 @@ pandoc: 3.6.3
 pkgdown: 2.0.9
 pkgdown_sha: ~
 articles: {}
-last_built: 2025-03-16T19:38Z
-urls:
-  reference: https://harshanal.github.io/epiviz/reference
-  article: https://harshanal.github.io/epiviz/articles
+last_built: 2025-03-16T23:29Z
 
