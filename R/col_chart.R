@@ -37,6 +37,7 @@
 #'   or to plot_ly/add_trace for dynamic (Plotly) plots, allowing custom
 #'   styling of the columns (e.g., alpha, width, marker, etc.).
 #' @import assertthat
+#' @importFrom rlang %||%
 #'
 #' @return A ggplot or plotly object depending on the value of dynamic parameter
 #' @export
