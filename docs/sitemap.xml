@@ -19,13 +19,13 @@
     <loc>https://harshanal.github.io/epiviz/news/index.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/reference/agesex_pyramid.html</loc>
+    <loc>https://harshanal.github.io/epiviz/reference/adorn_dates.html</loc>
   </url>
   <url>
     <loc>https://harshanal.github.io/epiviz/reference/agesex_pyramid_grouped.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/reference/agesex_pyramid_linelist.html</loc>
+    <loc>https://harshanal.github.io/epiviz/reference/age_sex_pyramid.html</loc>
   </url>
   <url>
     <loc>https://harshanal.github.io/epiviz/reference/base_gg.html</loc>
@@ -38,6 +38,9 @@
   </url>
   <url>
     <loc>https://harshanal.github.io/epiviz/reference/datebreak_to_d3.html</loc>
+  </url>
+  <url>
+    <loc>https://harshanal.github.io/epiviz/reference/epi_curve.html</loc>
   </url>
   <url>
     <loc>https://harshanal.github.io/epiviz/reference/epi_map.html</loc>
@@ -61,7 +64,7 @@
     <loc>https://harshanal.github.io/epiviz/reference/line_chart.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/reference/line_chart_plotly.html</loc>
+    <loc>https://harshanal.github.io/epiviz/reference/llm_interpret.html</loc>
   </url>
   <url>
     <loc>https://harshanal.github.io/epiviz/reference/London_LA_boundaries_2023.html</loc>
@@ -71,6 +74,9 @@
   </url>
   <url>
     <loc>https://harshanal.github.io/epiviz/reference/param_assign.html</loc>
+  </url>
+  <url>
+    <loc>https://harshanal.github.io/epiviz/reference/param_rename.html</loc>
   </url>
   <url>
     <loc>https://harshanal.github.io/epiviz/reference/PHEC_boundaries_2016.html</loc>
@@ -83,6 +89,9 @@
   </url>
   <url>
     <loc>https://harshanal.github.io/epiviz/reference/point_chart.html</loc>
+  </url>
+  <url>
+    <loc>https://harshanal.github.io/epiviz/reference/process_line_list_for_age_sex_pyramid.html</loc>
   </url>
   <url>
     <loc>https://harshanal.github.io/epiviz/reference/scale_function.html</loc>
