@@ -1,6 +1,27 @@
-url: https://harshanal.github.io/epiviz/
+url: https://ukhsa-collaboration.github.io/epiviz/
 
 home:
   links:
   - text: Source code
     href: https://github.com/ukhsa-collaboration/epiviz
+
+reference:
+- title: "Main Visualisation Functions"
+  desc: "Core visualisation functions for creating static and dynamic plots"
+  contents:
+  - line_chart
+  - point_chart
+  - col_chart
+  - epi_curve
+  - epi_map
+  - age_sex_pyramid
+
+- title: "LLM Integration"
+  desc: "Functions for LLM-based data interpretation"
+  contents:
+  - llm_interpret
+
+- title: "Datasets"
+  desc: "Sample datasets included in the package"
+  contents:
+  - lab_data
