@@ -48,7 +48,3 @@ Imports:
     lifecycle
 Depends: 
     R (>= 3.5.0)
-Remotes:
-    tidyverse/ellmer
-URL: https://github.com/harshanal/epiviz
-BugReports: https://github.com/harshanal/epiviz/issues
