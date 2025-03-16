@@ -8,7 +8,7 @@
 #' @param base A base ggplot or plotly object that the output will be applied to. If
 #' \code{dynamic = TRUE} then \code{base} must be a plotly object, and if \code{dynamic = FALSE}
 #' then \code{base} must be a ggplot object.
-  #' @param params A named list containing arguments used to create the plot.
+#' @param params A named list containing arguments used to create the plot.
 #' \describe{
 #'   \item{df}{A data frame containing values used to create the point chart.}
 #'   \item{x}{Name of the variable in \code{df} used to populate the x-axis.}

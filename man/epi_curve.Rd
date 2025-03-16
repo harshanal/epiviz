@@ -33,7 +33,7 @@ epi_curve(
 \item{dynamic}{Logical indicating whether to produce a dynamic (plotly) output.
 Default is \code{FALSE}, which will return a static ggplot output.}
 
-\item{params}{A named list containing arguements used to create the plot.
+\item{params}{A named list containing arguments used to create the plot.
 \describe{
 \item{df}{A data frame containing data used to create the epi curve.}
 \item{date_var}{character, Name of the variable in \code{df} containing the dates used
