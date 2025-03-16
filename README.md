@@ -11,6 +11,7 @@
 
 epiviz can be installed from GitHub using the following code:
 ```r
+# Install epiviz
 remotes::install_github('harshanal/epiviz')
 
 # To install the development version
