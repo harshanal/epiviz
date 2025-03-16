@@ -2,7 +2,7 @@
 
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
-[![R-CMD-check](https://github.com/harshanal/epiviz/actions/workflows/R-CMD-check.yaml/badge.svg?branch=main)](https://github.com/harshanal/epiviz/actions/workflows/R-CMD-check.yaml)
+[![R-CMD-check](https://github.com/ukhsa-collaboration/epiviz/actions/workflows/R-CMD-check.yaml/badge.svg?branch=main)](https://github.com/ukhsa-collaboration/epiviz/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 `epiviz` provides easy-to-use data visualisation functions for R data science products. The package includes functions to create a range of static and interactive visualisations. Each visualisation function can produce either a static (ggplot2) or dynamic (plotly/leaflet) output using the same set of parameters, allowing users to easily switch between visualisation types by simply changing the `dynamic` flag.
@@ -12,10 +12,10 @@
 epiviz can be installed from GitHub using the following code:
 ```r
 # Install epiviz
-remotes::install_github('harshanal/epiviz')
+remotes::install_github('ukhsa-collaboration/epiviz')
 
 # To install the development version
-remotes::install_github("harshanal/epiviz@dev")
+remotes::install_github("ukhsa-collaboration/epiviz@dev")
 ``` 
 
 ## Features
