@@ -9,4 +9,4 @@
 ^_pkgdown\.yml$
 ^\.github$
 docs
-dev/
+dev

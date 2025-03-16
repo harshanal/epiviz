@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">epiviz</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.0.9005</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
       </span>
     </div>
 
@@ -47,48 +47,51 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">agesex_pyramid_grouped</span><span class="op">(</span></span>
-<span>  <span class="va">df</span>,</span>
-<span>  colours <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"#440154"</span>, <span class="st">"#fde725"</span><span class="op">)</span>,</span>
-<span>  x_breaks <span class="op">=</span> <span class="fl">20</span>,</span>
-<span>  y_title <span class="op">=</span> <span class="st">"Proportion of People Percentage (%)"</span>,</span>
-<span>  text_size <span class="op">=</span> <span class="fl">12</span>,</span>
-<span>  conf_limits <span class="op">=</span> <span class="cn">FALSE</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">agesex_pyramid_grouped</span><span class="op">(</span><span class="va">df</span>, <span class="va">colours</span>, <span class="va">x_breaks</span>, <span class="va">y_title</span>, <span class="va">text_size</span>, <span class="va">conf_limits</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>df</dt>
-<dd><p>Data frame which has the following columns with names given below
-age_group: char type&gt;&gt; age group can be given as ranges (e.g. "0-4","5-18", "19-64", "65+")
-sex: char type&gt;&gt; must be coded as "Female" and "Male"
-value: num type&gt;&gt; numerical value used for pyramid (can be proportion or cases)
-Optional (set conf_limits parameter to TRUE if error bars are required):
-lowercl: num type&gt;&gt; lower confidence limits for value
-uppercl: num type&gt;&gt; upper confidence limits for value</p></dd>
+<dd><p>Data frame which has the following columns with names given below</p><dl><dt>age_group</dt>
+<dd><p>Character type. Age group can be given as ranges (e.g. "0-4","5-18", "19-64", "65+")</p></dd>
+
+<dt>sex</dt>
+<dd><p>Character type. Must be coded as "Female" and "Male"</p></dd>
+
+<dt>value</dt>
+<dd><p>Numeric type. Numerical value used for pyramid (can be proportion or cases)</p></dd>
+
+<dt>lowercl</dt>
+<dd><p>Optional. Numeric type. Lower confidence limits for value (required if conf_limits=TRUE)</p></dd>
+
+<dt>uppercl</dt>
+<dd><p>Optional. Numeric type. Upper confidence limits for value (required if conf_limits=TRUE)</p></dd>
+
+
+</dl></dd>
 
 
 <dt>colours</dt>
-<dd><p>List of colours for the genders in HEX format in the order Female, Male
-Default values for parameter: c("#003B5C", "#007C91")</p></dd>
+<dd><p>List of colours for the genders in HEX format in the order Female, Male.
+Default values: c("#003B5C", "#007C91")</p></dd>
 
 
 <dt>x_breaks</dt>
-<dd><p>Number of ticks on X axis (default is 20)</p></dd>
+<dd><p>Number of ticks on X axis. Default is 20.</p></dd>
 
 
 <dt>y_title</dt>
-<dd><p>Title that  appears on the X axis in as a string</p></dd>
+<dd><p>Title that appears on the Y axis as a string.</p></dd>
 
 
 <dt>text_size</dt>
-<dd><p>Text size can be modified by providing this number (default set to 15)</p></dd>
+<dd><p>Text size can be modified by providing this number. Default is 15.</p></dd>
 
 
 <dt>conf_limits</dt>
-<dd><p>Boolean variable (True - if error bars are required).
-If set to True: the data frame should include the lowercl and uppercl columns</p></dd>
+<dd><p>Boolean variable. If TRUE, error bars are displayed.
+If TRUE, the data frame should include the lowercl and uppercl columns.</p></dd>
 
 </dl></div>
     <div id="value">

@@ -1,5 +1,5 @@
 ## This file prevents a R CMD Check Note about
-## no visible binding for global variable ‘*’
+## no visible binding for global variable 'dfr'
 ## Undefined global functions or variables
 
 utils::globalVariables(c(
@@ -41,7 +41,7 @@ utils::globalVariables(c(
   "map_footer_size", "map_footer_colour", "legend_pos",
 
   # For line_chart
-  "dfr", "x", "y", "group_var", "line_type", "st_theme", "line_colour",
+  "df", "x", "y", "group_var", "line_type", "st_theme", "line_colour",
   "width", "legend_title", "legend_position", "title", "x_label", "y_label",
   "x_label_angle", "y_label_angle", "show_gridlines", "show_axislines",
   "hline", "hline_colour", "hline_label", "y_percent", "add_points",
@@ -53,5 +53,18 @@ utils::globalVariables(c(
   "point_shape", "legend_title", "legend_pos", "point_size_legend_title",
   "point_size_legend", "point_labels", "point_labels_size",
   "point_labels_hjust", "point_labels_vjust", "point_labels_nudge_x",
-  "point_labels_nudge_y", "hline", "setNames", "y_percent"
+  "point_labels_nudge_y", "hline", "setNames", "y_percent",
+
+
+  # For epi_curve
+  "iso_year", "iso_week", "x_axis_title_font_size", "y_axis_title_font_size",
+  "x_axis_label_font_size", "y_axis_label_font_size", "legend_font_size",
+  "legend_title_font_size", "time_period", "date_factor", "x_limit",
+  "rolling_average_line", "rolling_average_line_lookback", "cumulative_sum_line",
+  "bar_border_colour", "case_boxes", "box", "case_boxes_colour",
+  "rolling_average", "rolling_average_line_legend_label",
+  "rolling_average_line_width", "cumulative_sum",
+  "cumulative_sum_line_legend_label", "cumulative_sum_line_width",
+  "cumulative_sum_line_axis_title", "rolling_average_line_colour",
+  "cumulative_sum_line_colour", "hover_labels"
 ))

@@ -1,6 +1,6 @@
 Package: epiviz
-Title: data visualisation functions for epidemiological data science products
-Version: 0.0.0.9006
+Title: Data Visualisation Functions for Epidemiological Data Science Products
+Version: 0.1.0
 Authors@R: 
     c(person(given="Harshana", family="Liyanage", email="harshana.liyanage@ukhsa.gov.uk", role = c("aut","cre"),
            comment = c(ORCID = "0000-0001-9738-6349")),
@@ -11,17 +11,27 @@ Authors@R:
     person(given="Sudha", family="Aurumugam", email="sudha.arumugam@ukhsa.gov.uk", role = c("aut")),
     person(given="Jordan", family="Worth", email="jordan.worth@ukhsa.gov.uk", role = c("aut")),
     person(given="James", family="Duke", email="james.duke@ukhsa.gov.uk", role = c("aut")),
-    person(given="Emma", family="Parker", email="emma.k.parker@ukhsa.gov.uk", role = c("aut")))
-Description: The epiviz package provides a set of functions to produce frequently used static and interactive graphs in epidemiological data science products.
+    person(given="Emma", family="Parker", email="emma.k.parker@ukhsa.gov.uk", role = c("aut")),
+    person(given="Karen", family="Crawford", email="karen.crawford@ukhsa.gov.uk", role = c("ctb")),
+    person(given="Charlie", family="Turner", email="charlie.turner@ukhsa.gov.uk", role = c("ctb")),
+    person(given="Frederick", family="Sloots", email="frederick.sloots@ukhsa.gov.uk", role = c("ctb")),
+    person(given="Isaac", family="Florence", email="isaac.florence@ukhsa.gov.uk", role = c("ctb"),
+            comment = c(ORCID = "0000-0001-8260-1237"))
+    )
+Description: The 'epiviz' package provides a set of functions to produce frequently used static and interactive graphs in epidemiological data science products.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 LazyData: true
 Suggests: 
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    mockery,
+    withr,
+    yarrr
 Config/testthat/edition: 3
 Imports: 
+    grDevices,
     assertthat,
     classInt,
     dplyr,
@@ -34,7 +44,13 @@ Imports:
     stringr,
     scales,
     tidyr,
-    yarrr,
-    lubridate
+    lubridate,
+    ISOweek,
+    forcats,
+    slider,
+    rlang,
+    ellmer,
+    jsonlite,
+    lifecycle
 Depends: 
-    R (>= 2.10)
+    R (>= 4.1.0)

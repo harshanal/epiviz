@@ -18,7 +18,7 @@ point charts."><meta property="og:image" content="https://harshanal.github.io/ep
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">epiviz</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.0.9005</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
       </span>
     </div>
 
@@ -70,7 +70,8 @@ point charts.</p>
 <span>     show_axislines <span class="op">=</span> <span class="cn">TRUE</span>, legend_title <span class="op">=</span> <span class="st">""</span>,</span>
 <span>    legend_pos <span class="op">=</span> <span class="st">"right"</span>, point_size_legend <span class="op">=</span> <span class="cn">FALSE</span>, point_size_legend_title <span class="op">=</span> <span class="st">""</span>, hline</span>
 <span>    <span class="op">=</span> <span class="cn">NULL</span>, hline_colour <span class="op">=</span> <span class="st">"black"</span>, hline_width <span class="op">=</span> <span class="fl">0.5</span>, hline_type <span class="op">=</span> <span class="st">"dashed"</span>, hline_label</span>
-<span>    <span class="op">=</span> <span class="cn">NULL</span>, hline_label_colour <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span></span>
+<span>    <span class="op">=</span> <span class="cn">NULL</span>, hline_label_colour <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span>,</span>
+<span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -88,8 +89,7 @@ then <code>base</code> must be a ggplot object.</p></dd>
 
 
 <dt>params</dt>
-<dd><p>A named list containing arguements used to create the plot.
-'</p><dl><dt>df</dt>
+<dd><p>A named list containing arguments used to create the plot.</p><dl><dt>df</dt>
 <dd><p>A data frame containing values used to create the point chart.</p></dd>
 
 <dt>x</dt>
@@ -99,10 +99,10 @@ then <code>base</code> must be a ggplot object.</p></dd>
 <dd><p>Name of the variable in <code>df</code> used to populate the y-axis.</p></dd>
 
 <dt>point_shape</dt>
-<dd><p>Shape of the plotted points. Permitted values of c('circle',
-'triangle','square','plus','square cross','asterisk','diamond')</p></dd>
-. When group_var
-is provided, point shapes will be automatically assigned based on group.
+<dd><p>Shape of the plotted points. Permitted values of <code>c('circle',
+  'triangle','square','plus','square cross','asterisk','diamond')</code>. When <code>group_var</code>
+is provided, point shapes will be automatically assigned based on group.</p></dd>
+
 <dt>point_size</dt>
 <dd><p>Size of the plotted point symbols. If supplied as a number, all points
 will be plotted with this size. If supplied as the name of a numeric variable
@@ -117,7 +117,7 @@ character vector to define colours for each group.</p></dd>
 <dt>point_labels</dt>
 <dd><p>Name of a variable in df containing text labels to plot against
 each point on the chart. If not provided the no labels will be applied. If <code>dynamic
-   = TRUE</code> then <code>point_labels</code> will be applied as hover-labels, and <code>point_labels</code>
+  = TRUE</code> then <code>point_labels</code> will be applied as hover-labels, and <code>point_labels</code>
 will accept html to format the output labels.</p></dd>
 
 <dt>point_labels_size</dt>
@@ -170,12 +170,12 @@ is provided. Defaults to <code>FALSE</code>.</p></dd>
 
 <dt>ci_colours</dt>
 <dd><p>Colour(s) used for plotting confidence intervals. When <code>ci =
-   "errorbar"</code> this will determine the colour of the plotted errorbars, when <code>ci =
-   "ribbon"</code> this will determine the colour of the plotted ribbons.</p></dd>
+  "errorbar"</code> this will determine the colour of the plotted errorbars, when <code>ci =
+  "ribbon"</code> this will determine the colour of the plotted ribbons.</p></dd>
 
 <dt>errorbar_width</dt>
 <dd><p>Horizontal width of the plotted error bars when <code>ci =
-   "errorbar"</code>.</p></dd>
+  "errorbar"</code>.</p></dd>
 
 <dt>y_sec_axis</dt>
 <dd><p>Logical to indicate whether data should be plotted on the
@@ -306,8 +306,13 @@ can be provided to label individual hlines if multiple hlines have been provided
 A vector of colours can be provided to colour individual hline_labels if multiple hline_labels have been provided.</p></dd>
 
 
-
 </dl></dd>
+
+
+<dt>...</dt>
+<dd><p>Additional arguments passed to <code>geom_point</code> for static (ggplot2) plots
+or to <code>add_trace</code> for dynamic (Plotly) plots, allowing custom styling of the points
+(e.g., <code>alpha</code>, <code>stroke</code>, <code>marker</code>, etc.).</p></dd>
 
 </dl></div>
     <div id="value">
@@ -321,8 +326,6 @@ A vector of colours can be provided to colour individual hline_labels if multipl
     <h2>Examples</h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Example 1: Basic point chart.</span></span></span>
 <span class="r-in"><span></span></span>
@@ -353,8 +356,6 @@ A vector of colours can be provided to colour individual hline_labels if multipl
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">chart_detections_per_month</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Example 2: Point chart with error bars and threshold line.</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">epiviz</span><span class="op">)</span></span></span>
@@ -409,9 +410,6 @@ A vector of colours can be provided to colour individual hline_labels if multipl
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/pkg/shiny/man/shinyApp.html" class="external-link">shinyApp</a></span><span class="op">(</span><span class="va">ui</span>, <span class="va">server</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Example 3: Point chart with grouped data and confidence ribbon.</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">epiviz</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
@@ -454,7 +452,6 @@ A vector of colours can be provided to colour individual hline_labels if multipl
 <span class="r-in"><span>  hline_label_colour <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"blue"</span>,<span class="st">"red"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Create static and dynamic charts</span></span></span>
 <span class="r-in"><span><span class="va">static_chart</span> <span class="op">&lt;-</span> <span class="fu">point_chart</span><span class="op">(</span>params <span class="op">=</span> <span class="va">species_params</span>, dynamic <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">dynamic_chart</span> <span class="op">&lt;-</span> <span class="fu">point_chart</span><span class="op">(</span>params <span class="op">=</span> <span class="va">species_params</span>, dynamic <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
@@ -471,9 +468,6 @@ A vector of colours can be provided to colour individual hline_labels if multipl
 <span class="r-in"><span>  <span class="va">output</span><span class="op">$</span><span class="va">dynamic_chart</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/plotly/man/plotly-shiny.html" class="external-link">renderPlotly</a></span><span class="op">(</span><span class="va">dynamic_chart</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/pkg/shiny/man/shinyApp.html" class="external-link">shinyApp</a></span><span class="op">(</span><span class="va">ui</span>, <span class="va">server</span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Example 4: Point chart as bubble chart</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">epiviz</span><span class="op">)</span></span></span>
@@ -493,7 +487,6 @@ A vector of colours can be provided to colour individual hline_labels if multipl
 <span class="r-in"><span>           <span class="st">'&lt;br&gt;In London: '</span>,<span class="va">detections_london</span>,</span></span>
 <span class="r-in"><span>           <span class="st">'&lt;br&gt;&lt;i&gt;% in London: '</span>,<span class="va">percent_london</span>,<span class="st">'&lt;/i&gt;'</span></span></span>
 <span class="r-in"><span>         <span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Define parameters list for point_chart() function.</span></span></span>
 <span class="r-in"><span><span class="va">species_region_params</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
@@ -544,8 +537,6 @@ A vector of colours can be provided to colour individual hline_labels if multipl
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/pkg/shiny/man/shinyApp.html" class="external-link">shinyApp</a></span><span class="op">(</span><span class="va">ui</span>, <span class="va">server</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Example 5: Point chart with additional overlayed chart on secondary y-axis</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">epiviz</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
@@ -589,7 +580,6 @@ A vector of colours can be provided to colour individual hline_labels if multipl
 <span class="r-in"><span>                            params <span class="op">=</span> <span class="va">over65_params</span>,</span></span>
 <span class="r-in"><span>                            dynamic <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Legends are not currently implemented for static charts with a supplied</span></span></span>
 <span class="r-in"><span><span class="co">#  base chart, so add legend manually using dummy data and an invisible geom_point()</span></span></span>
 <span class="r-in"><span><span class="va">over65_chart</span> <span class="op">&lt;-</span> <span class="va">over65_chart</span> <span class="op">+</span></span></span>
@@ -604,7 +594,6 @@ A vector of colours can be provided to colour individual hline_labels if multipl
 <span class="r-in"><span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position<span class="op">=</span><span class="st">"top"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">over65_chart</span></span></span>
-<span class="r-in"><span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-in"><span></span></span>
