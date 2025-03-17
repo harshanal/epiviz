@@ -24,3 +24,4 @@ Function to scale/shift secondary y axis labels
 scale_function(2,4,5)
 }
 }
+\keyword{internal}

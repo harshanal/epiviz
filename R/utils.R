@@ -5,6 +5,7 @@
 #' @param shift the value to shift the axis by
 #'
 #' @return scaled/shifted y axis values
+#' @keywords internal
 #'
 #' @examples
 #' \dontrun{
@@ -24,6 +25,7 @@ scale_function <- function(x, scale, shift){
 #' @param shift the value to shift the data by
 #'
 #' @return scaled/shifted data to plot on secondary y axis
+#' @keywords internal
 #'
 #' @examples
 #' \dontrun{
@@ -39,6 +41,7 @@ inv_scale_function <- function(x, scale, shift){
 #' credit: https://www.r-bloggers.com/2015/06/identifying-the-os-from-r/
 #'
 #' @return Name of user's operating system
+#' @keywords internal
 #'
 #' @examples
 #' \dontrun{
@@ -66,6 +69,7 @@ get_os <- function(){
 #' Function to set chart_font variable to Arial in order to resolve warnings
 #'
 #' @return chart_font string
+#' @keywords internal
 #'
 #' @examples
 #' \dontrun{
@@ -96,6 +100,7 @@ set_Arial <- function() {
 #' @param reference Character vector of expected parameters.
 #'
 #' @return Assigns parameter values in the parent environment
+#' @keywords internal
 #'
 #' @examples
 #' \dontrun{
@@ -130,6 +135,7 @@ param_assign <- function(params, reference) {
 #' @param x A text string
 #'
 #' @return A text string wrapped in <b> </b> for html bold font
+#' @keywords internal
 #'
 #' @examples
 #' \dontrun{
@@ -148,6 +154,7 @@ html_bold <- function(x) {
 #' "longdash", "dotdash")
 #'
 #' @return A text string plotly line type
+#' @keywords internal
 #'
 #' @examples
 #' \dontrun{
@@ -197,7 +204,7 @@ plotly_line_style <- function(x) {
 #' See https://ggplot2.tidyverse.org/reference/scale_date.html
 #'
 #' @return A string in a format appropriate for plotly dtick date break formatting.
-#'
+#' @keywords internal
 #'
 #' @examples
 #' \dontrun{
@@ -259,6 +266,8 @@ datebreak_to_d3 <- function(x) {
 #' @param x A ggplot legend position ("top","bootom","right","left")
 #'
 #' @return A list of parameters for plotly layout.legend
+#' @keywords internal
+#' @export
 #'
 #' @examples
 #' \dontrun{
@@ -330,6 +339,8 @@ plotly_legend_pos <- function(x) {
 #' @param n_pal numeric The number of desired colours in the returned palette.
 #'
 #' @return A character vector of hex codes for use in a colour palette.
+#' @keywords internal
+#' @export
 #'
 #' @examples
 #' \dontrun{
@@ -385,6 +396,8 @@ palette_gen <- function(x, n_pal) {
 #' @param new_name The new name of the list item
 #'
 #' @return A list with the item renamed
+#' @keywords internal
+#' @export
 #'
 #' @examples
 #' \dontrun{
@@ -403,18 +416,9 @@ param_rename <- function(params_list, current_name, new_name) {
 
 
 
-#' A function to add assorted date lookups to an existing
-#' dataframe with a date variable.
-#'
-#' @param df A dataframe
-#' @param date_var character, the name of a date column within df
-#'
-#' @return A dataframe
-#'
-#' @examples
-#' \dontrun{
-#' dataframe_out <- adorn_date(df = dataframe, date_var = "date_column")
-#' }
+#' Function to adorn dates with appropriate formatting
+#' @keywords internal
+#' @export
 adorn_dates <- function(df, date_var) {
 
   df <- df |>
@@ -434,4 +438,24 @@ adorn_dates <- function(df, date_var) {
 
   return(df)
 
+}
+
+#' Null default operator
+#' @name nulldefault
+#' @title Null default operator
+#' @description Returns the first argument if it is not NULL, otherwise returns the second argument
+#'
+#' @param x First value
+#' @param y Second value (default)
+#'
+#' @return Returns x if not NULL, otherwise returns y
+#' @keywords internal
+#'
+#' @examples
+#' \dontrun{
+#' NULL %||% 1  # returns 1
+#' 2 %||% 1     # returns 2
+#' }
+`%||%` <- function(x, y) {
+  if (is.null(x)) y else x
 }

@@ -26,3 +26,4 @@ list elements, and assigns any that it cannot find a value of 'NULL'.
 param_assign(params, c("df","x","y","legend","title"))
 }
 }
+\keyword{internal}

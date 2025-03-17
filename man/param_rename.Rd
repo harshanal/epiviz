@@ -25,3 +25,4 @@ params <- param_rename(params,"chart_footer_colour","new_name")
 }
 
 }
+\keyword{internal}

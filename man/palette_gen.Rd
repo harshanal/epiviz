@@ -34,3 +34,4 @@ palette_gen("#007C91",5)
 palette_gen("YlOrRd",5)
 }
 }
+\keyword{internal}

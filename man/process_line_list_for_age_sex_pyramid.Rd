@@ -42,3 +42,4 @@ It filters the data to include only males and females, groups the data into age 
   processed_df <- process_line_list_for_age_sex_pyramid(df)
 }
 }
+\keyword{internal}

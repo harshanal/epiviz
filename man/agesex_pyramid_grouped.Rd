@@ -45,3 +45,4 @@ data <- data.frame(
 agesex_pyramid_grouped(data, x_breaks=10)
 }
 }
+\keyword{internal}

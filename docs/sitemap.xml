@@ -1,105 +1,111 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://harshanal.github.io/epiviz/404.html</loc>
+    <loc>/404.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/authors.html</loc>
+    <loc>/authors.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/index.html</loc>
+    <loc>/index.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/LICENSE-text.html</loc>
+    <loc>/LICENSE-text.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/LICENSE.html</loc>
+    <loc>/LICENSE.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/news/index.html</loc>
+    <loc>/news/index.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/reference/adorn_dates.html</loc>
+    <loc>/reference/adorn_dates.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/reference/agesex_pyramid_grouped.html</loc>
+    <loc>/reference/agesex_pyramid_grouped.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/reference/age_sex_pyramid.html</loc>
+    <loc>/reference/age_sex_pyramid.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/reference/base_gg.html</loc>
+    <loc>/reference/base_gg.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/reference/base_plotly.html</loc>
+    <loc>/reference/base_plotly.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/reference/col_chart.html</loc>
+    <loc>/reference/col_chart.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/reference/datebreak_to_d3.html</loc>
+    <loc>/reference/datebreak_to_d3.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/reference/epi_curve.html</loc>
+    <loc>/reference/epi_curve.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/reference/epi_map.html</loc>
+    <loc>/reference/epi_map.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/reference/get_os.html</loc>
+    <loc>/reference/get_os.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/reference/html_bold.html</loc>
+    <loc>/reference/grapes-or-or-grapes.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/reference/index.html</loc>
+    <loc>/reference/html_bold.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/reference/inv_scale_function.html</loc>
+    <loc>/reference/index.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/reference/lab_data.html</loc>
+    <loc>/reference/inv_scale_function.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/reference/line_chart.html</loc>
+    <loc>/reference/lab_data.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/reference/llm_interpret.html</loc>
+    <loc>/reference/line_chart.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/reference/London_LA_boundaries_2023.html</loc>
+    <loc>/reference/llm_interpret.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/reference/palette_gen.html</loc>
+    <loc>/reference/London_LA_boundaries_2023.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/reference/param_assign.html</loc>
+    <loc>/reference/nulldefault.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/reference/param_rename.html</loc>
+    <loc>/reference/palette_gen.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/reference/PHEC_boundaries_2016.html</loc>
+    <loc>/reference/param_assign.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/reference/plotly_legend_pos.html</loc>
+    <loc>/reference/param_rename.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/reference/plotly_line_style.html</loc>
+    <loc>/reference/PHEC_boundaries_2016.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/reference/point_chart.html</loc>
+    <loc>/reference/plotly_legend_pos.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/reference/process_line_list_for_age_sex_pyramid.html</loc>
+    <loc>/reference/plotly_line_style.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/reference/scale_function.html</loc>
+    <loc>/reference/point_chart.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/reference/set_Arial.html</loc>
+    <loc>/reference/process_line_list_for_age_sex_pyramid.html</loc>
   </url>
   <url>
-    <loc>https://harshanal.github.io/epiviz/reference/UK_boundaries_2023.html</loc>
+    <loc>/reference/scale_function.html</loc>
+  </url>
+  <url>
+    <loc>/reference/set_Arial.html</loc>
+  </url>
+  <url>
+    <loc>/reference/UK_boundaries_2023.html</loc>
   </url>
 </urlset>

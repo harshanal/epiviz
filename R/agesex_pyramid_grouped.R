@@ -18,6 +18,7 @@
 #'                    If TRUE, the data frame should include the lowercl and uppercl columns.
 #'
 #' @return Returns an age-sex pyramid as a ggplot object
+#' @keywords internal
 #'
 #' @import ggplot2
 #' @import dplyr

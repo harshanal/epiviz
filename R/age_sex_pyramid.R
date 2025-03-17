@@ -1,6 +1,6 @@
 #' Generate an Age-Sex Pyramid
 #'
-#' This function creates an age-sex pyramid visualization, either as a static ggplot or an interactive plotly chart.
+#' This function creates an age-sex pyramid visualisation, either as a static ggplot or an interactive plotly chart.
 #' The function can take either a line list (ungrouped data) or already grouped data as input.
 #' When using a line list, the function processes the data, groups it by age and sex, and then generates the pyramid.
 #' If grouped data is provided, it directly creates the pyramid.
@@ -163,14 +163,14 @@ age_sex_pyramid <- function(
       if (is.null(var_map$age_group) || is.null(var_map$sex) || is.null(var_map$value)) {
         stop("For grouped data, var_map must include 'age_group', 'sex', and 'value'")
       }
-      
+
       # Create a new data frame with standardized column names
       .grp_df <- data.frame(
         age_group = params$df[[var_map$age_group]],
         sex = params$df[[var_map$sex]],
         value = params$df[[var_map$value]]
       )
-      
+
       # Add confidence limits if they exist and are requested
       if (params$conf_limits) {
         if (is.null(var_map$lowercl) || is.null(var_map$uppercl)) {
@@ -188,7 +188,7 @@ age_sex_pyramid <- function(
         .grp_df$lowercl <- .grp_df$value
         .grp_df$uppercl <- .grp_df$value
       }
-      
+
       # Ensure age_group is ordered correctly
       # Extract numeric part from age group labels for sorting
       age_order <- order(as.integer(sub("^(\\d+).*", "\\1", sub("[<+]", "", .grp_df$age_group))))
@@ -227,10 +227,10 @@ age_sex_pyramid <- function(
     return(result)
   }else{
     # plotly implementation of dynamic age-sex-pyramid
-    
+
     # Process data similarly to static version
     var_map <- params$var_map
-    
+
     if (params$grouped == FALSE) {
       .grp_df <- process_line_list_for_age_sex_pyramid(
         df = params$df,
@@ -243,14 +243,14 @@ age_sex_pyramid <- function(
       if (is.null(var_map$age_group) || is.null(var_map$sex) || is.null(var_map$value)) {
         stop("For grouped data, var_map must include 'age_group', 'sex', and 'value'")
       }
-      
+
       # Create a new data frame with standardized column names
       .grp_df <- data.frame(
         age_group = params$df[[var_map$age_group]],
         sex = params$df[[var_map$sex]],
         value = params$df[[var_map$value]]
       )
-      
+
       # Add confidence limits if they exist and are requested
       if (params$conf_limits) {
         if (is.null(var_map$lowercl) || is.null(var_map$uppercl)) {
@@ -268,27 +268,27 @@ age_sex_pyramid <- function(
         .grp_df$lowercl <- .grp_df$value
         .grp_df$uppercl <- .grp_df$value
       }
-      
+
       # Ensure age_group is ordered correctly
       # Extract numeric part from age group labels for sorting
       age_order <- order(as.integer(sub("^(\\d+).*", "\\1", sub("[<+]", "", .grp_df$age_group))))
       .grp_df$age_group <- factor(.grp_df$age_group, levels = unique(.grp_df$age_group[age_order]))
     }
-    
-    # Create the plotly visualization
+
+    # Create the plotly visualisation
     male_data <- .grp_df[.grp_df$sex == "Male", ]
     female_data <- .grp_df[.grp_df$sex == "Female", ]
-    
-    # Convert values for males to negative for visualization
+
+    # Convert values for males to negative for visualisation
     male_data$value <- -male_data$value
     if (params$conf_limits) {
       male_data$lowercl <- -male_data$lowercl
       male_data$uppercl <- -male_data$uppercl
     }
-    
+
     # Calculate maximum range for symmetric axis
     if (params$conf_limits) {
-      all_x <- c(male_data$value, female_data$value, male_data$lowercl, male_data$uppercl, 
+      all_x <- c(male_data$value, female_data$value, male_data$lowercl, male_data$uppercl,
                  female_data$lowercl, female_data$uppercl)
     } else {
       all_x <- c(male_data$value, female_data$value)
@@ -296,15 +296,15 @@ age_sex_pyramid <- function(
     min_x <- min(all_x)
     max_x <- max(all_x)
     max_range <- max(abs(min_x), max_x)
-    
+
     # Generate symmetric tick values and positive labels
     positive_ticks <- pretty(c(0, max_range), n = ceiling(params$x_breaks / 2))
     tickvals <- sort(unique(c(-positive_ticks, positive_ticks)))
     ticktext <- as.character(abs(tickvals))
-    
+
     # Create the plot
     p <- plot_ly(showlegend = TRUE)
-    
+
     # Add male bars
     p <- add_trace(p,
                    x = male_data$value,
@@ -315,7 +315,7 @@ age_sex_pyramid <- function(
                    orientation = 'h',
                    hoverinfo = "text",
                    hovertext = paste0("Male: ", round(abs(male_data$value), 2), "<br>Age: ", male_data$age_group))
-    
+
     # Add female bars
     p <- add_trace(p,
                    x = female_data$value,
@@ -326,7 +326,7 @@ age_sex_pyramid <- function(
                    orientation = 'h',
                    hoverinfo = "text",
                    hovertext = paste0("Female: ", round(female_data$value, 2), "<br>Age: ", female_data$age_group))
-    
+
     # Add confidence limits if requested
     if (params$conf_limits) {
       p <- add_trace(p,
@@ -370,7 +370,7 @@ age_sex_pyramid <- function(
                      hoverinfo = "text",
                      hovertext = paste0("Female Upper CI: ", round(female_data$uppercl, 2), "<br>Age: ", female_data$age_group))
     }
-    
+
     # Update layout with corrected titles and custom ticks
     p <- layout(p,
                 title = params$legend_title,
@@ -400,7 +400,7 @@ age_sex_pyramid <- function(
                 showlegend = TRUE,
                 legend = get_plotly_legend_position(params$legend_position)
     )
-    
+
     return(p)
   }
 }

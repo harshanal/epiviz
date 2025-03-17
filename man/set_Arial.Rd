@@ -17,3 +17,4 @@ Function to set chart_font variable to Arial in order to resolve warnings
 set_Arial()
 }
 }
+\keyword{internal}
