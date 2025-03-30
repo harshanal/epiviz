@@ -1,5 +1,3 @@
-context("LLM Automated Visualization Generation")
-
 # Load required packages
 library(testthat)
 library(epiviz)
