@@ -41,31 +41,31 @@
 #' @importFrom lifecycle badge signal_stage
 #' @importFrom jsonlite fromJSON
 #' @export
-llm_auto_viz <- function(df, user_prompt = "", dynamic = FALSE, execute = TRUE) {
+llm_auto_viz <- function(df, user_prompt = "",  execute = TRUE) {
   lifecycle::signal_stage("experimental", "llm_auto_viz()")
-  
+
   # Check if required environment variables are set
   check_env_vars()
-  
+
   # Get documentation for epiviz visualization functions
   epiviz_functions <- get_epiviz_function_info()
-  
+
   # Extract data frame metadata (column names and types)
   df_metadata <- get_dataframe_metadata(df)
-  
+
   # Build the system prompt for the LLM
-  system_prompt <- build_llm_prompt(epiviz_functions, df_metadata, user_prompt, dynamic)
-  
+  system_prompt <- build_llm_prompt(df_metadata, user_prompt)
+
   # Query the LLM with the system prompt
   llm_response <- query_llm_json(system_prompt, df_metadata$column_names, user_prompt)
-  
+
   # Extract information from the LLM response
   selected_function <- llm_response$selected_function
   r_code <- llm_response$r_code
-  
+
   # Log the interaction for auditing
   log_llm_interaction(system_prompt, df_metadata, user_prompt, llm_response)
-  
+
   # Execute the code or return it
   if (execute) {
     tryCatch({
@@ -127,9 +127,9 @@ get_dataframe_metadata <- function(df) {
   if (!is.data.frame(df)) {
     stop("Input must be a data frame")
   }
-  
+
   column_names <- names(df)
-  
+
   # Get column types in a privacy-preserving way
   column_types <- sapply(df, function(col) {
     if (is.factor(col)) return("factor")
@@ -141,7 +141,7 @@ get_dataframe_metadata <- function(df) {
     if (is.logical(col)) return("logical")
     return("other")
   })
-  
+
   # Get column summary in a privacy-preserving way
   column_summary <- lapply(names(df), function(col_name) {
     col <- df[[col_name]]
@@ -150,7 +150,7 @@ get_dataframe_metadata <- function(df) {
       type = class(col)[1],
       unique_count = length(unique(col))
     )
-    
+
     # Add type-specific information without revealing data
     if (is.numeric(col) || is.integer(col)) {
       summary$range <- c(min(col, na.rm = TRUE), max(col, na.rm = TRUE))
@@ -166,10 +166,10 @@ get_dataframe_metadata <- function(df) {
       summary$date_range <- c(min(col, na.rm = TRUE), max(col, na.rm = TRUE))
       summary$span_days <- as.numeric(diff(range(col, na.rm = TRUE)))
     }
-    
+
     return(summary)
   })
-  
+
   return(list(
     column_names = column_names,
     column_types = column_types,
@@ -189,32 +189,32 @@ get_dataframe_metadata <- function(df) {
 get_epiviz_function_info <- function() {
   viz_functions <- c("line_chart", "point_chart", "col_chart", "epi_curve", "age_sex_pyramid")
   function_info <- list()
-  
+
   for (func_name in viz_functions) {
     # Check if the function exists
     if (!exists(func_name, mode = "function")) {
       next
     }
-    
+
     # Get function documentation
     func_docs <- tryCatch({
       utils::help(func_name, package = "epiviz")
       # Create temporary file to capture the help output
       temp_file <- tempfile()
       utils::capture.output(
-        print(utils::help(func_name, package = "epiviz")), 
+        print(utils::help(func_name, package = "epiviz")),
         file = temp_file
       )
       docs <- readLines(temp_file)
       unlink(temp_file)
-      
-      # Process documentation 
+
+      # Process documentation
       title <- ""
       description <- ""
       params <- list()
-      
+
       in_params <- FALSE
-      
+
       for (line in docs) {
         if (grepl("^Description:", line)) {
           in_description <- TRUE
@@ -228,7 +228,7 @@ get_epiviz_function_info <- function() {
           in_description <- FALSE
           in_params <- FALSE
         }
-        
+
         if (grepl("^Title:", line)) {
           title <- trimws(gsub("^Title:", "", line))
         } else if (in_description) {
@@ -242,7 +242,7 @@ get_epiviz_function_info <- function() {
           }
         }
       }
-      
+
       list(
         title = title,
         description = trimws(description),
@@ -253,17 +253,17 @@ get_epiviz_function_info <- function() {
       func <- get(func_name)
       params <- names(formals(func))
       param_list <- setNames(rep("", length(params)), params)
-      
+
       list(
         title = paste(func_name, "visualization"),
         description = paste("Creates a", func_name, "visualization."),
         params = param_list
       )
     })
-    
+
     function_info[[func_name]] <- func_docs
   }
-  
+
   return(function_info)
 }
 
@@ -272,98 +272,153 @@ get_epiviz_function_info <- function() {
 #' Constructs a comprehensive system prompt for the LLM based on epiviz function
 #' documentation and data frame metadata.
 #'
-#' @param epiviz_functions List of epiviz function documentation
 #' @param df_metadata Data frame metadata
 #' @param user_prompt User guidance (if any)
-#' @param dynamic Whether to generate interactive visualization
 #'
 #' @return A structured system prompt for the LLM
 #' @keywords internal
-build_llm_prompt <- function(epiviz_functions, df_metadata, user_prompt, dynamic) {
-  prompt <- paste0(
-    "You are an expert R data visualization assistant specialized in the epiviz package. ",
-    "Your task is to analyze the structure of a data frame and generate R code for the most appropriate visualization.\n\n",
-    
-    "Data Frame Metadata:\n",
+build_llm_prompt <- function(df_metadata, user_prompt) {
+
+  # Define the static string containing epiviz function documentation
+  static_func_docs <- "
+Available epiviz visualization functions:
+
+## line_chart
+- Description: Creates a line chart. Good for trends over time.
+- Parameters:
+    - df: Data frame to visualize (REQUIRED in params list)
+    - x: Column name for x-axis (REQUIRED, typically date/time)
+    - y: Column name for y-axis (REQUIRED, numeric)
+    - group_var: Optional: column for grouping lines
+    - line_colour: Optional: vector of colours by group
+    - line_type: Optional: vector of line types (e.g. 'solid', 'dashed')
+    - dual_axis: Optional: logical to include secondary y-axis
+    - threshold_lines: Optional: numeric vector for reference lines
+    - ci: Optional: logical to include confidence intervals
+
+## col_chart
+- Description: Column or bar chart for categorical comparisons.
+- Parameters:
+    - df: Data frame to visualize (REQUIRED in params list)
+    - x: Column name for x-axis (REQUIRED, categorical)
+    - y: Column name for y-axis (REQUIRED, numeric)
+    - group_var: Optional: column for grouping bars
+    - dual_axis: Optional: logical
+    - threshold_lines: Optional: reference lines for y-axis
+    - ci: Optional: include confidence intervals
+
+## point_chart
+- Description: Scatter plot for exploring relationships between variables.
+- Parameters:
+    - df: Data frame (REQUIRED in params list)
+    - x: X-axis (REQUIRED, numeric or categorical)
+    - y: Y-axis (REQUIRED, numeric)
+    - group_var: Optional: column to group points
+    - size_var: Optional: column to vary point size
+    - shape_var: Optional: column to vary point shape
+    - ci: Optional: logical for confidence intervals
+
+## epi_curve
+- Description: Epidemic curve showing case distribution over time.
+- Parameters:
+    - df: Data frame to visualize (REQUIRED in params list)
+    - date_col: Date column for time axis (REQUIRED)
+    - case_col: Column with case counts (REQUIRED)
+    - group_var: Optional: grouping variable for curves
+    - time_period: Optional: Aggregation period: 'day', 'week', or 'month'
+    - rolling_average: Optional: smoothing window (integer)
+    - cumulative: Optional: logical to show cumulative cases
+
+## age_sex_pyramid
+- Description: Age-sex demographic pyramid for population or cases.
+- Parameters:
+    - df: Data frame to visualize (REQUIRED in params list)
+    - var_map: Named list mapping 'date_of_birth' and 'sex' column names (REQUIRED, e.g., `list(date_of_birth = 'dob_col', sex = 'sex_col')`)
+    - grouped: Optional: logical for grouped pyramids
+    - colours: Optional: vector of colours for each sex
+    - ci: Optional: confidence interval display
+"
+
+  # Core instructions
+  prompt_parts <- c()
+  
+  prompt_parts <- c(prompt_parts, paste0(
+    "You are an expert R visualization assistant using the epiviz package.\n",
+    "Your task is to analyze the structure of the data frame and generate executable R code using one of the epiviz visualization functions.\n\n",
+    "You MUST respond with only a minified JSON object using this exact format:\n",
+    "{\"selected_function\":\"<epiviz_function>\",\"r_code\":\"<escaped R code string that can be executed as-is>\"}\n",
+    "The 'r_code' value must be a single-line R code string with all line breaks escaped as \\n and all quotes properly escaped.\n",
+    "**Always set the `dynamic` parameter to FALSE. Interactive output is not supported at this stage.**\n\n"
+  ))
+  
+  # Add data frame metadata
+  prompt_parts <- c(prompt_parts, paste0(
+    " Data Frame Metadata:\n",
     "- Columns: ", paste(df_metadata$column_names, " (", df_metadata$column_types, ")", sep="", collapse=", "), "\n",
     "- Rows: ", df_metadata$row_count, "\n\n",
-    
     "Column Details:\n"
-  )
-  
+  ))
+
   # Add detailed information about each column
+  col_details <- character(0)
   for (summary in df_metadata$column_summary) {
-    prompt <- paste0(prompt, "- ", summary$name, " (", summary$type, "):\n")
-    
+    col_info <- paste0("- ", summary$name, " (", summary$type, "):\n")
+
     if (is.numeric(summary$unique_count)) {
-      prompt <- paste0(prompt, "  * Unique values: ", summary$unique_count, "\n")
+      col_info <- paste0(col_info, "  * Unique values: ", summary$unique_count, "\n")
     }
-    
+
     if (!is.null(summary$range)) {
-      prompt <- paste0(prompt, "  * Range: [", summary$range[1], " to ", summary$range[2], "]\n")
+      col_info <- paste0(col_info, "  * Range: [", summary$range[1], " to ", summary$range[2], "]\n")
     }
-    
+
     if (!is.null(summary$date_range)) {
-      prompt <- paste0(prompt, "  * Date range: [", summary$date_range[1], " to ", summary$date_range[2], "]\n")
-      prompt <- paste0(prompt, "  * Span in days: ", summary$span_days, "\n")
+      col_info <- paste0(col_info, "  * Date range: [", summary$date_range[1], " to ", summary$date_range[2], "]\n")
+      col_info <- paste0(col_info, "  * Span in days: ", summary$span_days, "\n")
     }
-    
+
     if (!is.null(summary$is_high_cardinality)) {
-      prompt <- paste0(prompt, "  * High cardinality: ", summary$is_high_cardinality, "\n")
+      col_info <- paste0(col_info, "  * High cardinality: ", summary$is_high_cardinality, "\n")
     }
-  }
-  
-  prompt <- paste0(
-    prompt, "\n",
-    "Available epiviz visualization functions:\n"
-  )
-  
-  # Add documentation for each epiviz function
-  for (func_name in names(epiviz_functions)) {
-    func_info <- epiviz_functions[[func_name]]
-    prompt <- paste0(
-      prompt, 
-      "## ", func_name, "\n",
-      func_info$description, "\n",
-      "Parameters:\n"
-    )
     
-    for (param_name in names(func_info$params)) {
-      prompt <- paste0(
-        prompt,
-        "- ", param_name, ": ", func_info$params[[param_name]], "\n"
-      )
-    }
-    prompt <- paste0(prompt, "\n")
+    col_details <- c(col_details, col_info)
   }
-  
+  prompt_parts <- c(prompt_parts, paste(col_details, collapse=""))
+
+  # Add the static function documentation string
+  prompt_parts <- c(prompt_parts, static_func_docs)
+
   # Add user guidance if provided
   if (nzchar(user_prompt)) {
-    prompt <- paste0(
-      prompt,
+    prompt_parts <- c(prompt_parts, paste0(
       "User guidance: ", user_prompt, "\n",
       "IMPORTANT: If the user guidance explicitly requests a specific visualization type, prioritize that request even if another visualization might be more appropriate based on the data structure.\n\n"
-    )
+    ))
   }
-  
-  # Add instructions for dynamic/static visualization
-  prompt <- paste0(
-    prompt,
-    "Create a ", if(dynamic) "dynamic (interactive)" else "static", " visualization.\n\n"
-  )
-  
+
   # Add response format instructions
-  prompt <- paste0(
-    prompt,
-    "Please respond ONLY with a JSON object in the following format, with no additional text or explanation:\n",
+  prompt_parts <- c(prompt_parts, paste0(
+    "RESPONSE FORMAT:\n",
+    "You MUST respond with ONLY a raw JSON object. DO NOT include any markdown formatting (no ```json or ``` blocks).\n",
+    "The response must be exactly in this format:\n",
     "{\n",
     "  \"selected_function\": \"<chosen epiviz function name>\",\n",
     "  \"r_code\": \"<fully executable R code snippet using the chosen epiviz function>\"\n",
     "}\n\n",
-    "The R code should be properly formatted, executable without errors, and should use the data frame 'df' directly without modification unless necessary for the visualization. Include comments explaining key aspects of the code."
-  )
-  
-  return(prompt)
+    "IMPORTANT INSTRUCTIONS FOR R CODE GENERATION:\n",
+    "1. The R code MUST call the selected epiviz function (e.g., `epiviz::line_chart`).\n",
+    "2. The FIRST argument MUST be `dynamic = FALSE`.\n",
+    "3. The SECOND argument MUST be `params = list(...)`.\n",
+    "4. Inside the `params` list, the FIRST item MUST be the data frame, written exactly as `df = df`.\n",
+    "5. ALL OTHER visualization parameters (like x, y, group_var, date_col, etc.) MUST follow `df` inside the `params` list. Example: `params = list(df = df, x = 'specimen_date', y = 'count')`.\n",
+    "6. CRITICAL: Ensure ALL parameters marked as (REQUIRED) for the chosen function in the documentation above are included within the `params` list.\n",
+    "7. The generated R code string must be escaped for JSON (e.g., line breaks as \\n, quotes as \").\n",
+    "8. Include helpful comments in the R code.\n\n",
+    "DO NOT include any text before or after the JSON object. The response must start with '{' and end with '}'."
+  ))
+
+  # Combine all parts into a single string
+  return(paste(prompt_parts, collapse=""))
 }
 
 #' Query LLM API for JSON Response
@@ -380,7 +435,7 @@ query_llm_json <- function(system_prompt, column_names, user_prompt) {
   provider <- Sys.getenv("LLM_PROVIDER")
   api_key <- Sys.getenv("LLM_API_KEY")
   model <- Sys.getenv("LLM_MODEL")
-  
+
   tryCatch({
     # Initialize the chat client
     chat <- switch(
@@ -390,23 +445,28 @@ query_llm_json <- function(system_prompt, column_names, user_prompt) {
       "claude" = ellmer::chat_claude(model = model, api_key = api_key),
       stop(sprintf("Unsupported LLM provider: '%s'", provider))
     )
-    
+
+    # Ensure the system prompt is a single string
+    if (length(system_prompt) > 1) {
+      system_prompt <- paste(system_prompt, collapse = "")
+    }
+
     # Set the system prompt
     chat$set_system_prompt(system_prompt)
-    
+
     # Send the prompt to the API
     response <- chat$chat("Generate the visualization code based on the data structure.")
-    
+
     # Parse JSON response
     json_response <- jsonlite::fromJSON(response)
-    
+
     # Validate the response structure
     if (!all(c("selected_function", "r_code") %in% names(json_response))) {
       stop("Invalid LLM response structure. Missing required fields.")
     }
-    
+
     return(json_response)
-    
+
   }, error = function(e) {
     # Log the error
     log_path <- file.path(getwd(), "llm_error_log.json")
@@ -416,7 +476,7 @@ query_llm_json <- function(system_prompt, column_names, user_prompt) {
       column_names = column_names,
       user_prompt = user_prompt
     )
-    
+
     tryCatch({
       # Append to existing log if it exists
       if (file.exists(log_path)) {
@@ -429,7 +489,7 @@ query_llm_json <- function(system_prompt, column_names, user_prompt) {
     }, error = function(e) {
       message("Failed to log error: ", e$message)
     })
-    
+
     stop("Error querying LLM API: ", e$message)
   })
 }
@@ -446,7 +506,7 @@ query_llm_json <- function(system_prompt, column_names, user_prompt) {
 #' @keywords internal
 log_llm_interaction <- function(system_prompt, df_metadata, user_prompt, llm_response) {
   log_path <- file.path(getwd(), "llm_audit_log.json")
-  
+
   log_entry <- list(
     timestamp = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
     column_names = df_metadata$column_names,
@@ -457,7 +517,7 @@ log_llm_interaction <- function(system_prompt, df_metadata, user_prompt, llm_res
     provider = Sys.getenv("LLM_PROVIDER"),
     model = Sys.getenv("LLM_MODEL")
   )
-  
+
   tryCatch({
     # Append to existing log if it exists
     if (file.exists(log_path)) {
@@ -474,4 +534,4 @@ log_llm_interaction <- function(system_prompt, df_metadata, user_prompt, llm_res
   }, error = function(e) {
     message("Failed to log LLM interaction: ", e$message)
   })
-} 
+}
