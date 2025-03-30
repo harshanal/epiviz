@@ -82,7 +82,10 @@ llm_auto_viz <- function(df, user_prompt = "",  execute = TRUE) {
       return(NULL)
     })
   } else {
-    return(r_code)
+    # Use cat() to print the raw code for easy copy-pasting
+    cat(r_code)
+    # Return the code invisibly to avoid R printing it again with [1]
+    invisible(r_code)
   }
 }
 
@@ -284,76 +287,119 @@ build_llm_prompt <- function(df_metadata, user_prompt) {
 Available epiviz visualization functions:
 
 ## line_chart
-- Description: Creates a line chart. Good for trends over time.
+- Description: Creates a line chart showing trends over time. Best used to show how numeric values change over a time period.
 - Parameters:
     - df: Data frame to visualize (REQUIRED in params list)
-    - x: Column name for x-axis (REQUIRED, typically date/time)
-    - y: Column name for y-axis (REQUIRED, numeric)
-    - group_var: Optional: column for grouping lines
+    - x: Column name for x-axis (REQUIRED). MUST be a date/datetime column from the data frame. This represents your time axis.
+    - y: Column name for y-axis (REQUIRED). MUST be a numeric column from the data frame. This represents the value being measured over time.
+    - group_var: Optional: column for grouping lines. If provided, must be a categorical column (character/factor) with a reasonable number of unique values (ideally < 10).
     - line_colour: Optional: vector of colours by group
     - line_type: Optional: vector of line types (e.g. 'solid', 'dashed')
     - dual_axis: Optional: logical to include secondary y-axis
     - threshold_lines: Optional: numeric vector for reference lines
     - ci: Optional: logical to include confidence intervals
+- Validation Rules:
+    1. 'x' MUST be a column of type 'Date' or 'datetime' from the data frame
+    2. 'y' MUST be a column of type 'numeric' or 'integer' from the data frame
+    3. 'group_var' if provided, MUST be a categorical column (character/factor)
+    4. Empty strings ('') are NOT allowed for any column name
+- Column Selection Guidelines:
+    1. For 'x': Choose a date/time column that represents when measurements were taken. If multiple are available, prefer the one with the widest range.
+    2. For 'y': Choose a numeric column that represents a quantity being measured. If multiple are available, prefer the one with the widest range or most variability.
+    3. For 'group_var': Choose a categorical column that meaningfully splits the data into groups. Prefer columns with a moderate number of unique values.
+    4. NEVER use:
+       - Categorical columns (character/factor) for 'y'
+       - ID columns for 'y' or 'group_var'
+       - Numeric columns that are actually codes/IDs
+       - Empty strings for any column name
+- If no valid numeric column is available for 'y', return a message indicating this limitation.
 
 ## col_chart
 - Description: Column or bar chart for categorical comparisons.
 - Parameters:
     - df: Data frame to visualize (REQUIRED in params list)
-    - x: Column name for x-axis (REQUIRED, categorical)
-    - y: Column name for y-axis (REQUIRED, numeric)
-    - group_var: Optional: column for grouping bars
+    - x: Column name for x-axis (REQUIRED, categorical). Must be an exact column name from the data frame.
+    - y: Column name for y-axis (REQUIRED, numeric). Must be an exact column name from the data frame and contain numeric values.
+    - group_var: Optional: column for grouping bars. If provided, must be an exact column name from the data frame.
     - dual_axis: Optional: logical
     - threshold_lines: Optional: reference lines for y-axis
     - ci: Optional: include confidence intervals
+- Validation Rules:
+    1. 'x' must exist in the data frame columns
+    2. 'y' must exist in the data frame columns and be numeric
+    3. if 'group_var' is provided, it must exist in the data frame columns
 
 ## point_chart
 - Description: Scatter plot for exploring relationships between variables.
 - Parameters:
     - df: Data frame (REQUIRED in params list)
-    - x: X-axis (REQUIRED, numeric or categorical)
-    - y: Y-axis (REQUIRED, numeric)
-    - group_var: Optional: column to group points
-    - size_var: Optional: column to vary point size
-    - shape_var: Optional: column to vary point shape
+    - x: X-axis (REQUIRED, numeric or categorical). Must be an exact column name from the data frame.
+    - y: Y-axis (REQUIRED, numeric). Must be an exact column name from the data frame and contain numeric values.
+    - group_var: Optional: column to group points. If provided, must be an exact column name from the data frame.
+    - size_var: Optional: column to vary point size. If provided, must be numeric column from the data frame.
+    - shape_var: Optional: column to vary point shape. If provided, must be an exact column name from the data frame.
     - ci: Optional: logical for confidence intervals
+- Validation Rules:
+    1. 'x' must exist in the data frame columns
+    2. 'y' must exist in the data frame columns and be numeric
+    3. if any optional variables are provided, they must exist in the data frame columns
 
 ## epi_curve
 - Description: Epidemic curve showing case distribution over time.
 - Parameters:
     - df: Data frame to visualize (REQUIRED in params list)
-    - date_col: Date column for time axis (REQUIRED)
-    - case_col: Column with case counts (REQUIRED)
-    - group_var: Optional: grouping variable for curves
+    - date_col: Date column for time axis (REQUIRED). Must be an exact column name from the data frame containing dates.
+    - case_col: Column with case counts (REQUIRED). Must be an exact column name from the data frame containing numeric values.
+    - group_var: Optional: grouping variable for curves. If provided, must be an exact column name from the data frame.
     - time_period: Optional: Aggregation period: 'day', 'week', or 'month'
     - rolling_average: Optional: smoothing window (integer)
     - cumulative: Optional: logical to show cumulative cases
+- Validation Rules:
+    1. 'date_col' must exist in the data frame columns and be a date/datetime type
+    2. 'case_col' must exist in the data frame columns and be numeric
+    3. if 'group_var' is provided, it must exist in the data frame columns
 
 ## age_sex_pyramid
 - Description: Age-sex demographic pyramid for population or cases.
 - Parameters:
     - df: Data frame to visualize (REQUIRED in params list)
-    - var_map: Named list mapping 'date_of_birth' and 'sex' column names (REQUIRED, e.g., `list(date_of_birth = 'dob_col', sex = 'sex_col')`)
+    - var_map: Named list mapping 'date_of_birth' and 'sex' column names (REQUIRED). Both referenced columns must exist in the data frame.
     - grouped: Optional: logical for grouped pyramids
     - colours: Optional: vector of colours for each sex
     - ci: Optional: confidence interval display
+- Validation Rules:
+    1. Both columns referenced in var_map must exist in the data frame
+    2. The date_of_birth column must be a date type
+    3. The sex column must be a character or factor type
+
+IMPORTANT COLUMN SELECTION RULES:
+1. ALL column names used in parameters MUST be exact matches from the available columns in the data frame.
+2. For numeric values (y, case_col, etc.), select columns of type 'numeric' or 'integer'.
+3. For dates (x in line_chart, date_col in epi_curve), select columns of type 'Date' or 'datetime'.
+4. For categorical grouping (group_var), prefer columns of type 'factor' or 'character' with reasonable cardinality.
+5. Double-check that selected columns exist in the data frame metadata provided above.
 "
 
   # Core instructions
   prompt_parts <- c()
-  
+
   prompt_parts <- c(prompt_parts, paste0(
     "You are an expert R visualization assistant using the epiviz package.\n",
     "Your task is to analyze the structure of the data frame and generate executable R code using one of the epiviz visualization functions.\n\n",
-    "You MUST respond with only a minified JSON object using this exact format:\n",
-    "{\"selected_function\":\"<epiviz_function>\",\"r_code\":\"<escaped R code string that can be executed as-is>\"}\n",
-    "The 'r_code' value must be a single-line R code string with all line breaks escaped as \\n and all quotes properly escaped.\n",
-    "**Always set the `dynamic` parameter to FALSE. Interactive output is not supported at this stage.**\n\n"
+    "PROCESS STEPS:\n",
+    "1. Analyze the Data Frame Metadata and Column Details provided below.\n",
+    "2. Based on the metadata and any User Guidance, select the most appropriate epiviz visualization function from the 'Available epiviz visualization functions' list.\n",
+    "3. Identify the REQUIRED parameters for the selected function.\n",
+    "4. For each REQUIRED parameter (like 'x', 'y', 'date_col', 'case_col'), select a SPECIFIC, EXACT column name from the 'Data Frame Metadata' that matches the required type (e.g., 'Date'/'datetime' for 'x' in line_chart, 'numeric'/'integer' for 'y').\n",
+    "5. CRITICAL FOR 'y' PARAMETER (and similar numeric parameters): You MUST choose ONE existing numeric/integer column name. If multiple suitable numeric columns exist, choose one based on the 'Column Selection Guidelines'. If NO suitable numeric column exists, set 'selected_function' to NULL and 'r_code' to '# No suitable numeric column found for the required parameter.' DO NOT use placeholders (e.g., '<numeric_column_here>') or empty strings ('').\n",
+    "6. Select optional parameters (like 'group_var') if appropriate, ensuring they also use EXACT column names and meet type requirements.\n",
+    "7. Construct the R code string following the 'IMPORTANT INSTRUCTIONS FOR R CODE GENERATION' below.\n",
+    "8. Format the final output as a minified JSON object as specified in 'RESPONSE FORMAT'.\n\n"
   ))
-  
+
   # Add data frame metadata
   prompt_parts <- c(prompt_parts, paste0(
-    " Data Frame Metadata:\n",
+    "Data Frame Metadata:\n",
     "- Columns: ", paste(df_metadata$column_names, " (", df_metadata$column_types, ")", sep="", collapse=", "), "\n",
     "- Rows: ", df_metadata$row_count, "\n\n",
     "Column Details:\n"
@@ -392,28 +438,31 @@ Available epiviz visualization functions:
   if (nzchar(user_prompt)) {
     prompt_parts <- c(prompt_parts, paste0(
       "User guidance: ", user_prompt, "\n",
-      "IMPORTANT: If the user guidance explicitly requests a specific visualization type, prioritize that request even if another visualization might be more appropriate based on the data structure.\n\n"
+      "IMPORTANT: If the user guidance explicitly requests a specific visualization type, prioritize that request.\n\n"
     ))
   }
 
-  # Add response format instructions
+  # Add response format and R code instructions
   prompt_parts <- c(prompt_parts, paste0(
     "RESPONSE FORMAT:\n",
-    "You MUST respond with ONLY a raw JSON object. DO NOT include any markdown formatting (no ```json or ``` blocks).\n",
-    "The response must be exactly in this format:\n",
-    "{\n",
-    "  \"selected_function\": \"<chosen epiviz function name>\",\n",
-    "  \"r_code\": \"<fully executable R code snippet using the chosen epiviz function>\"\n",
-    "}\n\n",
+    "You MUST respond with ONLY a raw, minified JSON object. DO NOT include any markdown formatting (no ```json or ``` blocks).\n",
+    "The response must be exactly in this format: {\"selected_function\":\"<function_name_or_null>\",\"r_code\":\"<escaped_R_code_or_message>\"}\n",
+    "The 'r_code' value must be a single-line R code string with all line breaks escaped as \\n and all quotes properly escaped.\n",
+    "**Always set the `dynamic` parameter to FALSE.**\n\n",
+
     "IMPORTANT INSTRUCTIONS FOR R CODE GENERATION:\n",
-    "1. The R code MUST call the selected epiviz function (e.g., `epiviz::line_chart`).\n",
-    "2. The FIRST argument MUST be `dynamic = FALSE`.\n",
-    "3. The SECOND argument MUST be `params = list(...)`.\n",
-    "4. Inside the `params` list, the FIRST item MUST be the data frame, written exactly as `df = df`.\n",
-    "5. ALL OTHER visualization parameters (like x, y, group_var, date_col, etc.) MUST follow `df` inside the `params` list. Example: `params = list(df = df, x = 'specimen_date', y = 'count')`.\n",
-    "6. CRITICAL: Ensure ALL parameters marked as (REQUIRED) for the chosen function in the documentation above are included within the `params` list.\n",
-    "7. The generated R code string must be escaped for JSON (e.g., line breaks as \\n, quotes as \").\n",
-    "8. Include helpful comments in the R code.\n\n",
+    "1. Follow the 'PROCESS STEPS' above carefully.\n",
+    "2. CRITICAL REITERATION: ALL column names used in parameters MUST be EXACT matches from the 'Data Frame Metadata' columns. NO PLACEHOLDERS. NO EMPTY STRINGS. Use the real column names provided.\n",
+    "3. If generating code (not an error message):
+",
+    "   a. The R code MUST call the selected epiviz function (e.g., `epiviz::line_chart`).\n",
+    "   b. The FIRST argument MUST be `dynamic = FALSE`.\n",
+    "   c. The SECOND argument MUST be `params = list(...)`.\n",
+    "   d. Inside the `params` list, the FIRST item MUST be the data frame, written exactly as `df = df`.\n",
+    "   e. Include ALL REQUIRED parameters for the chosen function within the `params` list, using the EXACT column names selected in the process steps.\n",
+    "   f. Verify parameter types against the function's 'Validation Rules'.\n",
+    "4. If NO suitable numeric column is found for a required numeric parameter (like 'y'), the 'r_code' MUST be exactly: '# No suitable numeric column found for the required parameter.' and 'selected_function' should be null.\n",
+    "5. Escape the final R code string for JSON (line breaks as \\n, quotes as \").\n\n",
     "DO NOT include any text before or after the JSON object. The response must start with '{' and end with '}'."
   ))
 
@@ -464,6 +513,9 @@ query_llm_json <- function(system_prompt, column_names, user_prompt) {
     if (!all(c("selected_function", "r_code") %in% names(json_response))) {
       stop("Invalid LLM response structure. Missing required fields.")
     }
+
+    # Unescape the R code string
+    json_response$r_code <- gsub('\\\\"', '"', json_response$r_code)
 
     return(json_response)
 
