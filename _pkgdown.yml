@@ -7,6 +7,11 @@ home:
   - text: Source code
     href: https://github.com/ukhsa-collaboration/epiviz
 
+articles:
+- title: "Tutorials"
+  contents:
+  - line_charts
+
 reference:
 - title: "Main Visualisation Functions"
   desc: "Core visualisation functions for creating static and dynamic plots"
@@ -22,6 +27,7 @@ reference:
   desc: "Functions for LLM-based data interpretation"
   contents:
   - llm_interpret
+  - llm_auto_viz
 
 - title: "Datasets"
   desc: "Sample datasets included in the package"
