@@ -83,6 +83,32 @@ plot <- line_chart(
 plot_interpretation <- llm_interpret(plot)
 ```
 
+### Automated Visualisation Generation
+
+The package includes an experimental function `llm_auto_viz()` that uses Large Language Models (LLMs) to automatically generate appropriate visualisations based on dataset structure and optional user guidance. This feature inspired by agentic workflows to simplify exploratory data visualisation for epidemiologists.
+
+```r
+# Basic usage - let the LLM choose the most appropriate visualisation
+viz <- llm_auto_viz(lab_data)
+
+# Provide guidance on the type of visualisation needed
+viz <- llm_auto_viz(lab_data, 
+                    user_prompt = "Create a line chart showing trends over time.")
+
+# Get the generated R code without executing it (for reviewing or modifying)
+code <- llm_auto_viz(lab_data, execute = FALSE)
+```
+
+#### Key Features
+
+- **Privacy Protection**: Only metadata (column names, types, and summary statistics) is shared with the LLM, never the actual data, ensuring confidentiality of sensitive health information.
+- **User-guided Visualisation**: Combine the standard structurally-aware prompt with your specific visualisation needs through the `user_prompt` parameter.
+- **Code Generation**: Use `execute = FALSE` to retrieve the generated R code for review, learning or further customisation instead of the visualisation itself.
+- **Data-aware Selection**: The LLM selects appropriate chart types and column mappings based on the dataset structure, choosing suitable date columns for x-axes and numeric columns for measurements.
+- **Exploratory Analysis**: Ideal for rapid exploratory analysis, especially for epidemiologists with limited R programming experience.
+
+> **Note**: As LLM outputs are non-deterministic, this feature is not suitable for reproducible analytical pipelines. However, it excels at exploratory data analysis by providing instant, contextually appropriate visualisations.
+
 #### Supported LLM Providers
 
 The function supports multiple LLM providers:
@@ -93,7 +119,7 @@ The function supports multiple LLM providers:
 
 #### Environment Variable Setup
 
-To use the `llm_interpret()` function, you need to set up the following environment variables:
+To use the `llm_interpret()` or `llm_auto_viz()` functions, you need to set up the following environment variables:
 
 ```r
 # In your .Renviron file or before calling the function:
