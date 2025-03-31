@@ -44,6 +44,9 @@
 llm_auto_viz <- function(df, user_prompt = "",  execute = TRUE) {
   lifecycle::signal_stage("experimental", "llm_auto_viz()")
 
+  # Capture the name of the data frame argument provided by the user
+  df_name <- deparse(substitute(df))
+
   # Check if required environment variables are set
   check_env_vars()
 
@@ -51,6 +54,7 @@ llm_auto_viz <- function(df, user_prompt = "",  execute = TRUE) {
   epiviz_functions <- get_epiviz_function_info()
 
   # Extract data frame metadata (column names and types)
+  # Pass the actual data frame object here
   df_metadata <- get_dataframe_metadata(df)
 
   # Build the system prompt for the LLM
@@ -66,19 +70,30 @@ llm_auto_viz <- function(df, user_prompt = "",  execute = TRUE) {
   # Log the interaction for auditing
   log_llm_interaction(system_prompt, df_metadata, user_prompt, llm_response)
 
+  # --- Substitute the placeholder 'df = df' with the actual data frame name --- #
+  # Check if r_code is not NULL or an error message
+  if (!is.null(r_code) && !startsWith(r_code, "#")) {
+    # Construct the pattern to find: specifically 'df = df' within the params list
+    # Use fixed = TRUE for literal matching
+    pattern_to_replace <- "df = df"
+    replacement_string <- paste0("df = ", df_name)
+    r_code <- sub(pattern_to_replace, replacement_string, r_code, fixed = TRUE)
+  }
+  # --------------------------------------------------------------------------- #
+
   # Execute the code or return it
   if (execute) {
     tryCatch({
-      # Create a new environment to execute the code
-      env <- new.env()
-      # Make sure the data frame is available in the new environment
-      env$df <- df
-      # Evaluate the code in the new environment
-      viz <- eval(parse(text = r_code), envir = env)
+      # --- Execute using the original data frame from the calling environment --- #
+      # We need the actual data frame object here, which is 'df'.
+      # The modified r_code string now correctly references df_name,
+      # which should exist in the environment where llm_auto_viz was called.
+      viz <- eval(parse(text = r_code), envir = parent.frame()) # Evaluate in calling environment
       return(viz)
     }, error = function(e) {
       message("Error executing the generated code: ", e$message)
-      message("Generated code:\n", r_code)
+      # Print the *modified* code that caused the error
+      message("Generated code (after df name substitution):\n", r_code)
       return(NULL)
     })
   } else {
