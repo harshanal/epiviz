@@ -70,14 +70,11 @@ llm_auto_viz <- function(df, user_prompt = "",  execute = TRUE) {
   # Log the interaction for auditing
   log_llm_interaction(system_prompt, df_metadata, user_prompt, llm_response)
 
-  # --- Substitute the placeholder 'df = df' with the actual data frame name --- #
+  # --- Substitute the placeholder dataframe name with the actual name --- #
   # Check if r_code is not NULL or an error message
   if (!is.null(r_code) && !startsWith(r_code, "#")) {
-    # Construct the pattern to find: specifically 'df = df' within the params list
-    # Use fixed = TRUE for literal matching
-    pattern_to_replace <- "df = df"
-    replacement_string <- paste0("df = ", df_name)
-    r_code <- sub(pattern_to_replace, replacement_string, r_code, fixed = TRUE)
+    # Simple pattern to find df = df or data = df in the params list
+    r_code <- gsub("(df|data)\\s*=\\s*df", paste0("df = ", df_name), r_code)
   }
   # --------------------------------------------------------------------------- #
 
