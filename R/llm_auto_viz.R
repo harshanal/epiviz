@@ -460,7 +460,9 @@ IMPORTANT COLUMN SELECTION RULES:
     "You MUST respond with ONLY a raw, minified JSON object. DO NOT include any markdown formatting (no ```json or ``` blocks).\n",
     "The response must be exactly in this format: {\"selected_function\":\"<function_name_or_null>\",\"r_code\":\"<escaped_R_code_or_message>\"}\n",
     "The 'r_code' value must be a single-line R code string with all line breaks escaped as \\n and all quotes properly escaped.\n",
-    "**Always set the `dynamic` parameter to FALSE.**\n\n",
+    "**Set the `dynamic` parameter based on these rules:**\n",
+    "1. If the user prompt contains words like 'dynamic', 'interactive', or 'plotly', set `dynamic = TRUE`\n",
+    "2. Otherwise, set `dynamic = FALSE` (default)\n\n",
 
     "IMPORTANT INSTRUCTIONS FOR R CODE GENERATION:\n",
     "1. Follow the 'PROCESS STEPS' above carefully.\n",
@@ -468,7 +470,7 @@ IMPORTANT COLUMN SELECTION RULES:
     "3. If generating code (not an error message):
 ",
     "   a. The R code MUST call the selected epiviz function (e.g., `epiviz::line_chart`).\n",
-    "   b. The FIRST argument MUST be `dynamic = FALSE`.\n",
+    "   b. The FIRST argument MUST be `dynamic = TRUE/FALSE` based on the rules above.\n",
     "   c. The SECOND argument MUST be `params = list(...)`.\n",
     "   d. Inside the `params` list, the FIRST item MUST be the data frame, written exactly as `df = df`.\n",
     "   e. Include ALL REQUIRED parameters for the chosen function within the `params` list, using the EXACT column names selected in the process steps.\n",
