@@ -50,9 +50,6 @@ llm_auto_viz <- function(df, user_prompt = "",  execute = TRUE) {
   # Check if required environment variables are set
   check_env_vars()
 
-  # Get documentation for epiviz visualization functions
-  epiviz_functions <- get_epiviz_function_info()
-
   # Extract data frame metadata (column names and types)
   # Pass the actual data frame object here
   df_metadata <- get_dataframe_metadata(df)
@@ -193,93 +190,6 @@ get_dataframe_metadata <- function(df) {
     column_count = ncol(df),
     has_na = any(is.na(df))
   ))
-}
-
-#' Get epiviz Function Documentation
-#'
-#' Dynamically extracts documentation for epiviz visualization functions.
-#'
-#' @return A list containing function documentation
-#' @keywords internal
-get_epiviz_function_info <- function() {
-  viz_functions <- c("line_chart", "point_chart", "col_chart", "epi_curve", "age_sex_pyramid")
-  function_info <- list()
-
-  for (func_name in viz_functions) {
-    # Check if the function exists
-    if (!exists(func_name, mode = "function")) {
-      next
-    }
-
-    # Get function documentation
-    func_docs <- tryCatch({
-      utils::help(func_name, package = "epiviz")
-      # Create temporary file to capture the help output
-      temp_file <- tempfile()
-      utils::capture.output(
-        print(utils::help(func_name, package = "epiviz")),
-        file = temp_file
-      )
-      docs <- readLines(temp_file)
-      unlink(temp_file)
-
-      # Process documentation
-      title <- ""
-      description <- ""
-      params <- list()
-
-      in_params <- FALSE
-
-      for (line in docs) {
-        if (grepl("^Description:", line)) {
-          in_description <- TRUE
-          in_params <- FALSE
-          next
-        } else if (grepl("^Arguments:", line)) {
-          in_description <- FALSE
-          in_params <- TRUE
-          next
-        } else if (grepl("^Value:", line) || grepl("^Details:", line) || grepl("^Examples:", line)) {
-          in_description <- FALSE
-          in_params <- FALSE
-        }
-
-        if (grepl("^Title:", line)) {
-          title <- trimws(gsub("^Title:", "", line))
-        } else if (in_description) {
-          description <- paste(description, trimws(line))
-        } else if (in_params && nchar(trimws(line)) > 0) {
-          param_match <- regmatches(line, regexec("^\\s+([A-Za-z0-9_]+):\\s+(.*)", line))
-          if (length(param_match[[1]]) >= 3) {
-            param_name <- param_match[[1]][2]
-            param_desc <- param_match[[1]][3]
-            params[[param_name]] <- param_desc
-          }
-        }
-      }
-
-      list(
-        title = title,
-        description = trimws(description),
-        params = params
-      )
-    }, error = function(e) {
-      # In case of error, provide a minimal description based on function inspection
-      func <- get(func_name)
-      params <- names(formals(func))
-      param_list <- setNames(rep("", length(params)), params)
-
-      list(
-        title = paste(func_name, "visualization"),
-        description = paste("Creates a", func_name, "visualization."),
-        params = param_list
-      )
-    })
-
-    function_info[[func_name]] <- func_docs
-  }
-
-  return(function_info)
 }
 
 #' Build LLM System Prompt

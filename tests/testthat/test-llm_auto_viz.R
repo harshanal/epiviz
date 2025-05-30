@@ -1,7 +1,6 @@
 # Load required packages
 library(testthat)
 library(epiviz)
-library(mockery)
 
 # Test for llm_auto_viz function
 test_that("llm_auto_viz generates proper code with default settings", {
@@ -20,17 +19,18 @@ test_that("llm_auto_viz generates proper code with default settings", {
   # Create mock for the LLM chat function
   mock_response <- '{
     "selected_function": "line_chart",
-    "r_code": "# Create a line chart showing specimen counts over time\nepiviz::line_chart(\n  dynamic = FALSE,\n  params = list(\n    df = df,\n    x = \"specimen_date\",\n    y = \"count\",\n    group_var = \"organism_species_name\",\n    line_colour = \"#007C91\",\n    point_marker = TRUE,\n    chart_title = \"Laboratory Specimens Over Time\"\n  )\n)"
+    "r_code": "# Create a line chart showing specimen counts over time\\nepiviz::line_chart(\\n  dynamic = FALSE,\\n  params = list(\\n    df = df,\\n    x = \\"specimen_date\\",\\n    y = \\"count\\",\\n    group_var = \\"organism_species_name\\",\\n    line_colour = \\"#007C91\\",\\n    point_marker = TRUE,\\n    chart_title = \\"Laboratory Specimens Over Time\\"\\n  )\\n)"
   }'
 
   # Mock the query_llm_json function
-  with_mock(
-    `epiviz:::query_llm_json` = function(...) {
+  with_mocked_bindings(
+    `query_llm_json` = function(...) {
       return(jsonlite::fromJSON(mock_response))
     },
-    `epiviz:::log_llm_interaction` = function(...) {
+    `log_llm_interaction` = function(...) {
       return(NULL)
     },
+    .package = "epiviz",
     {
       # Test code-only execution
       result_code <- llm_auto_viz(lab_data, execute = FALSE)
@@ -68,25 +68,28 @@ test_that("llm_auto_viz respects user guidance", {
   # Create mock responses for different user prompts
   mock_response_line <- '{
     "selected_function": "line_chart",
-    "r_code": "# Create a line chart as requested by user\nepiviz::line_chart(\n  dynamic = FALSE,\n  params = list(\n    df = df,\n    x = \"specimen_date\",\n    y = \"count\",\n    group_var = \"organism_species_name\",\n    line_colour = \"#007C91\"\n  )\n)"
+    "r_code": "# Create a line chart as requested by user\\nepiviz::line_chart(\\n  dynamic = FALSE,\\n  params = list(\\n    df = df,\\n    x = \\"specimen_date\\",\\n    y = \\"count\\",\\n    group_var = \\"organism_species_name\\",\\n    line_colour = \\"#007C91\\"\\n  )\\n)"
   }'
 
   mock_response_point <- '{
     "selected_function": "point_chart",
-    "r_code": "# Create a scatter plot as requested by user\nepiviz::point_chart(\n  dynamic = FALSE,\n  params = list(\n    df = df,\n    x = \"specimen_date\",\n    y = \"count\",\n    group_var = \"organism_species_name\",\n    point_colour = \"#007C91\"\n  )\n)"
+    "r_code": "# Create a scatter plot as requested by user\\nepiviz::point_chart(\\n  dynamic = FALSE,\\n  params = list(\\n    df = df,\\n    x = \\"specimen_date\\",\\n    y = \\"count\\",\\n    group_var = \\"organism_species_name\\",\\n    point_colour = \\"#007C91\\"\\n  )\\n)"
   }'
 
   # Test with line chart user guidance
-  with_mock(
-    `epiviz:::query_llm_json` = function(system_prompt, ...) {
-      # Return different response based on prompt content
-      if (grepl("line chart", system_prompt, ignore.case = TRUE)) {
+  with_mocked_bindings(
+    `query_llm_json` = function(system_prompt, column_names, user_prompt) {
+      # Return different response based on user prompt content
+      if (grepl("line chart", user_prompt, ignore.case = TRUE)) {
         return(jsonlite::fromJSON(mock_response_line))
-      } else {
+      } else if (grepl("scatter plot", user_prompt, ignore.case = TRUE)) {
         return(jsonlite::fromJSON(mock_response_point))
+      } else {
+        return(jsonlite::fromJSON(mock_response_line))
       }
     },
-    `epiviz:::log_llm_interaction` = function(...) { return(NULL) },
+    `log_llm_interaction` = function(...) { return(NULL) },
+    .package = "epiviz",
     {
       # Test with line chart guidance
       result_line <- llm_auto_viz(lab_data, user_prompt = "Please use a line chart", execute = FALSE)
