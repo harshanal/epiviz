@@ -563,6 +563,7 @@ query_llm_json <- function(system_prompt, column_names, user_prompt) {
 #' Log LLM Interaction
 #'
 #' Records details of LLM interactions for auditing purposes.
+#' Captures complete information about what was sent to the LLM API for transparency.
 #'
 #' @param system_prompt The system prompt sent to the LLM
 #' @param df_metadata Metadata about the data frame (no actual data)
@@ -573,15 +574,51 @@ query_llm_json <- function(system_prompt, column_names, user_prompt) {
 log_llm_interaction <- function(system_prompt, df_metadata, user_prompt, llm_response) {
   log_path <- file.path(getwd(), "llm_audit_log.json")
 
+  # Process column summaries to ensure they're JSON-serializable
+  processed_summaries <- lapply(df_metadata$column_summary, function(summary) {
+    # Convert any special objects to strings
+    if (!is.null(summary$date_range)) {
+      summary$date_range <- as.character(summary$date_range)
+    }
+    if (!is.null(summary$range)) {
+      summary$range <- as.numeric(summary$range)
+    }
+    summary
+  })
+
+  # Create a comprehensive audit entry
   log_entry <- list(
+    # Timestamp and session info
     timestamp = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
-    column_names = df_metadata$column_names,
-    column_types = df_metadata$column_types,
-    row_count = df_metadata$row_count,
-    user_prompt = user_prompt,
-    selected_function = llm_response$selected_function,
-    provider = Sys.getenv("LLM_PROVIDER"),
-    model = Sys.getenv("LLM_MODEL")
+    session_info = list(
+      provider = Sys.getenv("LLM_PROVIDER"),
+      model = Sys.getenv("LLM_MODEL")
+    ),
+    
+    # Input sent to LLM
+    input = list(
+      # The complete system prompt shows exactly what instructions were given to the LLM
+      system_prompt = system_prompt,
+      user_prompt = user_prompt %||% "",
+      
+      # Detailed data frame information shows what metadata was shared
+      data_frame_info = list(
+        column_names = as.character(df_metadata$column_names),
+        column_types = as.character(df_metadata$column_types),
+        column_summaries = processed_summaries,
+        dimensions = list(
+          rows = df_metadata$row_count,
+          columns = df_metadata$column_count
+        ),
+        has_missing_values = df_metadata$has_na
+      )
+    ),
+    
+    # LLM Response
+    output = list(
+      selected_function = llm_response$selected_function,
+      generated_code = llm_response$r_code
+    )
   )
 
   tryCatch({
