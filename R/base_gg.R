@@ -402,10 +402,10 @@ base_gg <- function() {
 
 
   # Handle base_gg() being called inside epi_curve()
-  if (substr(deparse(sys.calls()[[sys.nframe()-1]]),1,9)[1] == "epi_curve") {
+  if (substr(deparse(sys.calls()[[sys.nframe()-1]]),1,9)[1] %in% c("epi_curve","col_chart")) {
     xlim <- c(NA,NA)
   }
-
+### DEV
 
   # Apply axis limits to base plot
   if (!is.null(ylim) & is.null(xlim)) {
