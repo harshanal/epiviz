@@ -421,62 +421,62 @@ col_chart <- function(
 
 
 
-  ##### Checks and warnings
-
-  # Check if df is is.null
-  if (!exists('df',where=params)) stop("A data frame argument is required")
-
-  # Check df is a df class
-  if(!is.data.frame(params$df)) stop("df is not a data frame object")
-
-  # Check df is empty
-  if(!not_empty(params$df)) stop("df is empty")
-
-  # Check if date_var argument is null (date_var renamed to 'x' at this stage)
-  if ((is.null(params$x)) | !exists('x',where=params))
-    stop("Please include a variable from df for date_var, i.e. date_var = \"variable_name\"")
-
-  # Check if date_var is in df (date_var renamed to 'x' at this stage)
-  if (!params$x %in% colnames(params$df))
-    stop("date_var not found within df. Please include a variable from df for date_var, i.e. date_var = \"variable_name\"")
-
-  # Check group_var_barmode valid
-  if (!is.null(params$group_var) & !(params$group_var_barmode %in% c('stack', 'group'))) {
-    stop("group_var_barmode must equal 'stack' or 'group'")
-  }
-
-  # Check time_period valid
-  if (!(params$time_period %in% c("day","year","month","quarter","year_month","year_quarter",
-                                  "iso_year","iso_week","start_iso_year_week","iso_year_week",
-                                  "use_date_var"))) {
-    stop("time_period must equal 'day', 'year', 'month', 'quarter', 'year_month', 'year_quarter',
-              'iso_year', 'iso_week', 'start_iso_year_week', 'iso_year_week', or 'use_date_var'")
-  }
-
-
-  # If provided, check if y is in df
-  if (exists('y',where=params)) {
-    if (!params$y %in% colnames(params$df))
-      stop("y not found within df. Please include a variable from df for y, i.e. y = \"variable_name\"")
-  }
-
-  # If provided, check if group_var is in df
-  if ("group_var" %in% names(params)) {
-    if (!params$group_var %in% colnames(params$df))
-      stop("group_var not found within df. Please include a variable from df for group_var, i.e. group_var = \"variable_name\"")
-  }
-
-  # Check if number of groups and number of point colours are the same
-  if (exists('group_var', where=params) & length(params$fill_colours) > 1) {
-    if (length(params$fill_colours) != length(unique(params$df[[params$group_var]])))
-      stop("The number of fill_colours provided must equal the number of unique groups in group_var")
-  }
-
-
-  # Warn that multiple colours have been provided but group_var absent
-  if (length(params$fill_colours) >1 & !exists('group_var',where=params))
-    warning("Multiple fill_colours have been provided but group_var is absent")
-
+  # ##### Checks and warnings
+  #
+  # # Check if df is is.null
+  # if (!exists('df',where=params)) stop("A data frame argument is required")
+  #
+  # # Check df is a df class
+  # if(!is.data.frame(params$df)) stop("df is not a data frame object")
+  #
+  # # Check df is empty
+  # if(!not_empty(params$df)) stop("df is empty")
+  #
+  # # Check if date_var argument is null (date_var renamed to 'x' at this stage)
+  # if ((is.null(params$x)) | !exists('x',where=params))
+  #   stop("Please include a variable from df for date_var, i.e. date_var = \"variable_name\"")
+  #
+  # # # Check if date_var is in df (date_var renamed to 'x' at this stage)
+  # # if (!params$x %in% colnames(params$df))
+  # #   stop("date_var not found within df. Please include a variable from df for date_var, i.e. date_var = \"variable_name\"")
+  #
+  # # Check group_var_barmode valid
+  # if (!is.null(params$group_var) & !(params$group_var_barmode %in% c('stack', 'group'))) {
+  #   stop("group_var_barmode must equal 'stack' or 'group'")
+  # }
+  #
+  # # Check time_period valid
+  # if (!(params$time_period %in% c("day","year","month","quarter","year_month","year_quarter",
+  #                                 "iso_year","iso_week","start_iso_year_week","iso_year_week",
+  #                                 "use_date_var"))) {
+  #   stop("time_period must equal 'day', 'year', 'month', 'quarter', 'year_month', 'year_quarter',
+  #             'iso_year', 'iso_week', 'start_iso_year_week', 'iso_year_week', or 'use_date_var'")
+  # }
+  #
+  #
+  # # If provided, check if y is in df
+  # if (exists('y',where=params)) {
+  #   if (!params$y %in% colnames(params$df))
+  #     stop("y not found within df. Please include a variable from df for y, i.e. y = \"variable_name\"")
+  # }
+  #
+  # # If provided, check if group_var is in df
+  # if ("group_var" %in% names(params)) {
+  #   if (!params$group_var %in% colnames(params$df))
+  #     stop("group_var not found within df. Please include a variable from df for group_var, i.e. group_var = \"variable_name\"")
+  # }
+  #
+  # # Check if number of groups and number of point colours are the same
+  # if (exists('group_var', where=params) & length(params$fill_colours) > 1) {
+  #   if (length(params$fill_colours) != length(unique(params$df[[params$group_var]])))
+  #     stop("The number of fill_colours provided must equal the number of unique groups in group_var")
+  # }
+  #
+  #
+  # # Warn that multiple colours have been provided but group_var absent
+  # if (length(params$fill_colours) >1 & !exists('group_var',where=params))
+  #   warning("Multiple fill_colours have been provided but group_var is absent")
+  #
 
 
 
@@ -1004,7 +1004,7 @@ col_chart <- function(
 
 
 
-    ##### Build epi curve
+    ##### Build col_chart
 
     if (case_boxes == FALSE) {
 
@@ -1027,7 +1027,6 @@ col_chart <- function(
           showlegend = if (is.null(group_var)) {F} else {T}
         ) |>
         layout(barmode = group_var_barmode)
-
 
 
       # Add bar plot with boxes around each case

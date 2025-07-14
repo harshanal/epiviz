@@ -229,6 +229,13 @@ base_plotly <- function() {
     x_range <- c(x_min, x_max)
     y_range <- c(y_min, y_max)
 
+    # Shunt x-axis along 1 place if x is a categorical variable, else the first set
+    #   of bars in the range will be cut off (I have no idea why this happens)
+    if(lubridate::is.Date(df[[x]]) == FALSE & is.numeric(df[[x]]) == FALSE) {
+      x_range <- x_range - 1
+    }
+
+
     #Reverse x-axis range if specified
     if (x_axis_reverse == TRUE) {x_range <- rev(x_range)}
 
