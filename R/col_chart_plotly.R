@@ -317,10 +317,9 @@ col_chart <- function(
     dynamic = FALSE,
     params = list(
       df = NULL,
+      x = NULL,
       y = NULL,                      # for pre-aggregated data, requires implementation
-      date_var = NULL,
-      date_start = NULL,
-      date_end = NULL,
+      x_time_series = FALSE,
       time_period = "use_date_var",
       group_var = NULL,
       group_var_barmode = 'stack',
@@ -342,6 +341,8 @@ col_chart <- function(
       y_axis_label_angle = NULL,
       x_axis_label_font_size = 9,
       y_axis_label_font_size = 9,
+      x_limit_min = NULL,
+      x_limit_max = NULL,
       y_limit_min = NULL,
       y_limit_max = NULL,
       x_axis_break_labels = NULL,
@@ -370,6 +371,7 @@ col_chart <- function(
 
   # Where relevant, assign defaults to any parameters not specified by the user
   if(!exists('group_var_barmode',where=params)) params$group_var_barmode <- "stack"
+  if(!exists('x_time_series',where=params)) params$x_time_series <- FALSE
   if(!exists('time_period',where=params)) params$time_period <- "use_date_var"
   if(!exists('fill_colours',where=params)) params$fill_colours <- "lightblue"
   if(!exists('bar_border_colour',where=params)) params$bar_border_colour <- "transparent"
@@ -406,15 +408,15 @@ col_chart <- function(
 
   # Rename certain parameters so that they will be recognised
   #   by base_gg() and base_plotly()
-  params <- param_rename(params,"date_var","x")
-  params <- param_rename(params,"date_start","x_limit_min")
-  params <- param_rename(params,"date_end","x_limit_max")
+
+  # params <- param_rename(params,"date_start","x_limit_min")
+  # params <- param_rename(params,"date_end","x_limit_max")
 
 
-  # 'base' not a user define arguement for epi_curve, so set to NULL
+  # 'base' not a user define arguement for col_chart, so set to NULL
   #   for base_gg() and base_plotly()
   base <- NULL
-
+### DEV
 
 
 
@@ -495,6 +497,7 @@ col_chart <- function(
                c("df",
                  "x",
                  "y",
+                 "x_time_series",
                  "time_period",
                  "group_var",
                  "group_var_barmode",
@@ -556,136 +559,136 @@ col_chart <- function(
 
   #################### DATA MANIPULATION #########################
 
+  ### Define full date range for time series if x_time_series = TRUE
 
-  ### Define full date range
-
-  # Define start and end dates if not provided
-  if(is.null(x_limit_min)){
-    date_start <- min(df[[x]]) - 5
-  } else {
-    date_start <- as.Date(x_limit_min)
-  }
-
-  if(is.null(x_limit_max)){
-    date_end <- max(df[[x]]) + 5
-  } else {
-    date_end <- as.Date(x_limit_max)
-  }
-
-  # Filter out any rows outside date range so that they aren't included in aggregates
-  df <- df |>
-    filter(get(x) >= date_start & get(x) <= date_end) # & date_factor <= x_limit_max
+  if(x_time_series == TRUE) {
 
 
-
-
-  ### Add time periods to df
-
-  if (time_period != "use_date_var") {
-
-    # Use utils/adorn_dates() function to add additional date variables to df
-    df <- adorn_dates(df, x)
-
-    # Redefine x so that it points towards the relevant date column
-    x <- time_period
-
-  }
-
-
-  ### Create date factor for x-axis
-
-  # Define sequence of all dates in full date range
-  all_dates_seq <- data.frame(date_seq = seq(date_start, date_end, 1))
-
-  # Expand with additional time periods using utils/adorn_dates()
-  all_dates <- adorn_dates(all_dates_seq, "date_seq")
-
-  # Pull only values corresponding to x (i.e. user specified time_period), turn
-  #    into vector of unique values for use as factor levels
-  unique_dates <- unique(all_dates[[x]])
-
-  # Add date factor column to df for use in chart
-  df <- df |>
-    mutate(date_factor = factor(as.character(get(x)), levels = unique_dates)) |>
-    filter(!is.na(date_factor)) # filter out NAs, i.e. dates that fall outside of range
-
-  # Redefine x so that it points towards date_factor
-  x <- "date_factor"
-
-
-
-  ### Change x_limit_max and x_limit_min to match time_period choice
-
-  # Create df of limits and apply utils/adorn_dates() to find time_period limits
-  df_x_limits <- data.frame(x_limit = as.Date(c(x_limit_min,x_limit_max))) |>
-    adorn_dates("x_limit") |>
-    select(x_limit, any_of(time_period))
-
-  # Define limits converted to time_period
-  x_limit_min <- df_x_limits[[time_period]][1]
-  x_limit_max <- df_x_limits[[time_period]][2]
-
-
-
-
-
-  ### Add totals by date to df (i.e. defining y-axis)
-
-  if (is.null(y)) {
-
-    # Count rows by date if y is not specified (i.e. count rows by date if data is not pre-aggregated)
-
-    if(is.null(group_var)) {
-
-      # Un-grouped
-      df <- df |>
-        group_by(date_factor) |>
-        summarise(n = n()) |>
-        ungroup()
-
+    # Define start and end dates if not provided
+    if(is.null(x_limit_min)){
+      date_start <- min(df[[x]]) - 5
     } else {
+      date_start <- as.Date(x_limit_min)
+    }
 
-      # Grouped
-      df <- df |>
-        group_by(date_factor, .data[[group_var]]) |>
-        summarise(n = n()) |>
-        ungroup()
+    if(is.null(x_limit_max)){
+      date_end <- max(df[[x]]) + 5
+    } else {
+      date_end <- as.Date(x_limit_max)
+    }
+
+    # Filter out any rows outside date range so that they aren't included in aggregates
+    df <- df |>
+      filter(get(x) >= date_start & get(x) <= date_end) # & date_factor <= x_limit_max
+
+
+
+
+    ### Add time periods to df
+
+    if (time_period != "use_date_var") {
+
+      # Use utils/adorn_dates() function to add additional date variables to df
+      df <- adorn_dates(df, x)
+
+      # Redefine x so that it points towards the relevant date column
+      x <- time_period
 
     }
 
-  } else {
-    # Sum values by date if y is specified (i.e. sum values by date if data is pre-aggregated)
 
-    if(is.null(group_var)) {
+    ### Create date factor for x-axis
 
-      # Un-grouped
-      df <- df |>
-        group_by(date_factor) |>
-        summarise(n = sum(.data[[y]])) |>
-        ungroup()
+    # Define sequence of all dates in full date range
+    all_dates_seq <- data.frame(date_seq = seq(date_start, date_end, 1))
+
+    # Expand with additional time periods using utils/adorn_dates()
+    all_dates <- adorn_dates(all_dates_seq, "date_seq")
+
+    # Pull only values corresponding to x (i.e. user specified time_period), turn
+    #    into vector of unique values for use as factor levels
+    unique_dates <- unique(all_dates[[x]])
+
+    # Add date factor column to df for use in chart
+    df <- df |>
+      mutate(date_factor = factor(as.character(get(x)), levels = unique_dates)) |>
+      filter(!is.na(date_factor)) # filter out NAs, i.e. dates that fall outside of range
+
+    # Redefine x so that it points towards date_factor
+    x <- "date_factor"
+
+
+
+    ### Change x_limit_max and x_limit_min to match time_period choice
+
+    # Create df of limits and apply utils/adorn_dates() to find time_period limits
+    df_x_limits <- data.frame(x_limit = as.Date(c(x_limit_min,x_limit_max))) |>
+      adorn_dates("x_limit") |>
+      select(x_limit, any_of(time_period))
+
+    # Define limits converted to time_period
+    x_limit_min <- df_x_limits[[time_period]][1]
+    x_limit_max <- df_x_limits[[time_period]][2]
+
+
+
+    ### Add totals by date to df (i.e. defining y-axis)
+
+    if (is.null(y)) {
+
+      # Count rows by date if y is not specified (i.e. count rows by date if data is not pre-aggregated)
+
+      if(is.null(group_var)) {
+
+        # Un-grouped
+        df <- df |>
+          group_by(date_factor) |>
+          summarise(n = n()) |>
+          ungroup()
+
+      } else {
+
+        # Grouped
+        df <- df |>
+          group_by(date_factor, .data[[group_var]]) |>
+          summarise(n = n()) |>
+          ungroup()
+
+      }
 
     } else {
+      # Sum values by date if y is specified (i.e. sum values by date if data is pre-aggregated)
 
-      # Grouped
-      df <- df |>
-        group_by(date_factor, .data[[group_var]]) |>
-        summarise(n = sum(.data[[y]])) |>
-        ungroup()
+      if(is.null(group_var)) {
+
+        # Un-grouped
+        df <- df |>
+          group_by(date_factor) |>
+          summarise(n = sum(.data[[y]])) |>
+          ungroup()
+
+      } else {
+
+        # Grouped
+        df <- df |>
+          group_by(date_factor, .data[[group_var]]) |>
+          summarise(n = sum(.data[[y]])) |>
+          ungroup()
+
+      }
 
     }
 
+    # Re-define y so that it points towards n
+    y <- "n"
+
+
   }
 
-  # Re-define y so that it points towards n
-  y <- "n"
 
 
 
-
-
-
-
-  #################### EPI CURVE #################################
+  #################### COL CHART #################################
 
   ##### CREATE STATIC CHART
 
@@ -812,6 +815,15 @@ col_chart <- function(
         base <- base + labs(x = time_period) # default to time_period if label not provided
       }
 
+
+      # Redefine y-axis scale to remove gap between bars and x-axis
+
+      if (!is.null(y_axis_break_labels)) {
+        base <- base + scale_y_continuous(breaks = y_axis_break_labels,
+                                          expand = c(0,0))
+      } else {
+        base <- base + scale_y_continuous(expand = c(0,0))
+      }
 
 
       # Re-apply hline so that it doesn't appear behind the bars

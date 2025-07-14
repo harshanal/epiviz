@@ -401,11 +401,17 @@ base_gg <- function() {
   if (lubridate::is.Date(df[[x]]) & !is.null(xlim)) {xlim <- as.Date(xlim)}
 
 
-  # Handle base_gg() being called inside epi_curve()
-  if (substr(deparse(sys.calls()[[sys.nframe()-1]]),1,9)[1] %in% c("epi_curve","col_chart")) {
+  # Handle base_gg() being called inside epi_curve() & col_chart where the x-limits are redfined
+  if (substr(deparse(sys.calls()[[sys.nframe()-1]]),1,9)[1] == "epi_curve" |
+        (substr(deparse(sys.calls()[[sys.nframe()-1]]),1,9)[1] == "col_chart" & x_time_series == TRUE)) {
     xlim <- c(NA,NA)
   }
-### DEV
+  # In epi_curve(), and in col_chart() where x_time_series = TRUE, a full time series is
+  #    defined from date_start/x_limit_min to date_end/x_limit_min and the full x-axis
+  #    plotted from this, thus meaning that xlim must be set to c(NA,NA) so that the
+  #    whole axis is plotted. In col_chart() where x_time_series = FALSE conventional
+  #    limits can be defined, and thus xlim does not need to be reset to c(NA,NA).
+
 
   # Apply axis limits to base plot
   if (!is.null(ylim) & is.null(xlim)) {
