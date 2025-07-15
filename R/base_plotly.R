@@ -229,10 +229,12 @@ base_plotly <- function() {
     x_range <- c(x_min, x_max)
     y_range <- c(y_min, y_max)
 
-    # Shunt x-axis along 1 place if x is a categorical variable, else the first set
-    #   of bars in the range will be cut off (I have no idea why this happens)
-    if(lubridate::is.Date(df[[x]]) == FALSE & is.numeric(df[[x]]) == FALSE) {
-      x_range <- x_range - 1
+    # For col_chart, shunt x-axis along 1 place if x is a categorical variable
+    #   else the first set of bars in the range will be cut off
+    if (substr(deparse(sys.calls()[[sys.nframe()-1]]),1,9)[1] == "col_chart" & x_time_series == FALSE) {
+      if(lubridate::is.Date(df[[x]]) == FALSE & is.numeric(df[[x]]) == FALSE) {
+        x_range <- x_range - 1
+      }
     }
 
 
