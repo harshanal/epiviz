@@ -73,8 +73,12 @@
 #'    not stated.}
 #'    \item{y_axis_title}{Text used for y-axis title. Defaults to name of y-variable if
 #'    not stated.}
+#'    \item{x_axis_title_font_size}{Font size of the x-axis title.}
+#'    \item{y_axis_title_font_size}{Font size of the y-axis title.}
 #'    \item{x_axis_label_angle}{Angle for x-axis label text.}
 #'    \item{y_axis_label_angle}{Angle for y-axis label text.}
+#'    \item{x_axis_label_font_size}{Font size for the x-axis tick labels.}
+#'    \item{y_axis_label_font_size}{Font size for the y-axis tick labels.}
 #'    \item{x_axis_reverse}{Reverses x-axis scale if \code{x_axis_reverse = TRUE}.}
 #'    \item{y_percent}{Converts y-axis to percentage scale if \code{y_percent = TRUE}.}
 #'    \item{x_limit_min}{Lower limit for the x-axis. Default used if not provided.}
@@ -97,6 +101,8 @@
 #'    \item{show_axislines}{Logical to show chart axis lines. Default = \code{TRUE}.}
 #'    \item{legend_title}{Text used for legend title.}
 #'    \item{legend_pos}{Position of the legend. Permitted values = c("top","bootom","right","left")}
+#'    \item{legend_font_size}{Font size used in the legend.}
+#'    \item{legend_title_font_size}{Font size used for the legend title.}
 #'    \item{point_size_legend}{Include a legend for \code{point_size}. Default = \code{FALSE}}
 #'    \item{point_size_legend_title}{Text used for point legend title.}
 #'    \item{hline}{Adds horizontal line across the chart at the corresponding y-value. Multiple
@@ -453,8 +459,12 @@ point_chart <- function(
                           chart_footer_colour = "black",
                           x_axis_title = NULL,
                           y_axis_title = NULL,
+                          x_axis_title_font_size = 11,
+                          y_axis_title_font_size = 11,
                           x_axis_label_angle = NULL,
                           y_axis_label_angle = NULL,
+                          x_axis_label_font_size = 9,
+                          y_axis_label_font_size = 9,
                           x_axis_reverse = FALSE,
                           y_percent = FALSE,
                           x_limit_min = NULL,
@@ -471,6 +481,8 @@ point_chart <- function(
                           show_axislines = TRUE,
                           legend_title = "",
                           legend_pos = "right",
+                          legend_font_size = 8,
+                          legend_title_font_size = 8,
                           point_size_legend = FALSE,
                           point_size_legend_title = "",
                           hline = NULL,
@@ -508,8 +520,12 @@ point_chart <- function(
   if(!exists('chart_title_colour',where=params)) params$chart_title_colour <- "black"
   if(!exists('chart_footer_size',where=params)) params$chart_footer_size <- 10
   if(!exists('chart_footer_colour',where=params)) params$chart_footer_colour <- "black"
+  if(!exists('x_axis_title_font_size',where=params)) params$x_axis_title_font_size <- 11
+  if(!exists('y_axis_title_font_size',where=params)) params$y_axis_title_font_size <- 11
   if(!exists('x_axis_label_angle',where=params)) params$x_axis_label_angle <- 0
   if(!exists('y_axis_label_angle',where=params)) params$y_axis_label_angle <- 0
+  if(!exists('x_axis_label_font_size',where=params)) params$x_axis_label_font_size <- 9
+  if(!exists('y_axis_label_font_size',where=params)) params$y_axis_label_font_size <- 9
   if(!exists('x_axis_reverse',where=params)) params$x_axis_reverse <- FALSE
   if(!exists('show_gridlines',where=params)) params$show_gridlines <- TRUE
   if(!exists('show_axislines',where=params)) params$show_axislines <- TRUE
@@ -517,6 +533,8 @@ point_chart <- function(
   if(!exists('point_size_legend',where=params)) params$point_size_legend <- FALSE
   if(!exists('point_size_legend_title',where=params)) params$point_size_legend_title <- ""
   if(!exists('legend_pos',where=params)) params$legend_pos <- "right"
+  if(!exists('legend_font_size',where=params)) params$legend_font_size <- 8
+  if(!exists('legend_title_font_size',where=params)) params$legend_title_font_size <- 8
   if(!exists('hline_colour',where=params)) params$hline_colour <- "black"
   if(!exists('hline_width',where=params)) params$hline_width <- 0.5
   if(!exists('hline_type',where=params)) params$hline_type <- "dashed"
@@ -619,19 +637,69 @@ point_chart <- function(
   #     parent environment, and allocates a value of 'NULL' to anything
   #     it can't find within the reference list.
   param_assign(params,
-               c("df","x","y","ci","ci_legend","ci_legend_title","ci_lower",
-                 "ci_upper","ci_colours","errorbar_width","group_var","point_shape",
-                 "point_size","point_colours","point_labels","point_labels_size",
-                 "point_labels_hjust","point_labels_vjust","point_labels_nudge_x",
-                 "point_labels_nudge_y","y_sec_axis","y_sec_axis_no_shift","y_sec_axis_percent_full",
-                 "chart_title","chart_footer","chart_title_size","chart_title_colour","chart_footer_size",
-                 "chart_footer_colour","x_axis_title","x_axis_label_angle","y_axis_title","y_axis_label_angle",
-                 "y_percent","st_theme","x_axis_reverse","y_limit_min","y_limit_max",
-                 "x_limit_min","x_limit_max", "x_axis_break_labels", "y_axis_break_labels",
-                 "x_axis_n_breaks", "y_axis_n_breaks", "x_axis_date_breaks",
-                 "show_gridlines","show_axislines", "legend_title","point_size_legend",
-                 "point_size_legend_title","legend_pos","hline","hline_colour","hline_width",
-                 "hline_type","hline_label","hline_label_colour"))
+               c("df",
+                 "x",
+                 "y",
+                 "ci",
+                 "ci_legend",
+                 "ci_legend_title",
+                 "ci_lower",
+                 "ci_upper",
+                 "ci_colours",
+                 "errorbar_width",
+                 "group_var",
+                 "point_shape",
+                 "point_size",
+                 "point_colours",
+                 "point_labels",
+                 "point_labels_size",
+                 "point_labels_hjust",
+                 "point_labels_vjust",
+                 "point_labels_nudge_x",
+                 "point_labels_nudge_y",
+                 "y_sec_axis",
+                 "y_sec_axis_no_shift",
+                 "y_sec_axis_percent_full",
+                 "chart_title",
+                 "chart_footer",
+                 "chart_title_size",
+                 "chart_title_colour",
+                 "chart_footer_size",
+                 "chart_footer_colour",
+                 "x_axis_title",
+                 "y_axis_title",
+                 "x_axis_title_font_size",
+                 "y_axis_title_font_size",
+                 "x_axis_label_angle",
+                 "y_axis_label_angle",
+                 "x_axis_label_font_size",
+                 "y_axis_label_font_size",
+                 "y_percent",
+                 "st_theme",
+                 "x_axis_reverse",
+                 "y_limit_min",
+                 "y_limit_max",
+                 "x_limit_min",
+                 "x_limit_max",
+                 "x_axis_break_labels",
+                 "y_axis_break_labels",
+                 "x_axis_n_breaks",
+                 "y_axis_n_breaks",
+                 "x_axis_date_breaks",
+                 "show_gridlines",
+                 "show_axislines",
+                 "legend_title",
+                 "legend_pos",
+                 "legend_font_size",
+                 "legend_title_font_size",
+                 "point_size_legend",
+                 "point_size_legend_title",
+                 "hline",
+                 "hline_colour",
+                 "hline_width",
+                 "hline_type",
+                 "hline_label",
+                 "hline_label_colour"))
 
 
 
@@ -991,8 +1059,8 @@ point_chart <- function(
     } else {
       # Fallback to base R transparency
       rgb_col <- col2rgb(color)
-      return(rgb(rgb_col[1], rgb_col[2], rgb_col[3], 
-                 alpha = (1 - trans.val) * 255, 
+      return(rgb(rgb_col[1], rgb_col[2], rgb_col[3],
+                 alpha = (1 - trans.val) * 255,
                  maxColorValue = 255))
     }
   }
@@ -1402,14 +1470,24 @@ point_chart <- function(
 
     }
 
-    # Legend font
+    # # Legend font
+    # base <- base |>
+    #   layout(
+    #     legend = list(
+    #       #traceorder = "grouped+reversed",
+    #       font=list(size=8)
+    #       )
+    #     )
+
+    # Legend title + font
     base <- base |>
       layout(
         legend = list(
           #traceorder = "grouped+reversed",
-          font=list(size=8)
-          )
+          title=list(text = legend_title, font = list(size = legend_title_font_size)),
+          font=list(size = legend_font_size)
         )
+      )
 
 
   # return base plot
