@@ -74,11 +74,37 @@ base_gg <- function() {
 
   # Rotate axis text
   if (!is.null(x_axis_label_angle)) {
-    base <- base + theme(axis.text.x = element_text(angle  = x_axis_label_angle, vjust = 0.5))
+    base <- base + theme(axis.text.x = element_text(angle  = x_axis_label_angle,
+                                                    vjust = 1,
+                                                    hjust = 0))
   }
 
   if (!is.null(y_axis_label_angle)) {
-    base <- base + theme(axis.text.y = element_text(angle  = y_axis_label_angle, vjust = 0.5))
+
+    # Anchor middle-right of text box when angle is 1-89 degrees (to match plotly)
+    if(y_axis_label_angle >= 1 & y_axis_label_angle <= 89) {
+      base <- base + theme(axis.text.y = element_text(angle  = y_axis_label_angle,
+                                                      vjust = 0.5, hjust = 1))
+
+    } else if(abs(y_axis_label_angle) %in% c(90,270,-90,-270)) {
+      # Center justify when y-axis label is vertical
+      base <- base + theme(axis.text.y = element_text(angle  = y_axis_label_angle,
+                                                      vjust = 0, hjust = 0.5))
+
+    } else if(y_axis_label_angle <= -1 & y_axis_label_angle >= -89) {
+      # Anchor middle-right of text box when angle is 1-89 degrees (to match plotly)
+      base <- base + theme(axis.text.y = element_text(angle  = y_axis_label_angle,
+                                                      vjust = 1, hjust = 1))
+
+    } else if(y_axis_label_angle >= 201 & y_axis_label_angle <= 359) {
+      # Anchor middle-right of text box when angle is 1-89 degrees (to match plotly)
+      base <- base + theme(axis.text.y = element_text(angle  = y_axis_label_angle,
+                                                      vjust = 1, hjust = 1))
+
+    } else {
+      base <- base + theme(axis.text.y = element_text(angle  = y_axis_label_angle,
+                                                      vjust = 0.5))
+    }
   }
 
 
