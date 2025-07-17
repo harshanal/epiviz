@@ -348,6 +348,7 @@ col_chart <- function(
       x_axis_break_labels = NULL,
       y_axis_break_labels = NULL,
       y_axis_n_breaks = NULL,
+      x_axis_reverse = FALSE,
       show_gridlines = TRUE,
       show_axislines = TRUE,
       legend_title = "",
@@ -687,6 +688,12 @@ col_chart <- function(
 
 
 
+  ##### Handle categorical x-axis not stored as factor
+  if(is.character(df[[x]])) {
+    df[[x]] <- as.factor(df[[x]])
+  }
+ ### DEV: Apply this to base_gg to generalise to all functions?
+
 
   #################### COL CHART #################################
 
@@ -720,7 +727,7 @@ col_chart <- function(
 
 
 
-      ##### Build epi curve
+      ##### Build the col chart
 
       # Build according to whether plotting variables are grouped or not
       if(is.null(group_var)) {

@@ -380,7 +380,7 @@ base_gg <- function() {
           base <- base + scale_x_continuous(trans = c("date", "reverse"))
         }
     } else if (is.factor(df[[x]])) {
-      # Handle discrete axes (i.e. factors)
+      # Handle discrete / categorical axes (i.e. factors)
       base <- base + scale_x_discrete(limits = rev(levels(df[[x]])))
     } else {
       base <- base + scale_x_reverse()
@@ -427,7 +427,7 @@ base_gg <- function() {
   if (lubridate::is.Date(df[[x]]) & !is.null(xlim)) {xlim <- as.Date(xlim)}
 
 
-  # Handle base_gg() being called inside epi_curve() & col_chart where the x-limits are redfined
+  # Handle base_gg() being called inside epi_curve() & col_chart where the x-limits are redefined
   if (substr(deparse(sys.calls()[[sys.nframe()-1]]),1,9)[1] == "epi_curve" |
         (substr(deparse(sys.calls()[[sys.nframe()-1]]),1,9)[1] == "col_chart" & x_time_series == TRUE)) {
     xlim <- c(NA,NA)
