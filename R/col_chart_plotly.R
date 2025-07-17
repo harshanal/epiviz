@@ -695,6 +695,8 @@ col_chart <- function(
  ### DEV: Apply this to base_gg to generalise to all functions?
 
 
+
+
   #################### COL CHART #################################
 
   ##### CREATE STATIC CHART
@@ -893,7 +895,6 @@ col_chart <- function(
     #      different depending upon the nature of the chart
 
     # Define ggplot object to harvest axis ranges from
-    #ggobj <- ggplot() + geom_bar(data=df, aes(x=.data[[x]],y=.data[[y]])) + geom_hline(yintercept = hline)
     if(is.null(group_var)) {
       ggobj <- ggplot() +
         geom_bar(data = df, aes(x = .data[[x]],y = .data[[y]]), stat = 'identity') +

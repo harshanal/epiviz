@@ -203,8 +203,11 @@ base_plotly <- function() {
     # Uses x_min, x_max, y_min, y_max variables derived from ggobj outside of base_plotly()
 
     # Replace existing limits with user defined x / y limits if provided
-    if(!is.null(x_limit_min)) {x_min <- x_limit_min}
-    if(!is.null(x_limit_max)) {x_max <- x_limit_max}
+    #    Do not do this for x-limits if x_time_series = TRUE, as dates outside the
+    #      date limits will have already been filtered out by this stage and re-applying
+    #      them here will disrupt axis reversals etc. later on.
+    if(!is.null(x_limit_min) & (x_time_series == FALSE)) {x_min <- x_limit_min}
+    if(!is.null(x_limit_max) & (x_time_series == FALSE)) {x_max <- x_limit_max}
     if(!is.null(y_limit_min)) {y_min <- y_limit_min}
     if(!is.null(y_limit_max)) {y_max <- y_limit_max}
 
@@ -231,7 +234,7 @@ base_plotly <- function() {
 
     # For col_chart, shunt x-axis along 1 place if x is a categorical variable
     #   else the first set of bars in the range will be cut off
-    if (substr(deparse(sys.calls()[[sys.nframe()-1]]),1,9)[1] == "col_chart" & x_time_series == FALSE) {
+    if (substr(deparse(sys.calls()[[sys.nframe()-1]]),1,9)[1] == "col_chart") {
       if(lubridate::is.Date(df[[x]]) == FALSE & is.numeric(df[[x]]) == FALSE) {
         x_range <- x_range - 1
       }
