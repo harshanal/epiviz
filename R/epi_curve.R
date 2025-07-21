@@ -18,9 +18,7 @@
 #'    with \code{date_var > date_end} will be excluded from aggregates.}
 #'    \item{time_period}{The time period to be used along the x-axis. Options include
 #'    \code{c("day","year","month","quarter","year_month","year_quarter",
-#'      "iso_year","iso_week","start_iso_year_week","iso_year_week",
-#'      "use_date_var")}. Default = \code{"use_date_var"}, which indicates that the dates
-#'      as they appear in the \code{date_var} column will be used to populate the x-axis.}
+#'      "iso_year","iso_week","start_iso_year_week","iso_year_week")}. Default = \code{"day"}}
 #'    \item{group_var}{Name of the variable in df used to define separate groups within each bar,
 #'    e.g. species or region.}
 #'    \item{group_var_barmode}{Indicates how grouped bar data should be plotted. Options include
@@ -347,7 +345,7 @@ epi_curve <- function(
                           date_var = NULL,
                           date_start = NULL,
                           date_end = NULL,
-                          time_period = "use_date_var",
+                          time_period = "day",
                           group_var = NULL,
                           group_var_barmode = 'stack',
                           fill_colours = "lightblue",
@@ -406,7 +404,7 @@ epi_curve <- function(
 
   # Where relevant, assign defaults to any parameters not specified by the user
   if(!exists('group_var_barmode',where=params)) params$group_var_barmode <- "stack"
-  if(!exists('time_period',where=params)) params$time_period <- "use_date_var"
+  if(!exists('time_period',where=params)) params$time_period <- "day"
   if(!exists('fill_colours',where=params)) params$fill_colours <- "lightblue"
   if(!exists('bar_border_colour',where=params)) params$bar_border_colour <- "transparent"
   if(!exists('case_boxes',where=params)) params$case_boxes <- FALSE
@@ -491,10 +489,10 @@ epi_curve <- function(
 
   # Check time_period valid
   if (!(params$time_period %in% c("day","year","month","quarter","year_month","year_quarter",
-                                  "iso_year","iso_week","start_iso_year_week","iso_year_week",
-                                  "use_date_var"))) {
+                                  "iso_year","iso_week","start_iso_year_week","iso_year_week")))
+    {
     stop("time_period must equal 'day', 'year', 'month', 'quarter', 'year_month', 'year_quarter',
-              'iso_year', 'iso_week', 'start_iso_year_week', 'iso_year_week', or 'use_date_var'")
+              'iso_year', 'iso_week', 'start_iso_year_week', or 'iso_year_week'")
   }
 
 
@@ -637,15 +635,12 @@ epi_curve <- function(
 
   ### Add time periods to df
 
-  if (time_period != "use_date_var") {
+  # Use utils/adorn_dates() function to add additional date variables to df
+  df <- adorn_dates(df, x)
 
-    # Use utils/adorn_dates() function to add additional date variables to df
-    df <- adorn_dates(df, x)
+  # Redefine x so that it points towards the relevant date column
+  x <- time_period
 
-    # Redefine x so that it points towards the relevant date column
-    x <- time_period
-
-  }
 
 
   ### Create date factor for x-axis
