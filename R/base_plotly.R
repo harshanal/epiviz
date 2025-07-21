@@ -107,7 +107,7 @@ base_plotly <- function() {
     } else {
       base <- base |>
         layout(xaxis = list(title =
-                              list(text = html_bold(x),
+                              list(text = html_bold(ifelse(x == "date_factor",time_period,x)), # for epi_curve() / geom_bar() time series x will always equal "date_factor", change to more meaningful value of time_period if this is the case.
                                    font = x_axis_title_font)))
     }
 
