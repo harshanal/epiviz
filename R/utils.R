@@ -439,3 +439,27 @@ adorn_dates <- function(df, date_var) {
 
 
 
+
+#' A function to swap the names of 2 R objects, used in column_chart() where axis
+#' flipping in plotly to obtain a vertical bar chart involves manually exchanging
+#' all x and y variables.
+#'
+#' @param name1 Character, name of the first object
+#' @param name2 Character, name of the second object
+#'
+#' @return Swaps names of both objects
+#'
+#' @examples
+#' \dontrun{
+#' dataframe_out <- adorn_date(df = dataframe, date_var = "date_column")
+#' }
+swap_object_names <- function(name1, name2) {
+
+  temp <- get(name1, envir = parent.frame())
+  assign(name1, get(name2, envir = parent.frame()), envir = parent.frame())
+  assign(name2, temp, envir = parent.frame())
+
+}
+
+
+

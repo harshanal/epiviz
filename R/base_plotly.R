@@ -212,14 +212,18 @@ base_plotly <- function() {
     if(!is.null(y_limit_max)) {y_max <- y_limit_max}
 
     # Pad x-axis range in-line with ggplot formatting (5% on each side)
-    if (is.numeric(df[[x]])) {
-      xpad <- (x_max-x_min)*0.05
-      x_max <- x_max+xpad
-      x_min <- x_min-xpad
-    } else if (lubridate::is.Date(df[[x]])) {
-      xpad <- round(as.numeric(difftime(x_max, x_min, units="days"))*0.05, digits = 0)
-      x_max <- as.Date(x_max)+xpad
-      x_min <- as.Date(x_min)-xpad
+    #   -Only do this if x and y axes have not been flipped (only happens in col_chart())
+    if(!exists("axis_flip")) {axis_flip <- FALSE} # make sure axis_flip variable exists first
+    if(axis_flip == FALSE) {
+      if (is.numeric(df[[x]])) {
+        xpad <- (x_max-x_min)*0.05
+        x_max <- x_max+xpad
+        x_min <- x_min-xpad
+      } else if (lubridate::is.Date(df[[x]])) {
+        xpad <- round(as.numeric(difftime(x_max, x_min, units="days"))*0.05, digits = 0)
+        x_max <- as.Date(x_max)+xpad
+        x_min <- as.Date(x_min)-xpad
+      }
     }
 
     # Convert dates to character so they aren't coerced to numeric when added to range vector
@@ -235,10 +239,17 @@ base_plotly <- function() {
     # For col_chart, shunt x-axis along 1 place if x is a categorical variable
     #   else the first set of bars in the range will be cut off
     if (substr(deparse(sys.calls()[[sys.nframe()-1]]),1,9)[1] == "col_chart") {
-      if(lubridate::is.Date(df[[x]]) == FALSE & is.numeric(df[[x]]) == FALSE) {
-        x_range <- x_range - 1
+      if(axis_flip == FALSE) { # account for axis flipping
+        if(lubridate::is.Date(df[[x]]) == FALSE & is.numeric(df[[x]]) == FALSE) {
+          x_range <- x_range - 1
+        }
+      } else if(axis_flip == TRUE) {
+        if(lubridate::is.Date(df[[y]]) == FALSE & is.numeric(df[[y]]) == FALSE) {
+          y_range <- y_range - 1
+        }
       }
     }
+
 
 
     #Reverse x-axis range if specified

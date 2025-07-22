@@ -325,6 +325,7 @@ col_chart <- function(
       bar_border_colour = "transparent",
       case_boxes = FALSE,
       case_boxes_colour = "white",
+      axis_flip = FALSE,
       chart_title = NULL,
       chart_title_size = 13,
       chart_title_colour = "black",
@@ -376,6 +377,7 @@ col_chart <- function(
   if(!exists('bar_border_colour',where=params)) params$bar_border_colour <- "transparent"
   if(!exists('case_boxes',where=params)) params$case_boxes <- FALSE
   if(!exists('case_boxes_colour',where=params)) params$case_boxes_colour <- "white"
+  if(!exists('axis_flip',where=params)) params$axis_flip <- FALSE
   if(!exists('chart_title_size',where=params)) params$chart_title_size <- 12
   if(!exists('chart_title_colour',where=params)) params$chart_title_colour <- "black"
   if(!exists('chart_footer_size',where=params)) params$chart_footer_size <- 10
@@ -503,6 +505,7 @@ col_chart <- function(
                  "bar_border_colour",
                  "case_boxes",
                  "case_boxes_colour",
+                 "axis_flip",
                  "chart_title",
                  "chart_footer",
                  "chart_title_size",
@@ -807,10 +810,14 @@ col_chart <- function(
       }
 
 
+      ##### Flip axes if axis_flip = true
+      if(axis_flip == TRUE) {
+        base <- base + coord_flip()
+      }
 
 
-      ##### Redefine elements of base_gg specific to epi_curve
-### DEV
+      ##### Redefine elements of base_gg specific to col_chart()
+
       # Redefine x-axis label so that default = time_period
       if (!is.null(x_axis_title)) {
         base <- base + labs(x = x_axis_title)
@@ -861,8 +868,6 @@ col_chart <- function(
 
       }
 
-
-
       ##### Return final output
       return(base)
 
@@ -889,21 +894,24 @@ col_chart <- function(
     #      different depending upon the nature of the chart
 
     # Define ggplot object to harvest axis ranges from
-    if(is.null(group_var)) {
-      ggobj <- ggplot() +
-        geom_bar(data = df, aes(x = .data[[x]],y = .data[[y]]), stat = 'identity') +
-        geom_hline(yintercept = hline)
-    } else {
-      if(group_var_barmode == "group") {group_var_barmode <- "dodge"}
-      ggobj <- ggplot() +
-        geom_bar(data = df, aes(x=.data[[x]],y=.data[[y]],group=.data[[group_var]]),
-                 stat = 'identity',position = group_var_barmode) +
-        geom_hline(yintercept = hline)
-    }
+    # if(is.null(group_var)) {
+    #   ggobj <- ggplot() +
+    #     geom_bar(data = df, aes(x = .data[[x]],y = .data[[y]]), stat = 'identity') +
+    #     geom_hline(yintercept = hline)
+    # } else {
+    #   if(group_var_barmode == "group") {group_var_barmode <- "dodge"}
+    #   ggobj <- ggplot() +
+    #     geom_bar(data = df, aes(x=.data[[x]],y=.data[[y]],group=.data[[group_var]]),
+    #              stat = 'identity',position = group_var_barmode) +
+    #     geom_hline(yintercept = hline)
+    # }
+    # if(axis_flip == TRUE) {ggobj <- ggobj + coord_flip()} else {ggobj}
+
+    # Harvest ggplot object from static version of chart using col_chart() itself
+    ggobj <- col_chart(params = params, dynamic = FALSE)
     x_min <- ggplot_build(ggobj)$layout$panel_params[[1]]$x.range[1]
     x_max <- ggplot_build(ggobj)$layout$panel_params[[1]]$x.range[2]
-    #y_min <- ggplot_build(ggobj)$layout$panel_params[[1]]$y.range[1]
-    y_min <- 0
+    if(axis_flip == FALSE) {y_min <- 0} else {y_min <- ggplot_build(ggobj)$layout$panel_params[[1]]$y.range[1]}
     y_max <- ggplot_build(ggobj)$layout$panel_params[[1]]$y.range[2]
 
 
@@ -913,6 +921,19 @@ col_chart <- function(
     # y_min <- if(lubridate::is.Date(df[[y]])) {as.Date.numeric(y_min)} else {y_min}
     # y_max <- if(lubridate::is.Date(df[[y]])) {as.Date.numeric(y_max)} else {y_max}
 
+
+    ##### To flip axis in plotly, all x and y variables must be exchanged
+    if(axis_flip == TRUE) {
+      # Use utils/swap_object_names() function to swap all the x/y variable names
+      swap_object_names('x', 'y')
+      swap_object_names('x_axis_title', 'y_axis_title')
+      swap_object_names('x_axis_title_font_size', 'y_axis_title_font_size')
+      #swap_object_names('x_axis_label_angle', 'y_axis_label_angle')
+      swap_object_names('x_axis_label_font_size', 'y_axis_label_font_size')
+      swap_object_names('x_limit_min', 'y_limit_min')
+      swap_object_names('x_limit_max', 'y_limit_max')
+      swap_object_names('x_axis_break_labels', 'y_axis_break_labels')
+    }
 
 
 
@@ -1004,8 +1025,6 @@ col_chart <- function(
 
 
 
-
-
     ##### Build col_chart
 
     if (case_boxes == FALSE) {
@@ -1016,6 +1035,8 @@ col_chart <- function(
           df,
           x = ~ df[[x]],
           y = ~ df[[y]],
+          # x = ~ if(axis_flip == FALSE) {df[[x]]} else {df[[y]]},
+          # y = ~ if(axis_flip == FALSE) {df[[y]]} else {df[[x]]},
           type = 'bar',
           color = ~ colour_field, #df$fill_colour,
           colors = colormap,
@@ -1026,6 +1047,7 @@ col_chart <- function(
           ),
           hovertemplate = hoverlabels,
           #legendgroup = 'bars',
+          orientation = if(axis_flip == TRUE) {'h'} else {'v'}, #set orientation to horizontal if axis_flip = TRUE
           showlegend = if (is.null(group_var)) {F} else {T}
         ) |>
         layout(barmode = group_var_barmode)
@@ -1061,6 +1083,7 @@ col_chart <- function(
           customdata = df_case_boxes$n, # for hoverlabels
           hovertemplate = hoverlabels,
           #legendgroup = 'bars',
+          orientation = if(axis_flip == TRUE) {'h'} else {'v'}, #set orientation to horizontal if axis_flip = TRUE
           showlegend = if (is.null(group_var)) {F} else {T}
         ) |>
         layout(barmode = group_var_barmode)
