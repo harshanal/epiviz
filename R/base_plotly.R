@@ -13,6 +13,10 @@
 base_plotly <- function() {
 
 
+    # Ensure that axis_flip variable exists
+    if(!exists("axis_flip")) {axis_flip <- FALSE}
+
+
     ##### Create base plotly object
     if (!is.null(base)) {
       base <- base
@@ -213,7 +217,6 @@ base_plotly <- function() {
 
     # Pad x-axis range in-line with ggplot formatting (5% on each side)
     #   -Only do this if x and y axes have not been flipped (only happens in col_chart())
-    if(!exists("axis_flip")) {axis_flip <- FALSE} # make sure axis_flip variable exists first
     if(axis_flip == FALSE) {
       if (is.numeric(df[[x]])) {
         xpad <- (x_max-x_min)*0.05
@@ -471,14 +474,15 @@ base_plotly <- function() {
       # create each sub-list iteratively
       for (i in 1:length(hline)) {
 
+        # Account for axis_flip within each sub-list
         hline_sublist <- list(
               type = "line",
-              x0 = 0,
-              x1 = 1,
-              xref = "paper",
-              yref = y_axis_choice,
-              y0 = hline[i],
-              y1 = hline[i],
+              x0 = if(axis_flip==FALSE) {0} else {hline[i]},
+              x1 = if(axis_flip==FALSE) {1} else {hline[i]},
+              xref = if(axis_flip==FALSE) {"paper"} else {x},
+              yref = if(axis_flip==FALSE) {y_axis_choice} else {"paper"},
+              y0 = if(axis_flip==FALSE) {hline[i]} else {0},
+              y1 = if(axis_flip==FALSE) {hline[i]} else {1},
               line = list(color = if (length(hline_colour)>1) {hline_colour[i]} else {hline_colour},
                           dash = if (length(hline_type)>1) {plotly_line_style(hline_type[i])} else {plotly_line_style(hline_type)},   # uses utils/plotly_line_style() function
                           width = if (length(hline_width)>1) {hline_width[i]} else {hline_width})
@@ -521,7 +525,7 @@ base_plotly <- function() {
             )
         }
       }
-
+print(hlines_list)
       # Draw hlines outside of iterative loop
         base <- base |>
           layout(shapes = hlines_list)
