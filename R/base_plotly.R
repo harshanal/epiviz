@@ -508,24 +508,33 @@ base_plotly <- function() {
             hline_xpos <- if(!is.null(x_limit_max)) {x_limit_max} else {xpos_high}
           }
 
+          # handle flipped axes
+          if (axis_flip == TRUE) {
+            ypos_high <- if (!is.factor(df[[y]])) {max(df[[y]])} else {last(df[[y]])}
+            ypos_low <- if (!is.factor(df[[y]])) {min(df[[y]])} else {first(df[[y]])}
+
+            hline_ypos <- if(!is.null(y_limit_min)) {y_limit_min} else {ypos_high} # puts label at top of line
+          }
+
 
           base <- base |>
             add_annotations(
               text = hline_label[i],
-              x = hline_xpos,
-              y = hline[i],
+              x = if(axis_flip==FALSE) {hline_xpos} else {hline[i]},
+              y = if(axis_flip==FALSE) {hline[i]} else{hline_ypos},
               #yaxis = y_axis_choice,
               yref = y_axis_choice,
               xanchor = "left",
-              yanchor = "bottom",
+              yanchor = if(axis_flip==FALSE) {"bottom"} else {"top"},
               showarrow = FALSE,
               bgcolor = "#ffffff00",
+              textangle = if(axis_flip==FALSE) {0} else {90},
               font = list(color = if (length(hline_colour)>1) {hline_colour[i]} else {hline_colour},
                           size = 12)
             )
         }
       }
-print(hlines_list)
+
       # Draw hlines outside of iterative loop
         base <- base |>
           layout(shapes = hlines_list)

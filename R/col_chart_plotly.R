@@ -855,6 +855,12 @@ col_chart <- function(
         # Get hline_xpos from base_return list from base_gg
         hline_xpos <- base_return$hline_xpos
 
+        # Account for flipped axes
+        if (axis_flip == TRUE) {
+          hline_xpos <- if (!is.factor(df[[x]])) {max(df[[x]])} else {last(df[[x]])}
+        }
+
+
         base <- base +
           geom_text(
             aes(
@@ -862,7 +868,8 @@ col_chart <- function(
               y = hline,
               label = hline_label,
               vjust = -0.5,
-              hjust = 0
+              hjust = 0,
+              angle = if (axis_flip == FALSE) {0} else {270}
             ),
             colour = hline_label_colour)
 
