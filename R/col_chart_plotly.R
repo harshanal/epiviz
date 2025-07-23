@@ -326,6 +326,13 @@ col_chart <- function(
       case_boxes = FALSE,
       case_boxes_colour = "white",
       axis_flip = FALSE,
+      ci = NULL,
+      ci_upper = NULL,
+      ci_lower = NULL,
+      ci_legend = TRUE,
+      ci_legend_title = "Confidence interval",
+      ci_colours = "red",
+      errorbar_width = NULL,
       chart_title = NULL,
       chart_title_size = 13,
       chart_title_colour = "black",
@@ -378,6 +385,10 @@ col_chart <- function(
   if(!exists('case_boxes',where=params)) params$case_boxes <- FALSE
   if(!exists('case_boxes_colour',where=params)) params$case_boxes_colour <- "white"
   if(!exists('axis_flip',where=params)) params$axis_flip <- FALSE
+  if(!exists('ci_legend',where=params)) params$ci_legend <- TRUE
+  if(!exists('ci_legend_title',where=params)) params$ci_legend_title <- "Confidence interval"
+  if(!exists('ci_colours',where=params)) params$ci_colours <- "red"
+  if(!exists('errorbar_width',where=params)) params$errorbar_width <- NULL
   if(!exists('chart_title_size',where=params)) params$chart_title_size <- 12
   if(!exists('chart_title_colour',where=params)) params$chart_title_colour <- "black"
   if(!exists('chart_footer_size',where=params)) params$chart_footer_size <- 10
@@ -478,7 +489,7 @@ col_chart <- function(
   #   warning("Multiple fill_colours have been provided but group_var is absent")
   #
 
-
+  # CI = 'RIBBON' NOT ACCEPTED FOR COL_CHART()
 
 
 
@@ -506,6 +517,13 @@ col_chart <- function(
                  "case_boxes",
                  "case_boxes_colour",
                  "axis_flip",
+                 "ci",
+                 "ci_legend",
+                 "ci_legend_title",
+                 "ci_lower",
+                 "ci_upper",
+                 "ci_colours",
+                 "errorbar_width",
                  "chart_title",
                  "chart_footer",
                  "chart_title_size",
@@ -726,12 +744,12 @@ col_chart <- function(
 
 
 
-      ##### Build the col chart
+      ##### Build the column chart
 
       # Build according to whether plotting variables are grouped or not
       if(is.null(group_var)) {
 
-        # Create epi curve without groups
+        # Create column chart without groups
 
         base <-
           base + geom_bar(
@@ -747,7 +765,7 @@ col_chart <- function(
 
       } else {
 
-        # Create epi curve with groups
+        # Create column chart with groups
 
         # Adjust group_var_barmode for ggplot
         if(group_var_barmode == "group") {group_var_barmode <- "dodge"}
@@ -808,6 +826,96 @@ col_chart <- function(
           )
 
       }
+
+
+
+      ##### Apply confidence intervals
+
+      # Apply after col chart so that errorbars appear in front of columns.
+
+      # Add conf intervals if arguments for ci and ci_upper+ci_lower bounds are provided.
+      if(!is.null(ci)) {
+
+        if(!is.null(ci_lower) && !is.null(ci_upper)) {
+
+          # Add error bars
+
+          # If errorbar_width not provided; define default based on x-axis limits
+          if (is.null(errorbar_width)) {
+            if (is.null(base$coordinates$limits$x)) {
+              errorbar_width <- as.numeric((max(df[[x]]) - min(df[[x]])) / 100)
+            } else {
+              errorbar_width <- as.numeric((base$coordinates$limits$x[[2]] - base$coordinates$limits$x[[1]]) / 100)
+            }
+          }
+
+          # Account for geom_ribbon show.legend parameter accepting values of 'NA' or 'FALSE'
+          show_ci_leg <- ifelse(ci_legend == TRUE, NA, FALSE)
+
+          # Plot for no group_var
+          if (is.null(group_var)) {
+
+            # Add error bars without grouping variable
+            if(ci == 'errorbar') {
+
+              base <-
+                base + ggplot2::geom_errorbar(
+                  data = df,
+                  mapping = aes(
+                    x = .data[[x]],
+                    ymin = .data[[ci_lower]],
+                    ymax = .data[[ci_upper]],
+                    colour = ci_legend_title
+                  ),
+                  width = errorbar_width,
+                  linewidth = 0.5,
+                  show.legend = show_ci_leg
+                ) +
+                scale_color_manual("",values=ci_colours[[1]])
+
+            }
+
+          # Plot for group_var provided
+          } else if (!is.null(group_var)) {
+
+            # Add error bars with grouping variable
+            if(ci == 'errorbar') {
+
+              # Generate offset position for errorbars
+              #if(group_var_barmode == "group") {
+              errorbar_offset <- position_dodge(resolution(as.numeric(df[[x]]))*0.9)#}
+
+              base <-
+                base + ggplot2::geom_errorbar(
+                  data = df,
+                  mapping = aes(
+                    x = .data[[x]],
+                    ymin = .data[[ci_lower]],
+                    ymax = .data[[ci_upper]],
+                    group = .data[[group_var]],
+                    colour =  .data[[group_var]]
+                  ),
+                  width = errorbar_width,
+                  linewidth = .5,
+                  position = if(group_var_barmode == "dodge") {errorbar_offset} else {"identity"}
+                  #position = position_dodge(resolution(as.numeric(df[[x]]))*0.9)
+                )
+
+              # Add ci_colours if provided
+              if (length(ci_colours) > 1) {
+                base <- base +
+                  scale_colour_manual(values = ci_colours)
+              }
+
+            }
+
+          # Stop if ci_upper and/or ci_lower limit isn't provided
+        } else {
+          stop("Please provide arguements for 'ci_upper' and 'ci_lower' when ci is specified.")
+        }
+
+      }
+    }
 
 
       ##### Flip axes if axis_flip = true
