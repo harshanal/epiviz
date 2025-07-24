@@ -885,13 +885,24 @@ col_chart <- function(
               #if(group_var_barmode == "group") {
               errorbar_offset <- position_dodge(resolution(as.numeric(df[[x]]))*0.9)#}
 
+              # geom_errorbar does not support stacked bar charts (https://github.com/tidyverse/ggplot2/issues/1079)
+              #   Positions of errorbars for stacked plots must be calculated manually, create new
+              #   dataframe to manage this.
+              df_errbar <- df |>
+                group_by(.data[[x]]) |>
+                arrange(.data[[x]], desc(.data[[group_var]])) |>
+                mutate(cumul = cumsum(.data[[y]]),
+                       lower_lim_stacked = cumul - (.data[[y]] - .data[[ci_lower]]),
+                       upper_lim_stacked = cumul + (.data[[ci_upper]] - .data[[y]]))
+
+
               base <-
                 base + ggplot2::geom_errorbar(
-                  data = df,
+                  data = df_errbar,
                   mapping = aes(
                     x = .data[[x]],
-                    ymin = .data[[ci_lower]],
-                    ymax = .data[[ci_upper]],
+                    ymin = if(group_var_barmode != "stack") {.data[[ci_lower]]} else {lower_lim_stacked},
+                    ymax = if(group_var_barmode != "stack") {.data[[ci_upper]]} else {upper_lim_stacked},
                     group = .data[[group_var]],
                     colour =  .data[[group_var]]
                   ),
