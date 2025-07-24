@@ -1126,15 +1126,18 @@ col_chart <- function(
       # Define total to display depending upon whether case boxes are enabled
       hover_n <- if (case_boxes == FALSE) {'{y}'} else {'{customdata}'}
 
-      # Ungrouped
-      if (!is.null(group_var)) {
-        hoverlabels <- paste0('<b>%{x}</b>',
-                              '<br>%',hover_n)
-        # Grouped
-      } else {
-        hoverlabels <- paste0('<b>%{x}</b>',
-                              '<br>%',hover_n,
-                              '<extra></extra>') # Remove tooltip for ungrouped data
+      # Define hover label text
+      hoverlabels <- paste0('<b>%{x}</b>',
+                            '<br>%',hover_n)
+
+      # Add upper and lower limits to label if ci is defined
+      if (!is.null(ci)) {
+        hoverlabels <- paste0(hoverlabels,'%{text}')  # leverage 'text' parameter in add_trace to pass additional info to hoverlabels
+      }
+
+      # Remove tooltip for ungrouped data
+      if (is.null(group_var)) {
+        hoverlabels <- paste0(hoverlabels, '<extra></extra>')
       }
 
     } else {
@@ -1170,6 +1173,8 @@ col_chart <- function(
             line = list(color = bar_border_colour,
                         width = 0.5)
           ),
+          text = if(is.null(ci)) {''} else {paste0('<br><i>Upper: ',df[[ci_upper]],'</i>',   # leverage 'text' parameter in add_trace to pass additional info to hoverlabels
+                                                   '<br><i>Lower: ',df[[ci_lower]],'</i>')},
           hovertemplate = hoverlabels,
           #legendgroup = 'bars',
           orientation = if(axis_flip == TRUE) {'h'} else {'v'}, #set orientation to horizontal if axis_flip = TRUE
@@ -1205,7 +1210,9 @@ col_chart <- function(
             line = list(color = case_boxes_colour,
                         width = 0.5)
           ),
-          customdata = df_case_boxes$n, # for hoverlabels
+          text = if(is.null(ci)) {''} else {paste0('<br><i>Upper: ',df[[ci_upper]],'</i>',   # leverage 'text' parameter in add_trace to pass additional info to hoverlabels
+                                                   '<br><i>Lower: ',df[[ci_lower]],'</i>')},
+          customdata = df_case_boxes[[y]], # for hoverlabels
           hovertemplate = hoverlabels,
           #legendgroup = 'bars',
           orientation = if(axis_flip == TRUE) {'h'} else {'v'}, #set orientation to horizontal if axis_flip = TRUE
@@ -1304,12 +1311,12 @@ col_chart <- function(
 
             # Plotly error bars require upper and lower error divergence rather
             #   than values, so create df for each group and calculate
-            if(group_var_barmode != "stack") {
+            if(group_var_barmode == "group") {
               df_group <- df |>
                 filter(get(group_var) == unique_groups[i]) |>
                 mutate(diff_ci_lower = get(y) - get(ci_lower),
                        diff_ci_upper = get(ci_upper) - get(y))
-            } else {
+            } else if(group_var_barmode == "stack") {
               # Use stack values when group_var_barmode == "stack"
               df_group <- df_errbar |>
                 filter(get(group_var) == unique_groups[i]) |>
