@@ -316,7 +316,7 @@ col_chart <- function(
     params = list(
       df = NULL,
       x = NULL,
-      y = NULL,                      # for pre-aggregated data, requires implementation
+      y = NULL,
       x_time_series = FALSE,
       time_period = "day",
       group_var = NULL,
@@ -1219,6 +1219,141 @@ col_chart <- function(
 
 
 
+    ##### Apply confidence intervals
+
+    # Apply after main bar-plot so that errorbars appear in front of columns.
+
+    # Add conf intervals if arguments for ci and ci_upper+ci_lower bounds are provided.
+    if(!is.null(ci)) {
+
+      # Stop if ci_upper and/or ci_lower limit isn't provided
+      if(is.null(ci_lower) | is.null(ci_upper)) {
+        stop("Please provide arguements for 'ci_upper' and 'ci_lower' when ci is specified.")
+      }
+
+
+      # Plot for no group_var
+      if (is.null(group_var)) {
+
+        # Add error bars without grouping variable
+        if(ci == 'errorbar') {
+
+          # Ensure that there's only a single colour in the input vector
+          ci_single_colour <- ci_colours[1]
+
+          # Plotly error bars require upper and lower error divergence rather
+          #   than values, so calculate
+          df <- df |>
+            mutate(diff_ci_lower = get(y) - get(ci_lower),
+                   diff_ci_upper = get(ci_upper) - get(y))
+
+          # Add error bars as trace
+          base <- base |>
+            add_trace(
+              data = df,
+              x = ~ df[[x]],
+              y = ~ df[[y]],
+              type = 'scatter',
+              mode = 'markers',
+              yaxis = y_axis_choice,
+              name = ci_legend_title,
+              showlegend = ci_legend,
+              legendgroup = 'ci',
+              marker = list(
+                color = ci_single_colour,
+                line = list(colour = '#ffffff00', width = 0),
+                opacity = 0,
+                symbol = 'line-ew-open' # use hozizontal line markers so that horizontal line symbol will be used in legend to match ggplot legend formatting
+              ),
+              hoverinfo='none',
+              error_y = list(
+                type = "data",
+                symmetric = FALSE,
+                color = ci_single_colour,
+                thickness = 1,
+                arrayminus = ~ diff_ci_lower,
+                array = ~ diff_ci_upper
+              )
+            )
+        }
+
+
+
+        # Plot for group_var provided
+      } else if (!is.null(group_var)) {
+
+        # Add error bars with grouping variable
+        if(ci == 'errorbar') {
+
+          # Errorbar traces must be defined individually for each group
+
+          # Define unique groups
+          unique_groups <- unique(df[[group_var]])
+
+          # Positions of errorbars for stacked plots must be calculated manually, create new
+          #   dataframe to manage this.
+          df_errbar <- df |>
+            group_by(.data[[x]]) |>
+            arrange(.data[[x]], desc(.data[[group_var]])) |>
+            mutate(cumul = cumsum(.data[[y]]),
+                   lower_lim_stacked = cumul - (.data[[y]] - .data[[ci_lower]]),
+                   upper_lim_stacked = cumul + (.data[[ci_upper]] - .data[[y]]))
+
+          # Iterate over each group
+          for (i in 1:length(unique_groups)) {
+
+            # Plotly error bars require upper and lower error divergence rather
+            #   than values, so create df for each group and calculate
+            if(group_var_barmode != "stack") {
+              df_group <- df |>
+                filter(get(group_var) == unique_groups[i]) |>
+                mutate(diff_ci_lower = get(y) - get(ci_lower),
+                       diff_ci_upper = get(ci_upper) - get(y))
+            } else {
+              # Use stack values when group_var_barmode == "stack"
+              df_group <- df_errbar |>
+                filter(get(group_var) == unique_groups[i]) |>
+                mutate(diff_ci_lower = cumul - lower_lim_stacked,
+                       diff_ci_upper = upper_lim_stacked - cumul)
+            }
+
+
+            # Add error bars as trace with invisible markers
+            base <- base |>
+              add_trace(
+                data = df_group,
+                x = df_group[[x]],
+                y = if(group_var_barmode != "stack") {df_group[[y]]} else {df_group$cumul},
+                type = 'scatter',
+                mode = 'markers',
+                yaxis = y_axis_choice,
+                name = unique_groups[[i]],
+                showlegend = F,
+                marker = list(
+                  color = '#ffffff00',
+                  opacity = 0,
+                  line = list(colour = '#ffffff00', width = 0)
+                ),
+                hoverinfo='none',
+                error_y = list(
+                  type = "data",
+                  symmetric = FALSE,
+                  color = ci_colours[[i]],
+                  thickness = 1,
+                  arrayminus = ~ diff_ci_lower,
+                  array = ~ diff_ci_upper
+                )
+              )
+          }
+
+        }
+
+      }
+
+    }
+
+
+
     ##### Apply legend parameters
 
     # Legend position
@@ -1245,6 +1380,8 @@ col_chart <- function(
           font=list(size = legend_font_size)
         )
       )
+
+
 
 
     # return base plot
