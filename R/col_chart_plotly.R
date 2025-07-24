@@ -881,9 +881,8 @@ col_chart <- function(
             # Add error bars with grouping variable
             if(ci == 'errorbar') {
 
-              # Generate offset position for errorbars
-              #if(group_var_barmode == "group") {
-              errorbar_offset <- position_dodge(resolution(as.numeric(df[[x]]))*0.9)#}
+              # Generate offset position for errorbars when group_var_barmode = "dodge"
+              errorbar_offset <- position_dodge(resolution(as.numeric(df[[x]]))*0.9)
 
               # geom_errorbar does not support stacked bar charts (https://github.com/tidyverse/ggplot2/issues/1079)
               #   Positions of errorbars for stacked plots must be calculated manually, create new

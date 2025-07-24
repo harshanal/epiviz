@@ -13,7 +13,8 @@
 base_plotly <- function() {
 
 
-    # Ensure that axis_flip variable exists
+    # Ensure that unused variables exist
+    if(!exists("x_time_series")) {x_time_series <- FALSE}
     if(!exists("axis_flip")) {axis_flip <- FALSE}
 
 

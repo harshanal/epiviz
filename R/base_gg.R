@@ -13,6 +13,10 @@
 base_gg <- function() {
 
 
+  # Ensure that unused variables exist
+  if(!exists("x_time_series")) {x_time_series <- FALSE}
+  if(!exists("axis_flip")) {axis_flip <- FALSE}
+
   ##### Create base ggplot object
 
   # create base plot
