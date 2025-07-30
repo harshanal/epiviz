@@ -781,7 +781,8 @@ col_chart <- function(
             stat = 'identity',
             color = bar_border_colour,
             linewidth = 0.25,
-            position = group_var_barmode
+            position = group_var_barmode,
+            na.rm = if(group_var_barmode == 'dodge') {TRUE} else {FALSE}
           ) +
           scale_fill_manual(values = fill_colours)
 
@@ -907,7 +908,8 @@ col_chart <- function(
                   ),
                   width = errorbar_width,
                   linewidth = .5,
-                  position = if(group_var_barmode == "dodge") {errorbar_offset} else {"identity"}
+                  position = if(group_var_barmode == "dodge") {errorbar_offset} else {"identity"},
+                  na.rm = if(group_var_barmode == "dodge") {TRUE} else {FALSE}
                   #position = position_dodge(resolution(as.numeric(df[[x]]))*0.9)
                 )
 
@@ -1034,10 +1036,13 @@ col_chart <- function(
 
     # Harvest ggplot object from static version of chart using col_chart() itself
     ggobj <- col_chart(params = params, dynamic = FALSE)
+    # Harvest axis limits from ggobj so that plotly output matches ggplot output
     x_min <- ggplot_build(ggobj)$layout$panel_params[[1]]$x.range[1]
     x_max <- ggplot_build(ggobj)$layout$panel_params[[1]]$x.range[2]
     if(axis_flip == FALSE) {y_min <- 0} else {y_min <- ggplot_build(ggobj)$layout$panel_params[[1]]$y.range[1]}
     y_max <- ggplot_build(ggobj)$layout$panel_params[[1]]$y.range[2]
+    # Harvest ggplot x-axis resolution to use as offset for dodged errorbars
+    errorbar_offset <- resolution(as.numeric(df[[x]]))*0.9
 
 
     # # Handle dates converting to numeric when extracted from ggplot axis range
@@ -1297,14 +1302,27 @@ col_chart <- function(
           # Define unique groups
           unique_groups <- unique(df[[group_var]])
 
-          # Positions of errorbars for stacked plots must be calculated manually, create new
-          #   dataframe to manage this.
+          # y-axis positions of errorbars for stacked plots must be calculated
+          #   manually, create new dataframe to manage this.
           df_errbar <- df |>
             group_by(.data[[x]]) |>
             arrange(.data[[x]], desc(.data[[group_var]])) |>
             mutate(cumul = cumsum(.data[[y]]),
                    lower_lim_stacked = cumul - (.data[[y]] - .data[[ci_lower]]),
                    upper_lim_stacked = cumul + (.data[[ci_upper]] - .data[[y]]))
+
+          # x-axis position of errorbars for grouped/dodged plots must be manually offset;
+          #    offset is dependent on number of unique groups and x-axis resolution (calculated
+          #    from ggobj above = errorbar_offset)
+          offset_multiplier <- seq(length(unique_groups)) - ceiling(length(unique_groups)/2) # generate vector of integars to multiply the base offset by
+          if(length(unique_groups) %%2 != 0) {offset_multiplier - 0.5}                       # if the number of groups is odd, offset the multiplier by 0.5 as one of the bars will be in the middle (for even numbers, the middle will be between the 2 central bars)
+          offset_multiplier <- offset_multiplier * 0.9                                       # multiply this offset by 0.9 to match the ggplot defaults
+          x_offset <- offset_multiplier * (errorbar_offset/length(unique_groups))            # divide the x-axis resolution by the number of groups and multiply this by the multiplier to get the actual x-values of each bar
+          if(is.Date(df[[x]])) {                                                             # if x is a date then plotly will shunt the errorbars to the beginning of the nearest whole day (i.e. not in the middle of the barchart bars) so convert axis to time axis if this is the case
+            df[[x]] <- as.POSIXct(df[[x]])
+            x_offset <- x_offset * 24*60*60   # unit value for time is seconds rather than days as for date, so convert
+            }
+
 
           # Iterate over each group
           for (i in 1:length(unique_groups)) {
@@ -1315,7 +1333,11 @@ col_chart <- function(
               df_group <- df |>
                 filter(get(group_var) == unique_groups[i]) |>
                 mutate(diff_ci_lower = get(y) - get(ci_lower),
-                       diff_ci_upper = get(ci_upper) - get(y))
+                       diff_ci_upper = get(ci_upper) - get(y)) |>
+                mutate(x_grouped = get(x) + x_offset[i]) # offset x values for grouped bars
+                # mutate(x_grouped = get(x) + ((-errorbar_offset/2) + (i+0.5)*(errorbar_offset/length(unique_groups)) )) |>
+                # mutate(x_grouped = x_grouped - errorbar_offset/length(unique_groups))
+
             } else if(group_var_barmode == "stack") {
               # Use stack values when group_var_barmode == "stack"
               df_group <- df_errbar |>
@@ -1325,11 +1347,12 @@ col_chart <- function(
             }
 
 
+
             # Add error bars as trace with invisible markers
             base <- base |>
               add_trace(
                 data = df_group,
-                x = df_group[[x]],
+                x = if(group_var_barmode != "group") {df_group[[x]]} else {df_group$x_grouped},
                 y = if(group_var_barmode != "stack") {df_group[[y]]} else {df_group$cumul},
                 type = 'scatter',
                 mode = 'markers',
@@ -1351,6 +1374,8 @@ col_chart <- function(
                   array = ~ diff_ci_upper
                 )
               )
+
+
           }
 
         }
