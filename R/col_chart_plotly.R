@@ -814,18 +814,33 @@ col_chart <- function(
 
       if (case_boxes == TRUE) {
 
+        # Redefine df with one row per case to draw stacked bar chart where each row
+        #    is one of the stacking elements 1-unit high.Uncount df to get 1 row per
+        #    case, add box = 1 column for y-vals to create 1 box per case.
+        df_box <- df |>
+                 mutate(across(y, .fns = ~replace_na(.,0))) |>
+                 uncount(get(y)) |>
+                 mutate(box = 1)
+
+        # When bars are dodged rather than stacked, slice by max value of y in
+        #    each group else y-axis assumes the stacked value and over-scales accordingly
+        if(group_var_barmode == 'dodge') {
+          df_box <- df_box |>
+                     slice_max(order_by = get(y), by = any_of(x)) |>
+                     slice_max(order_by = get(group_var), by = any_of(x))   # second slice resolves draws if 2 groups have equal values
+        }
+
         # Add transparent stacked bar plot with external borders to create
         #   boxes around each case.
         base <-
           base + geom_bar(
-            # Uncount df to get 1 row per case, add box = 1 column for y-vals to
-            #   create 1 box per case
-            data = df |> uncount(get(y)) |> mutate(box = 1),
+            data = df_box,
             mapping = aes(x = .data[[x]],
                           y = box
             ),
             fill = "transparent",
             stat = 'identity',
+            #position = if(group_var_barmode == 'dodge') {group_var_barpos} else {'stack'},
             color = case_boxes_colour,
             linewidth = 0.5
           )
