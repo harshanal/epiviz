@@ -767,8 +767,12 @@ col_chart <- function(
 
         # Create column chart with groups
 
-        # Adjust group_var_barmode for ggplot
-        if(group_var_barmode == "group") {group_var_barmode <- "dodge"}
+        # Rename group_var_barmode for ggplot and generate group_var_barpos variable
+        if(group_var_barmode == "group") {
+          group_var_barmode <- "dodge"
+          group_var_barpos <- position_dodge(preserve = 'single')  # ensures that bar widths are not stretched to fill when certain groups are empty
+          df <- df |> complete(.data[[x]], .data[[group_var]])     # Fill in blank groups to make sure they're plotted as empty bars
+        }
 
         base <-
           base + geom_bar(
@@ -781,7 +785,7 @@ col_chart <- function(
             stat = 'identity',
             color = bar_border_colour,
             linewidth = 0.25,
-            position = group_var_barmode,
+            position = if(group_var_barmode == 'dodge') {group_var_barpos} else {'stack'},
             na.rm = if(group_var_barmode == 'dodge') {TRUE} else {FALSE}
           ) +
           scale_fill_manual(values = fill_colours)
