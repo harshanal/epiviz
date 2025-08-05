@@ -746,6 +746,9 @@ col_chart <- function(
 
       ##### Build the column chart
 
+      # Alter bar border colour to match case boxes border colour if case_boxes = TRUE
+      if(case_boxes == TRUE) {bar_border_colour <- case_boxes_colour}
+
       # Build according to whether plotting variables are grouped or not
       if(is.null(group_var)) {
 
@@ -846,7 +849,6 @@ col_chart <- function(
           )
 
       }
-
 
 
       ##### Apply confidence intervals
@@ -1234,8 +1236,8 @@ col_chart <- function(
             line = list(color = case_boxes_colour,
                         width = 0.5)
           ),
-          text = if(is.null(ci)) {''} else {paste0('<br><i>Upper: ',df[[ci_upper]],'</i>',   # leverage 'text' parameter in add_trace to pass additional info to hoverlabels
-                                                   '<br><i>Lower: ',df[[ci_lower]],'</i>')},
+          text = if(is.null(ci)) {''} else {paste0('<br><i>Upper: ',df_case_boxes[[ci_upper]],'</i>',   # leverage 'text' parameter in add_trace to pass additional info to hoverlabels
+                                                   '<br><i>Lower: ',df_case_boxes[[ci_lower]],'</i>')},
           customdata = df_case_boxes[[y]], # for hoverlabels
           hovertemplate = hoverlabels,
           #legendgroup = 'bars',
@@ -1340,7 +1342,7 @@ col_chart <- function(
           if(is.Date(df[[x]])) {                                                             # if x is a date then plotly will shunt the errorbars to the beginning of the nearest whole day (i.e. not in the middle of the barchart bars) so convert axis to time axis if this is the case
             df[[x]] <- as.POSIXct(df[[x]])
             x_offset <- x_offset * 24*60*60   # unit value for time is seconds rather than days as for date, so convert
-            }
+          }
 
 
           # Iterate over each group
@@ -1364,7 +1366,6 @@ col_chart <- function(
                 mutate(diff_ci_lower = cumul - lower_lim_stacked,
                        diff_ci_upper = upper_lim_stacked - cumul)
             }
-
 
 
             # Add error bars as trace with invisible markers
