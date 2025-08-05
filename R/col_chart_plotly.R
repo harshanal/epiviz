@@ -961,11 +961,11 @@ col_chart <- function(
 
       ##### Redefine elements of base_gg specific to col_chart()
 
-      # Redefine x-axis label so that default = time_period
+      # Redefine x-axis label so that default = x
       if (!is.null(x_axis_title)) {
         base <- base + labs(x = x_axis_title)
       } else {
-        base <- base + labs(x = time_period) # default to time_period if label not provided
+        base <- base + labs(x = x) # default to x if label not provided
       }
 
 
