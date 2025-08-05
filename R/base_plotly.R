@@ -514,9 +514,8 @@ base_plotly <- function() {
             ypos_high <- if (!is.factor(df[[y]])) {max(df[[y]])} else {last(df[[y]])}
             ypos_low <- if (!is.factor(df[[y]])) {min(df[[y]])} else {first(df[[y]])}
 
-            hline_ypos <- if(!is.null(y_limit_min)) {y_limit_min} else {ypos_high} # puts label at top of line
+            hline_ypos <- if(!is.null(y_limit_max)) {y_limit_max} else {ypos_high} # puts label at top of line
           }
-
 
           base <- base |>
             add_annotations(

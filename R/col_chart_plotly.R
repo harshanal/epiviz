@@ -746,8 +746,10 @@ col_chart <- function(
 
       ##### Build the column chart
 
+
       # Alter bar border colour to match case boxes border colour if case_boxes = TRUE
       if(case_boxes == TRUE) {bar_border_colour <- case_boxes_colour}
+
 
       # Build according to whether plotting variables are grouped or not
       if(is.null(group_var)) {
@@ -1000,7 +1002,6 @@ col_chart <- function(
         if (axis_flip == TRUE) {
           hline_xpos <- if (!is.factor(df[[x]])) {max(df[[x]])} else {last(df[[x]])}
         }
-
 
         base <- base +
           geom_text(
