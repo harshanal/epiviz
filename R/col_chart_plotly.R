@@ -734,7 +734,8 @@ col_chart <- function(
     # base_gg() returns a list containing base and df; extract here
     base <- base_return$base
     df <- base_return$df
-
+    xlim <- base_return$xlim
+    ylim <- base_return$ylim
 
 
 
@@ -955,7 +956,7 @@ col_chart <- function(
 
       ##### Flip axes if axis_flip = true
       if(axis_flip == TRUE) {
-        base <- base + coord_flip()
+        base <- base + coord_flip(xlim = xlim, ylim = ylim, expand = FALSE)
       }
 
 
@@ -979,6 +980,7 @@ col_chart <- function(
       }
 
 
+
       # Re-apply hline so that it doesn't appear behind the bars
 
       # Adds hline
@@ -998,11 +1000,7 @@ col_chart <- function(
         # Get hline_xpos from base_return list from base_gg
         hline_xpos <- base_return$hline_xpos
 
-        # Account for flipped axes
-        if (axis_flip == TRUE) {
-          hline_xpos <- if (!is.factor(df[[x]])) {max(df[[x]])} else {last(df[[x]])}
-        }
-
+        # Plot hline label(s)
         base <- base +
           geom_text(
             aes(
@@ -1013,9 +1011,11 @@ col_chart <- function(
               hjust = 0,
               angle = if (axis_flip == FALSE) {0} else {270}
             ),
+            #position = position_nudge(y = if (axis_flip == FALSE) {0} else {0.005 * ggplot_build(base)$layout$panel_params[[1]]$x.range[2]}), # nudge label by 0.5% of axis so that it's not sitting in contact with hline when aex are flipped
             colour = hline_label_colour)
 
       }
+
 
       ##### Return final output
       return(base)

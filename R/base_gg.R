@@ -487,6 +487,25 @@ base_gg <- function() {
       }
     }
 
+    # Account for flipped axes
+    if (axis_flip == TRUE) {
+      # If upper x-axis limit present use that
+      if (!is.na(base$coordinates$limits$x[[2]])) {
+        hline_xpos <- base$coordinates$limits$x[[2]]
+      } else {
+        # else use max value of x, or min if values reversed
+        if (!is.factor(df[[x]])) {
+          hline_xpos <- if (x_axis_reverse == TRUE) {min(df[[x]])} else {max(df[[x]])}
+        } else {
+          # handle factor x-axes
+          hline_xpos <- if (x_axis_reverse == TRUE) {first(df[[x]])} else {last(df[[x]])}
+        }
+      }
+    }
+
+
+
+
     # Apply hline label to plot
     base <- base +
       geom_text(
@@ -549,7 +568,11 @@ base_gg <- function() {
   #       (df$y may have been modified through sec axis scaling)
   #       (hline_xpos required in case hline needs to be reapplied over other plots)
 
-  return_list <- list("base" = base, "df" = df, "hline_xpos" = hline_xpos)
+  return_list <- list("base" = base,
+                      "df" = df,
+                      "hline_xpos" = hline_xpos,
+                      "xlim" = xlim,
+                      "ylim" = ylim)
 
   return(return_list)
 
