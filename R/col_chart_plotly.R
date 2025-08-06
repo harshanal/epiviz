@@ -1277,9 +1277,14 @@ col_chart <- function(
 
           # Plotly error bars require upper and lower error divergence rather
           #   than values, so calculate
+          if(axis_flip == TRUE) {swap_object_names('x', 'y')} # temporarily swap back axis names for calculation if axes are flipped
+
           df <- df |>
             mutate(diff_ci_lower = get(y) - get(ci_lower),
                    diff_ci_upper = get(ci_upper) - get(y))
+
+          if(axis_flip == TRUE) {swap_object_names('x', 'y')}
+
 
           # Add error bars as trace
           base <- base |>
@@ -1300,13 +1305,23 @@ col_chart <- function(
                 symbol = 'line-ew-open' # use hozizontal line markers so that horizontal line symbol will be used in legend to match ggplot legend formatting
               ),
               hoverinfo='none',
-              error_y = list(
+              error_y = list(   # normal vertical error bars, not visible if axes are flipped
                 type = "data",
                 symmetric = FALSE,
                 color = ci_single_colour,
                 thickness = 1,
                 arrayminus = ~ diff_ci_lower,
-                array = ~ diff_ci_upper
+                array = ~ diff_ci_upper,
+                visible = if (axis_flip == TRUE) {F} else {T}
+              ),
+              error_x = list(   # horizontal error bars, only visible if axes are flipped
+                type = "data",
+                symmetric = FALSE,
+                color = ci_single_colour,
+                thickness = 1,
+                arrayminus = ~ diff_ci_lower,
+                array = ~ diff_ci_upper,
+                visible = if (axis_flip == TRUE) {T} else {F}
               )
             )
         }
@@ -1324,6 +1339,8 @@ col_chart <- function(
           # Define unique groups
           unique_groups <- unique(df[[group_var]])
 
+          if(axis_flip == TRUE) {swap_object_names('x', 'y')} # temporarily swap back axis names for calculation if aex are flipped
+
           # y-axis positions of errorbars for stacked plots must be calculated
           #   manually, create new dataframe to manage this.
           df_errbar <- df |>
@@ -1332,6 +1349,7 @@ col_chart <- function(
             mutate(cumul = cumsum(.data[[y]]),
                    lower_lim_stacked = cumul - (.data[[y]] - .data[[ci_lower]]),
                    upper_lim_stacked = cumul + (.data[[ci_upper]] - .data[[y]]))
+
 
           # x-axis position of errorbars for grouped/dodged plots must be manually offset;
           #    offset is dependent on number of unique groups and x-axis resolution (calculated
@@ -1345,9 +1363,13 @@ col_chart <- function(
             x_offset <- x_offset * 24*60*60   # unit value for time is seconds rather than days as for date, so convert
           }
 
+          if(axis_flip == TRUE) {swap_object_names('x', 'y')} # flip axis variables back
+
 
           # Iterate over each group
           for (i in 1:length(unique_groups)) {
+
+            if(axis_flip == TRUE) {swap_object_names('x', 'y')} # flip access variables within each iteration for calculation if needed
 
             # Plotly error bars require upper and lower error divergence rather
             #   than values, so create df for each group and calculate
@@ -1368,13 +1390,16 @@ col_chart <- function(
                        diff_ci_upper = upper_lim_stacked - cumul)
             }
 
+            if(axis_flip == TRUE) {swap_object_names('x', 'y')}  # flip access variables back after calculation
 
             # Add error bars as trace with invisible markers
             base <- base |>
               add_trace(
                 data = df_group,
-                x = if(group_var_barmode != "group") {df_group[[x]]} else {df_group$x_grouped},
-                y = if(group_var_barmode != "stack") {df_group[[y]]} else {df_group$cumul},
+                # Select x and y based on grouped barmode and whether axes are flipped
+                #    Note:- There is probably a neater way of coding this.
+                x = if(group_var_barmode == "group" & axis_flip == FALSE) {df_group$x_grouped} else if(group_var_barmode == "stack" & axis_flip == TRUE) {df_group$cumul} else {df_group[[x]]},
+                y = if(group_var_barmode == "stack" & axis_flip == FALSE) {df_group$cumul} else if(group_var_barmode == "group" & axis_flip == TRUE) {df_group$x_grouped} else {df_group[[y]]},
                 type = 'scatter',
                 mode = 'markers',
                 yaxis = y_axis_choice,
@@ -1386,13 +1411,23 @@ col_chart <- function(
                   line = list(colour = '#ffffff00', width = 0)
                 ),
                 hoverinfo='none',
-                error_y = list(
+                error_y = list(   # normal vertical error bars, not visible if axes are flipped
                   type = "data",
                   symmetric = FALSE,
                   color = ci_colours[[i]],
                   thickness = 1,
                   arrayminus = ~ diff_ci_lower,
-                  array = ~ diff_ci_upper
+                  array = ~ diff_ci_upper,
+                  visible = if (axis_flip == TRUE) {F} else {T}
+                ),
+                error_x = list(   # horizontal error bars, only visible if axes are flipped
+                  type = "data",
+                  symmetric = FALSE,
+                  color = ci_colours[[i]],
+                  thickness = 1,
+                  arrayminus = ~ diff_ci_lower,
+                  array = ~ diff_ci_upper,
+                  visible = if (axis_flip == TRUE) {T} else {F}
                 )
               )
 

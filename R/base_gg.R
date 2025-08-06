@@ -504,8 +504,6 @@ base_gg <- function() {
     }
 
 
-
-
     # Apply hline label to plot
     base <- base +
       geom_text(
