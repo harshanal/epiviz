@@ -33,6 +33,12 @@
 #'    AUREUS" = "#8A1B61", "PSEUDOMONAS AERUGINOSA" = "#FF7F32")} or \code{setNames(c("#007C91",
 #'    "#8A1B61","#FF7F32"), c("KLEBSIELLA PNEUMONIAE","STAPHYLOCOCCUS AUREUS","PSEUDOMONAS AERUGINOSA"))})}
 #'    \item{bar_border_colour}{Colour of the border around each bar. No border colour is drawn as default.}
+#'    \item{bar_labels}{character, Name of the variable in \code{df} containing the labels to be used
+#'    for each bar.}
+#'    \item{bar_labels_pos}{character, The position on the bars that labels will be plotted, permitted
+#'    values are \code{c('bar_above','bar_base','bar_centre','above_errorbar')} default = \code{'bar_top'}.}
+#'    \item{bar_labels_percent}{cboolean, If \code{bar_labels_percent = TRUE} then the values in \code{bar_labels}
+#'    will be converted into a percentage before plotting.}
 #'    \item{case_boxes}{boolean, If \code{case_boxes = TRUE} then a boundary box will be drawn around
 #'    each case within each bar. Defaults to \code{case_boxes = FALSE}.}
 #'    \item{case_boxes_colour}{The colour of the border around each case box if if \code{case_boxes =
@@ -323,6 +329,12 @@ col_chart <- function(
       group_var_barmode = 'stack',
       fill_colours = "lightblue",
       bar_border_colour = "transparent",
+      bar_labels = NULL,
+      bar_labels_pos = 'bar_above',
+      bar_labels_font_size = 8,
+      bar_labels_font_colour = 'black',
+      bar_labels_angle = 0,
+      bar_labels_percent = FALSE,
       case_boxes = FALSE,
       case_boxes_colour = "white",
       axis_flip = FALSE,
@@ -382,6 +394,11 @@ col_chart <- function(
   if(!exists('time_period',where=params)) params$time_period <- "day"
   if(!exists('fill_colours',where=params)) params$fill_colours <- "lightblue"
   if(!exists('bar_border_colour',where=params)) params$bar_border_colour <- "transparent"
+  if(!exists('bar_labels_pos',where=params)) params$bar_labels_pos <- "bar_above"
+  if(!exists('bar_labels_font_size',where=params)) params$bar_labels_font_size <- 8
+  if(!exists('bar_labels_font_colour',where=params)) params$bar_labels_font_colour <- 'black'
+  if(!exists('bar_labels_angle',where=params)) params$bar_labels_angle <- 0
+  if(!exists('bar_labels_percent',where=params)) params$bar_labels_percent <- FALSE
   if(!exists('case_boxes',where=params)) params$case_boxes <- FALSE
   if(!exists('case_boxes_colour',where=params)) params$case_boxes_colour <- "white"
   if(!exists('axis_flip',where=params)) params$axis_flip <- FALSE
@@ -514,6 +531,12 @@ col_chart <- function(
                  "group_var_barmode",
                  "fill_colours",
                  "bar_border_colour",
+                 "bar_labels",
+                 "bar_labels_pos",
+                 "bar_labels_font_size",
+                 "bar_labels_font_colour",
+                 "bar_labels_angle",
+                 "bar_labels_percent",
                  "case_boxes",
                  "case_boxes_colour",
                  "axis_flip",
@@ -952,6 +975,76 @@ col_chart <- function(
 
       }
     }
+
+
+
+      ##### Add bar labels
+      if(!is.null(bar_labels)) {
+
+        # Handle the various permutations of label rotation to match plotly
+        if(bar_labels_angle %in% c(0,360)) {
+          v1 <- -0.5
+          h1 <- 0.5
+        } else if (bar_labels_angle > 0 & bar_labels_angle < 90) {
+          v1 <- 0
+          h1 <- 0
+        } else if (bar_labels_angle == 90) {
+          v1 <- 0.5
+          h1 <- -0.3
+        } else if (bar_labels_angle > 90 & bar_labels_angle < 180) {
+          v1 <- 0
+          h1 <- -0.3
+        } else if (bar_labels_angle == 180) {
+          v1 <- 1.5
+          h1 <- 0.5
+        } else if (bar_labels_angle > 180 & bar_labels_angle < 270) {
+          v1 <- 1.5
+          h1 <- 1
+        } else if (bar_labels_angle == 270) {
+          v1 <- 0.5
+          h1 <- 1.3
+        } else if (bar_labels_angle > 270 & bar_labels_angle < 360) {
+          v1 <- 0
+          h1 <- 1.3
+        }
+
+        # Define plot label parameters for bar_labels_pos choice
+        if(bar_labels_pos == 'bar_above') {
+          x_labpos <- df[[x]]
+          y_labpos <- df[[y]]
+          v <- v1
+          h <- h1
+        } else if (bar_labels_pos == 'bar_base') {
+          x_labpos <- df[[x]]
+          y_labpos <- if (is.na(ylim[1])) {0} else {ylim[1]}  # position at bottom of y-range
+          # v <- -0.8
+          # h <- 0.5
+        } else if (bar_labels_pos == 'bar_centre') {
+          x_labpos <- df[[x]]
+          y_labpos <- df[[y]] / 2
+          v <- 0
+          h <- 0.5
+        } else if (bar_labels_pos == 'above_errorbar') {
+          x_labpos <- df[[x]]
+          y_labpos <- df[[ci_upper]]
+          v <- v1
+          h <- h1
+        }
+
+
+        base <- base + geom_text(
+                        data = df,
+                        aes(x = x_labpos,
+                            y = y_labpos,
+                            vjust = v,
+                            hjust = h,
+                            label = .data[[bar_labels]]),
+                        colour = bar_labels_font_colour,
+                        size = bar_labels_font_size * (5/14), # apply scaling ratio to font size
+                        angle = bar_labels_angle
+                        )
+
+      }
 
 
       ##### Flip axes if axis_flip = true
