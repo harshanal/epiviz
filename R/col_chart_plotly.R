@@ -981,54 +981,74 @@ col_chart <- function(
       ##### Add bar labels
       if(!is.null(bar_labels)) {
 
-        # Handle the various permutations of label rotation to match plotly
-        if(bar_labels_angle %in% c(0,360)) {
-          v1 <- -0.5
-          h1 <- 0.5
-        } else if (bar_labels_angle > 0 & bar_labels_angle < 90) {
-          v1 <- 0
-          h1 <- 0
-        } else if (bar_labels_angle == 90) {
-          v1 <- 0.5
-          h1 <- -0.3
-        } else if (bar_labels_angle > 90 & bar_labels_angle < 180) {
-          v1 <- 0
-          h1 <- -0.3
-        } else if (bar_labels_angle == 180) {
-          v1 <- 1.5
-          h1 <- 0.5
-        } else if (bar_labels_angle > 180 & bar_labels_angle < 270) {
-          v1 <- 1.5
-          h1 <- 1
-        } else if (bar_labels_angle == 270) {
-          v1 <- 0.5
-          h1 <- 1.3
-        } else if (bar_labels_angle > 270 & bar_labels_angle < 360) {
-          v1 <- 0
-          h1 <- 1.3
+        # # Handle the various permutations of label rotation to match plotly
+        # if(bar_labels_angle %in% c(0,360)) {
+        #   v1 <- -0.5
+        #   h1 <- 0.5
+        # } else if (bar_labels_angle > 0 & bar_labels_angle < 90) {
+        #   v1 <- 0
+        #   h1 <- 0
+        # } else if (bar_labels_angle == 90) {
+        #   v1 <- 0.5
+        #   h1 <- -0.3
+        # } else if (bar_labels_angle > 90 & bar_labels_angle < 180) {
+        #   v1 <- 0
+        #   h1 <- -0.3
+        # } else if (bar_labels_angle == 180) {
+        #   v1 <- 1.5
+        #   h1 <- 0.5
+        # } else if (bar_labels_angle > 180 & bar_labels_angle < 270) {
+        #   v1 <- 1.5
+        #   h1 <- 1
+        # } else if (bar_labels_angle == 270) {
+        #   v1 <- 0.5
+        #   h1 <- 1.3
+        # } else if (bar_labels_angle > 270 & bar_labels_angle < 360) {
+        #   v1 <- 0
+        #   h1 <- 1.3
+        # }
+
+        # Reverse label angle direction to match plotly (i.e. make parameter tilt labels clockwise)
+        bar_labels_angle <- -bar_labels_angle
+
+        # Define ynudge for non-right-angles (same value can be used in plotly)
+        ylength <- if (!is.na(ylim[2])) {ylim[2]} else {ggplot_build(base)$layout$panel_params[[1]]$y.range[2]}
+        ynudge <- if(-bar_labels_angle %in% c(0,90,180,270,360)) {0} else {ylength * 0.02} # 2% of y-axis length, matches vjust distance
+
+        # Define vjust and hjust
+        #   - Keep as 0.5/0.5 (i.e. centre/centre) except when using a right angle, then other
+        #     alignments are optimal.
+        if(-bar_labels_angle %in% c(0,360)) {
+          v <- -0.5
+          h <- 0.5
+        } else if (-bar_labels_angle == 90) {
+          v <- 0.5
+          h <- 1.3
+        } else if (-bar_labels_angle == 180) {
+          v <- 1.5
+          h <- 0.5
+        } else if (-bar_labels_angle == 270) {
+          v <- 0.5
+          h <- -0.3
+        } else {
+          v <- 0.5
+          h <- 0.5
         }
 
-        # Define plot label parameters for bar_labels_pos choice
+        # Define plot label positions depending on bar_labels_pos choice
         if(bar_labels_pos == 'bar_above') {
           x_labpos <- df[[x]]
           y_labpos <- df[[y]]
-          v <- v1
-          h <- h1
         } else if (bar_labels_pos == 'bar_base') {
           x_labpos <- df[[x]]
           y_labpos <- if (is.na(ylim[1])) {0} else {ylim[1]}  # position at bottom of y-range
-          # v <- -0.8
-          # h <- 0.5
+          ynudge <- if(-bar_labels_angle %in% c(90,270)) {ynudge} else {ynudge + (0.02 * ylength)} # adjust ynudge for 90/270 rotations to keep congruent with plotly output
         } else if (bar_labels_pos == 'bar_centre') {
           x_labpos <- df[[x]]
           y_labpos <- df[[y]] / 2
-          v <- 0
-          h <- 0.5
         } else if (bar_labels_pos == 'above_errorbar') {
           x_labpos <- df[[x]]
           y_labpos <- df[[ci_upper]]
-          v <- v1
-          h <- h1
         }
 
 
@@ -1041,7 +1061,8 @@ col_chart <- function(
                             label = .data[[bar_labels]]),
                         colour = bar_labels_font_colour,
                         size = bar_labels_font_size * (5/14), # apply scaling ratio to font size
-                        angle = bar_labels_angle
+                        angle = bar_labels_angle,
+                        nudge_y = ynudge
                         )
 
       }
@@ -1533,6 +1554,50 @@ col_chart <- function(
 
     }
 
+
+
+    ##### Apply bar labels
+
+    # Apply after main bar-plot and errorbars so that labels appear in front.
+
+    if(!is.null(bar_labels)) {
+
+      # Define ynudge value to make labels appear in same position as in ggplot output
+      ynudge <- if (bar_labels_angle %in% c(90,270)) {0} else {0.02 * y_max}
+
+
+      # Label according to whether or not bars are grouped
+
+      # Plot for no group_var
+      if (is.null(group_var)) {
+
+        # Define plot label parameters for bar_labels_pos choice
+        if(bar_labels_pos == 'bar_above') {
+          x_labpos <- df[[x]]
+          y_labpos <- df[[y]]
+        } else if (bar_labels_pos == 'bar_base') {
+          x_labpos <- df[[x]]
+          y_labpos <- if(bar_labels_angle %in% c(90,270)) {y_min + (0.015*y_max)} else {y_min + (1.5*ynudge)}
+        } else if (bar_labels_pos == 'bar_centre') {
+          x_labpos <- df[[x]]
+          y_labpos <- df[[y]] / 2
+        } else if (bar_labels_pos == 'above_errorbar') {
+          x_labpos <- df[[x]]
+          y_labpos <- if(bar_labels_angle %in% c(90,270)) {df[[ci_upper]] + (0.01*y_max)} else {df[[ci_upper]]}
+        }
+
+        base <- base |>
+          add_annotations(text = ~ df[[bar_labels]],
+                          x = ~ x_labpos,
+                          y = ~ y_labpos + ynudge,
+                          textangle = bar_labels_angle,
+                          yanchor = if (bar_labels_angle %in% c(90,270)) {"bottom"} else {"centre"},
+                          showarrow = FALSE)
+
+
+      }
+
+    }
 
 
     ##### Apply legend parameters
