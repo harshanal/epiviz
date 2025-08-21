@@ -1050,19 +1050,40 @@ col_chart <- function(
           # Generate offset position for labels when group_var_barmode = "dodge"
           label_offset <- position_dodge(resolution(as.numeric(df[[x]]))*0.9)
 
-          # Calculate ositions for stacked labels manually, create new dataframe to manage.
+          # Calculate positions for stacked labels manually, create new dataframe to manage.
           df_labels <- df |>
             group_by(.data[[x]]) |>
             arrange(.data[[x]], desc(.data[[group_var]])) |>
-            mutate(cumul = cumsum(.data[[y]]))
+            mutate(cumul = cumsum(.data[[y]]),                        # cumulative position of top of each bar
+                   cumul_bar_base = cumul - .data[[y]],               # cumulative position of bottom of each bar
+                   cumul_bar_centre = cumul - (.data[[y]]/2),         # cumulative position of centre of each bar
+                   ci_upper_diff = .data[[ci_upper]] - .data[[y]],    # define upper-ci-limit to y-value difference to use in above_errorbar label pos
+                   cumul_above_errorbar = cumul + ci_upper_diff)      # cumulative position above each errorbar
 
+          # Define plot label positions depending on bar_labels_pos choice
+          if(bar_labels_pos == 'bar_above') {
+            x_labpos <- df_labels[[x]]
+            y_labpos <- if(group_var_barmode != "stack") {df_labels[[y]]} else {df_labels$cumul}
+          } else if (bar_labels_pos == 'bar_base') {
+            x_labpos <- df_labels[[x]]
+            y_labpos <- if(group_var_barmode != "stack") {df_labels[[y]]} else {df_labels$cumul_bar_base}  # position at bottom of each stacked bar
+            ynudge <- if(-bar_labels_angle %in% c(90,270)) {ynudge} else {ynudge + (0.02 * ylength)} # adjust ynudge for 90/270 rotations to keep congruent with plotly output
+          } else if (bar_labels_pos == 'bar_centre') {
+            x_labpos <- df_labels[[x]]
+            y_labpos <- if(group_var_barmode != "stack") {df_labels[[y]]} else {df_labels$cumul_bar_centre}  # position in centre of each stacked bar
+            v <- 0.5 # reset vjust and hjust so that labels pivot about centre of bars when label angle is adjusted
+            h <- 0.5
+          } else if (bar_labels_pos == 'above_errorbar') {
+            x_labpos <- df_labels[[x]]
+            y_labpos <- df_labels$cumul_above_errorbar
+          }
 
           base <-
             base + geom_text(
               data = df_labels,
               aes(
-                x = .data[[x]],
-                y = if(group_var_barmode != "stack") {.data[[y]]} else {cumul},
+                x = x_labpos,
+                y = y_labpos,
                 vjust = v,
                 hjust = h,
                 label = .data[[bar_labels]],
@@ -1585,6 +1606,34 @@ col_chart <- function(
 
       # Plot for no group_var
       if (is.null(group_var)) {
+
+        # Define plot label parameters for bar_labels_pos choice
+        if(bar_labels_pos == 'bar_above') {
+          x_labpos <- df[[x]]
+          y_labpos <- df[[y]]
+        } else if (bar_labels_pos == 'bar_base') {
+          x_labpos <- df[[x]]
+          y_labpos <- if(bar_labels_angle %in% c(90,270)) {y_min + (0.015*y_max)} else {y_min + (1.5*ynudge)}
+        } else if (bar_labels_pos == 'bar_centre') {
+          x_labpos <- df[[x]]
+          y_labpos <- df[[y]] / 2
+        } else if (bar_labels_pos == 'above_errorbar') {
+          x_labpos <- df[[x]]
+          y_labpos <- if(bar_labels_angle %in% c(90,270)) {df[[ci_upper]] + (0.01*y_max)} else {df[[ci_upper]]}
+        }
+
+        base <- base |>
+          add_annotations(text = ~ df[[bar_labels]],
+                          x = ~ x_labpos,
+                          y = ~ y_labpos + ynudge,
+                          textangle = bar_labels_angle,
+                          yanchor = if (bar_labels_angle %in% c(90,270)) {"bottom"} else {"centre"},
+                          showarrow = FALSE)
+
+
+      } else {
+
+        # Plot for grouped bar chart
 
         # Define plot label parameters for bar_labels_pos choice
         if(bar_labels_pos == 'bar_above') {
