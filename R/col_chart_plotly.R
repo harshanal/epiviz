@@ -1063,19 +1063,26 @@ col_chart <- function(
           # Define plot label positions depending on bar_labels_pos choice
           if(bar_labels_pos == 'bar_above') {
             x_labpos <- df_labels[[x]]
-            y_labpos <- if(group_var_barmode != "stack") {df_labels[[y]]} else {df_labels$cumul}
+            y_labpos <- if(group_var_barmode == "stack") {df_labels$cumul} else {df_labels[[y]]}
           } else if (bar_labels_pos == 'bar_base') {
             x_labpos <- df_labels[[x]]
-            y_labpos <- if(group_var_barmode != "stack") {df_labels[[y]]} else {df_labels$cumul_bar_base}  # position at bottom of each stacked bar
+            y_labpos <- if(group_var_barmode == "stack") {df_labels$cumul_bar_base} else {df_labels[[y]]} # position at bottom of each stacked bar
+              # Redfine y_labpos to bottom of bar for grouped bars
+              y_base <- if (is.na(ylim[1])) {0} else {ylim[1]}
+              y_labpos <- if(group_var_barmode == "dodge") {y_base} else {y_labpos}
             ynudge <- if(-bar_labels_angle %in% c(90,270)) {ynudge} else {ynudge + (0.02 * ylength)} # adjust ynudge for 90/270 rotations to keep congruent with plotly output
           } else if (bar_labels_pos == 'bar_centre') {
             x_labpos <- df_labels[[x]]
             y_labpos <- if(group_var_barmode != "stack") {df_labels[[y]]} else {df_labels$cumul_bar_centre}  # position in centre of each stacked bar
+              # Redfine y_labpos to halfway up bar for grouped bars
+              y_labpos <- if(group_var_barmode == "dodge") {y_labpos / 2} else {y_labpos}
             v <- 0.5 # reset vjust and hjust so that labels pivot about centre of bars when label angle is adjusted
             h <- 0.5
           } else if (bar_labels_pos == 'above_errorbar') {
             x_labpos <- df_labels[[x]]
             y_labpos <- df_labels$cumul_above_errorbar
+              # Redfine y_labpos to halfway up bar for grouped bars
+              y_labpos <- if(group_var_barmode == "dodge") {df_labels[[ci_upper]]} else {y_labpos}
           }
 
           base <-
