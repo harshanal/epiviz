@@ -1528,7 +1528,7 @@ col_chart <- function(
           # Iterate over each group
           for (i in 1:length(unique_groups)) {
 
-            if(axis_flip == TRUE) {swap_object_names('x', 'y')} # flip access variables within each iteration for calculation if needed
+            if(axis_flip == TRUE) {swap_object_names('x', 'y')} # flip axis variables within each iteration for calculation if needed
 
             # Plotly error bars require upper and lower error divergence rather
             #   than values, so create df for each group and calculate
@@ -1547,7 +1547,7 @@ col_chart <- function(
                        diff_ci_upper = upper_lim_stacked - cumul)
             }
 
-            if(axis_flip == TRUE) {swap_object_names('x', 'y')}  # flip access variables back after calculation
+            if(axis_flip == TRUE) {swap_object_names('x', 'y')}  # flip axis variables back after calculation
 
             # Add error bars as trace with invisible markers
             base <- base |>
@@ -1607,6 +1607,10 @@ col_chart <- function(
 
       # Define ynudge value to make labels appear in same position as in ggplot output
       ynudge <- if (bar_labels_angle %in% c(90,270) | bar_labels_pos == 'bar_centre') {0} else {0.02 * y_max}
+      # take into account flipped axes
+      if(axis_flip == TRUE) {
+        ynudge <- if (bar_labels_pos == 'bar_centre') {0} else {0.02 * x_max}
+        }
 
 
       # Label according to whether or not bars are grouped
@@ -1642,6 +1646,8 @@ col_chart <- function(
 
         # Plot for grouped bar chart
 
+        if(axis_flip == TRUE) {swap_object_names('x', 'y')} # flip axis variables for calculation if needed
+
         # Calculate positions for stacked labels manually, create new dataframe to manage.
         df_labels <- df |>
           group_by(.data[[x]]) |>
@@ -1672,41 +1678,52 @@ col_chart <- function(
         df_labels <- left_join(df_labels, x_offset_lookup, join_by(!!rlang::sym(group_var) == 'group')) |>
           mutate(x_grouped = get(x) + x_offset)
 
+        #if(axis_flip == TRUE) {swap_object_names('x', 'y')}  # flip axis variables back after calculation
+
 
         # Define plot label positions depending on bar_labels_pos choice
+
+        # x position
+        x_labpos <- if(group_var_barmode == "group") {df_labels$x_grouped} else {df_labels[[x]]}
+
+        # y position
         if(bar_labels_pos == 'bar_above') {
-          x_labpos <- df_labels[[x]]
+          #x_labpos <- if(group_var_barmode == "group") {df_labels$x_grouped} else {df_labels[[x]]}
           y_labpos <- if(group_var_barmode == "stack") {df_labels$cumul} else {df_labels[[y]]}
         } else if (bar_labels_pos == 'bar_base') {
-          x_labpos <- df_labels[[x]]
+          #x_labpos <- if(group_var_barmode == "group") {df_labels$x_grouped} else {df_labels[[x]]}
           y_labpos <- if(group_var_barmode == "stack") {df_labels$cumul_bar_base} else {df_labels[[y]]} # position at bottom of each stacked bar
             # Redefine y_labpos to bottom of bar for grouped bars
             y_base <- if (is.na(y_min)) {0} else {y_min}
             y_labpos <- if(group_var_barmode == "group") {y_base} else {y_labpos}
           #ynudge <- if(-bar_labels_angle %in% c(90,270)) {ynudge} else {ynudge + (0.02 * ylength)} # adjust ynudge for 90/270 rotations to keep congruent with plotly output
         } else if (bar_labels_pos == 'bar_centre') {
-          x_labpos <- df_labels[[x]]
+          #x_labpos <- if(group_var_barmode == "group") {df_labels$x_grouped} else {df_labels[[x]]}
           y_labpos <- if(group_var_barmode != "stack") {df_labels[[y]]} else {df_labels$cumul_bar_centre}  # position in centre of each stacked bar
             # Redefine y_labpos to halfway up bar for grouped bars
             y_labpos <- if(group_var_barmode == "group") {y_labpos / 2} else {y_labpos}
-          v <- 0.5 # reset vjust and hjust so that labels pivot about centre of bars when label angle is adjusted
-          h <- 0.5
         } else if (bar_labels_pos == 'above_errorbar') {
-          x_labpos <- df_labels[[x]]
+          #x_labpos <- if(group_var_barmode == "group") {df_labels$x_grouped} else {df_labels[[x]]}
           y_labpos <- df_labels$cumul_above_errorbar
             # Redefine y_labpos to halfway up bar for grouped bars
             y_labpos <- if(group_var_barmode == "group") {df_labels[[ci_upper]]} else {y_labpos}
         }
 
+
+        # flip axis variables back after calculation
+        if(axis_flip == TRUE) {swap_object_names('x', 'y')}
+
+
         # Define y anchor point for text (label will pivot about this)
         y_anchor <- if (bar_labels_angle %in% c(90,270)) {"bottom"} else {"centre"}
         y_anchor <- if (bar_labels_pos == 'bar_centre') {"centre"} else (y_anchor) # redefine for bar_centre position
+        y_anchor <- if (axis_flip == TRUE) {"centre"} else (y_anchor)
 
         # Plot labels
         base <- base |>
           add_annotations(text = ~ df_labels[[bar_labels]],
-                          x = ~ if(group_var_barmode == "group") {df_labels$x_grouped} else {df_labels[[x]]}, #x_labpos,
-                          y = ~ y_labpos + ynudge,
+                          x = ~ if(axis_flip == FALSE) {x_labpos} else {y_labpos + ynudge},
+                          y = ~ if(axis_flip == FALSE) {y_labpos + ynudge} else {x_labpos},
                           textangle = bar_labels_angle,
                           font = list(
                                     family = chart_font,
