@@ -1222,7 +1222,7 @@ col_chart <- function(
     x_max <- ggplot_build(ggobj)$layout$panel_params[[1]]$x.range[2]
     if(axis_flip == FALSE) {y_min <- 0} else {y_min <- ggplot_build(ggobj)$layout$panel_params[[1]]$y.range[1]}
     y_max <- ggplot_build(ggobj)$layout$panel_params[[1]]$y.range[2]
-    # Harvest ggplot x-axis resolution to use as offset for dodged errorbars
+    # Harvest ggplot x-axis resolution to use as offset for dodged errorbars, and bar labels
     errorbar_offset <- resolution(as.numeric(df[[x]]))*0.9
 
 
@@ -1517,7 +1517,7 @@ col_chart <- function(
           if(length(unique_groups) %%2 != 0) {offset_multiplier - 0.5}                       # if the number of groups is odd, offset the multiplier by 0.5 as one of the bars will be in the middle (for even numbers, the middle will be between the 2 central bars)
           offset_multiplier <- offset_multiplier * 0.9                                       # multiply this offset by 0.9 to match the ggplot defaults
           x_offset <- offset_multiplier * (errorbar_offset/length(unique_groups))            # divide the x-axis resolution by the number of groups and multiply this by the multiplier to get the actual x-values of each bar
-          if(is.Date(df[[x]])) {                                                             # if x is a date then plotly will shunt the errorbars to the beginning of the nearest whole day (i.e. not in the middle of the barchart bars) so convert axis to time axis if this is the case
+          if(is.Date(df[[x]]) | is.POSIXct(df[[x]])) {                                                             # if x is a date then plotly will shunt the errorbars to the beginning of the nearest whole day (i.e. not in the middle of the barchart bars) so convert axis to time axis if this is the case
             df[[x]] <- as.POSIXct(df[[x]])
             x_offset <- x_offset * 24*60*60   # unit value for time is seconds rather than days as for date, so convert
           }
@@ -1538,8 +1538,6 @@ col_chart <- function(
                 mutate(diff_ci_lower = get(y) - get(ci_lower),
                        diff_ci_upper = get(ci_upper) - get(y)) |>
                 mutate(x_grouped = get(x) + x_offset[i]) # offset x values for grouped bars
-                # mutate(x_grouped = get(x) + ((-errorbar_offset/2) + (i+0.5)*(errorbar_offset/length(unique_groups)) )) |>
-                # mutate(x_grouped = x_grouped - errorbar_offset/length(unique_groups))
 
             } else if(group_var_barmode == "stack") {
               # Use stack values when group_var_barmode == "stack"
@@ -1654,6 +1652,27 @@ col_chart <- function(
                  ci_upper_diff = .data[[ci_upper]] - .data[[y]],    # define upper-ci-limit to y-value difference to use in above_errorbar label pos
                  cumul_above_errorbar = cumul + ci_upper_diff)      # cumulative position above each errorbar
 
+
+        # x-axis position of labels for grouped/dodged plots must be manually offset;
+        #    offset is dependent on number of unique groups and x-axis resolution (calculated
+        #    from ggobj above = errorbar_offset)
+        unique_groups <- unique(df_labels[[group_var]])                                    # get number of unique groups
+        offset_multiplier <- seq(length(unique_groups)) - ceiling(length(unique_groups)/2) # generate vector of integars to multiply the base offset by
+        if(length(unique_groups) %%2 != 0) {offset_multiplier - 0.5}                       # if the number of groups is odd, offset the multiplier by 0.5 as one of the bars will be in the middle (for even numbers, the middle will be between the 2 central bars)
+        offset_multiplier <- offset_multiplier * 0.9                                       # multiply this offset by 0.9 to match the ggplot defaults
+        x_offset <- offset_multiplier * (errorbar_offset/length(unique_groups))            # divide the x-axis resolution by the number of groups and multiply this by the multiplier to get the actual x-values of each bar (recycle errorbar_offset variable as it's doing the same job here but for label positions)
+        if(is.Date(df_labels[[x]]) | is.POSIXct(df_labels[[x]])) {                                                      # if x is a date then plotly will shunt the errorbars to the beginning of the nearest whole day (i.e. not in the middle of the barchart bars) so convert axis to time axis if this is the case
+          df_labels[[x]] <- as.POSIXct(df_labels[[x]])
+          x_offset <- x_offset * 24*60*60   # unit value for time is seconds rather than days as for date, so convert
+        }
+        # Create lookup table to link the offset values back to the main dataframe
+        x_offset_lookup <- data.frame(x_offset = x_offset, group = levels(unique_groups))
+
+        # Join df and lookup table to create offset x values for plotting
+        df_labels <- left_join(df_labels, x_offset_lookup, join_by(!!rlang::sym(group_var) == 'group')) |>
+          mutate(x_grouped = get(x) + x_offset)
+
+
         # Define plot label positions depending on bar_labels_pos choice
         if(bar_labels_pos == 'bar_above') {
           x_labpos <- df_labels[[x]]
@@ -1686,7 +1705,7 @@ col_chart <- function(
         # Plot labels
         base <- base |>
           add_annotations(text = ~ df_labels[[bar_labels]],
-                          x = ~ x_labpos,
+                          x = ~ if(group_var_barmode == "group") {df_labels$x_grouped} else {df_labels[[x]]}, #x_labpos,
                           y = ~ y_labpos + ynudge,
                           textangle = bar_labels_angle,
                           font = list(
