@@ -7,20 +7,18 @@
 #' Default is \code{FALSE}, which will return a static ggplot output.
 #' @param params A named list containing arguements used to create the plot.
 #' \describe{
-#'    \item{df}{A data frame containing data used to create the epi curve.}
-#'    \item{date_var}{character, Name of the variable in \code{df} containing the dates used
+#'    \item{df}{A data frame containing data used to create the column chart.}
+#'    \item{x}{character, Name of the variable in \code{df} containing the values used
 #'    to populate the x-axis.}
-#'    \item{y}{If data is pre-aggregated, the name of the variable in \code{df} containing the
-#'    aggregated values (i.e. the values used to populate the y-axis.)}
-#'    \item{date_start}{A date that will determine the minimum value along the x-axis. Any rows
-#'    with \code{date_var < date_start} will be excluded from aggregates.}
-#'    \item{date_end}{A date that will determine the maximum value along the x-axis. Any rows
-#'    with \code{date_var > date_end} will be excluded from aggregates.}
+#'    \item{y}{character, Name of the variable in \code{df} containing the values used
+#'    to populate the y-axis.)}
+#'    \item{x_time_series}{XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+#'    XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
 #'    \item{time_period}{The time period to be used along the x-axis. Options include
 #'    \code{c("day","year","month","quarter","year_month","year_quarter",
 #'      "iso_year","iso_week","start_iso_year_week","iso_year_week")}. Default = \code{"day"}}
 #'    \item{group_var}{Name of the variable in df used to define separate groups within each bar,
-#'    e.g. species or region.}
+#'    e.g. 'species' or 'region'.}
 #'    \item{group_var_barmode}{Indicates how grouped bar data should be plotted. Options include
 #'    \code{c("group","stack")}. Default = \code{"stack"}.}
 #'    \item{fill_colours}{Colours used to fill bars on chart. If \code{group_var} has not been
@@ -32,60 +30,96 @@
 #'    on the output chart and legend (e.g. \code{c("KLEBSIELLA PNEUMONIAE" = "#007C91", "STAPHYLOCOCCUS
 #'    AUREUS" = "#8A1B61", "PSEUDOMONAS AERUGINOSA" = "#FF7F32")} or \code{setNames(c("#007C91",
 #'    "#8A1B61","#FF7F32"), c("KLEBSIELLA PNEUMONIAE","STAPHYLOCOCCUS AUREUS","PSEUDOMONAS AERUGINOSA"))})}
-#'    \item{bar_border_colour}{Colour of the border around each bar. No border colour is drawn as default.}
+#'    \item{bar_border_colour}{character, Colour of the border around each bar. Default = \code{"transparent"},
+#'    meaning that no border colour is drawn as default.}
 #'    \item{bar_labels}{character, Name of the variable in \code{df} containing the labels to be used
 #'    for each bar.}
 #'    \item{bar_labels_pos}{character, The position on the bars that labels will be plotted, permitted
-#'    values are \code{c('bar_above','bar_base','bar_centre','above_errorbar')} default = \code{'bar_top'}.}
-#'    \item{bar_labels_percent}{cboolean, If \code{bar_labels_percent = TRUE} then the values in \code{bar_labels}
+#'    values are \code{c('bar_above','bar_base','bar_centre','above_errorbar')}. Default = \code{'bar_above'}.}
+#'    \item{bar_labels_font_size}{numeric, Font size for the bar labels. Default = \code{8}.}
+#'    \item{bar_labels_font_colour}{character, Font colour for the bar labels. Default = \code{'black'}.}
+#'    \item{bar_labels_angle}{numeric, Font angle for the bar labels.}
+#'    \item{bar_labels_percent}{boolean, If \code{bar_labels_percent = TRUE} then the values in \code{bar_labels}
 #'    will be converted into a percentage before plotting.}
 #'    \item{case_boxes}{boolean, If \code{case_boxes = TRUE} then a boundary box will be drawn around
 #'    each case within each bar. Defaults to \code{case_boxes = FALSE}.}
-#'    \item{case_boxes_colour}{The colour of the border around each case box if if \code{case_boxes =
+#'    \item{case_boxes_colour}{The colour of the border around each case box if \code{case_boxes =
 #'    TRUE}. Default = \code{"white"}.}
-#'    \item{chart_title}{Text to use as chart title.}
-#'    \item{chart_title_size}{Font size of chart title.}
-#'    \item{chart_title_colour}{Font colour of chart title.}
+#'    \item{axis_flip}{boolean, If set to \code{TRUE} then x and y axes will be flipped and bars will
+#'    be drawn hozizontally rather than vertically.}
+#'    \item{ci}{Confidence interval. If \code{ci = "errorbar"} then confidence intervals be
+#'    be plotted with each bar as errorbars. If \code{ci} is provided, then \code{ci_upper}
+#'    and \code{ci_lower} must also be provided.}
+#'    \item{ci_upper}{character, Name of the variable in df used as the upper confidence limit for
+#'    each bar. Mandatory when \code{ci} is provided.}
+#'    \item{ci_lower}{character, Name of the variable in df used as the lower confidence limit for
+#'    each bar. Mandatory when \code{ci} is provided.}
+#'    \item{ci_legend}{Logical indicating whether a separate legend should be included
+#'    in the chart for confidence interval parameters. Only applies when \code{group_var}
+#'    is provided. Defaults to \code{FALSE}.}
+#'    \item{ci_legend_title}{Text to use as title for separate legend when \code{ci_legend = TRUE}.
+#'    Default = \code{"Confidence interval"}.}
+#'    \item{ci_colours}{Colour(s) used for plotting errorbars when \code{ci = "errorbar"}.
+#'    If \code{group_var} has been provided, then \code{fill_colours} must be a character
+#'    vector of colours with a number of elements equal to the number of unique groups
+#'    in \code{group_var}. If a named character vector is provided where the names are
+#'    values within \code{group_var}, then each colour will be mapped to it's corresponding
+#'    value in \code{group_var} on the output chart and legend (e.g. \code{c("KLEBSIELLA PNEUMONIAE"
+#'    = "#007C91", "STAPHYLOCOCCUS AUREUS" = "#8A1B61","PSEUDOMONAS AERUGINOSA" = "#FF7F32")} or
+#'    \code{setNames(c("#007C91","#8A1B61","#FF7F32"), c("KLEBSIELLA PNEUMONIAE","STAPHYLOCOCCUS
+#'    AUREUS","PSEUDOMONAS AERUGINOSA"))})}
+#'    \item{errorbar_width}{Horizontal width of the plotted error bars when \code{ci =
+#'    "errorbar"}.}
+#'    \item{chart_title}{Text to use as the chart title.}
+#'    \item{chart_title_size}{Font size of chart title. Default = \code{13}.}
+#'    \item{chart_title_colour}{Font colour of chart title. Default = \code{"black"}.}
 #'    \item{chart_footer}{Text to use as chart footer.}
-#'    \item{chart_footer_size}{Font size of chart footer.}
-#'    \item{chart_footer_colour}{Font colour of chart footer.}
+#'    \item{chart_footer_size}{Font size of chart footer. Default = \code{12}.}
+#'    \item{chart_footer_colour}{Font colour of chart footer. Default = \code{"black"}.}
 #'    \item{x_axis_title}{Text used for x-axis title. Defaults to name of x-variable if
 #'    not stated.}
 #'    \item{y_axis_title}{Text used for y-axis title. Defaults to name of y-variable if
 #'    not stated.}
-#'    \item{x_axis_title_font_size}{Font size of the x-axis title.}
-#'    \item{y_axis_title_font_size}{Font size of the y-axis title.}
+#'    \item{x_axis_title_font_size}{Font size of the x-axis title. Default = \code{11}.}
+#'    \item{y_axis_title_font_size}{Font size of the y-axis title. Default = \code{11}.}
 #'    \item{x_axis_label_angle}{Angle for x-axis label text.}
 #'    \item{y_axis_label_angle}{Angle for y-axis label text.}
-#'    \item{x_axis_label_font_size}{Font size for the x-axis tick labels.}
-#'    \item{y_axis_label_font_size}{Font size for the y-axis tick labels.}
+#'    \item{x_axis_label_font_size}{Font size for the x-axis tick labels. Default = \code{9}.}
+#'    \item{y_axis_label_font_size}{Font size for the y-axis tick labels. Default = \code{9}.}
+#'    \item{x_limit_min}{Lower limit for the x-axis. Default used if not provided.}
+#'    \item{x_limit_max}{Upper limit for the x-axis. Default used if not provided.}
 #'    \item{y_limit_min}{Lower limit for the y-axis. Default used if not provided.}
 #'    \item{y_limit_max}{Upper limit for the y-axis. Default used if not provided.}
 #'    \item{x_axis_break_labels}{Vector of values to use for x-axis breaks. Defaults
-#'    used if not provided. Values provided must match the formatting of \code{time_period}.}
+#'    used if not provided. If \code{x_time_series = TRUE} then Values provided must
+#'    match the formatting of \code{time_period}.}
 #'    \item{y_axis_break_labels}{Vector of values to use for y-axis breaks. Defaults
 #'    used if not provided.}
+#'    \item{x_axis_n_breaks}{Scales x-axis with approximately n breaks. Cannot be provided
+#'    if \code{x_axis_break_labels} has also been provided.}
 #'    \item{y_axis_n_breaks}{Scales y-axis with approximately n breaks. Cannot be used
-#'    if \code{y_axis_break_labels} is also provided.}
+#'    if \code{y_axis_break_labels} has also been provided.}
+#'    \item{x_axis_reverse}{Reverses x-axis scale if \code{x_axis_reverse = TRUE}.}
 #'    \item{show_gridlines}{Logical to show chart gridlines. Default = \code{TRUE}.}
 #'    \item{show_axislines}{Logical to show chart axis lines. Default = \code{TRUE}.}
 #'    \item{legend_title}{Text used for legend title.}
 #'    \item{legend_pos}{Position of the legend. Permitted values = c("top","bottom","right","left")}
-#'    \item{legend_font_size}{Font size used in the legend.}
-#'    \item{legend_title_font_size}{Font size used for the legend title.}
+#'    \item{legend_font_size}{Font size used in the legend. Default = \code{8}.}
+#'    \item{legend_title_font_size}{Font size used for the legend title. Default = \code{8}.}
 #'    \item{hline}{Adds horizontal line across the chart at the corresponding y-value. Multiple
 #'    values may be provided as a vector to add multiple horizontal lines.}
 #'    \item{hline_colour}{Colour of the horizontal lines if \code{hline} is provided. A vector of colours
-#'    can be provided to colour individual hlines if multiple hlines have been provided.}
+#'    can be provided to colour individual hlines if multiple hlines have been provided. Default = \code{"black"}.}
 #'    \item{hline_width}{Numerical width of the horizontal lines if \code{hline} is provided. A vector of numerical widths
-#'    can be provided for individual hlines if multiple hlines have been provided.}
+#'    can be provided for individual hlines if multiple hlines have been provided. Default = \code{0.5}.}
 #'    \item{hline_type}{Line style of the horizontal lines if \code{hline} is provided. A vector of line styles
 #'    can be provided to style hlines if multiple hlines have been provided. Permitted values = c("solid", "dotted",
-#'    "dashed", "longdash", "dotdash").}
+#'    "dashed", "longdash", "dotdash"). Default = \code{"dashed"}.}
 #'    \item{hline_label}{Text to label the horizontal lines if \code{hline} is provided. A vector of text strings
 #'    can be provided to label individual hlines if multiple hlines have been provided.}
 #'    \item{hline_label_colour}{Colour of the horizontal line labels if \code{hline_labels} is provided.
-#'    A vector of colours can be provided to colour individual hline_labels if multiple hline_labels have been provided.}
+#'    A vector of colours can be provided to colour individual hline_labels if multiple hline_labels have been
+#'    provided. Default = \code{"black"}.}
 #'    \item{hover_labels}{string, Text to be used in the hover-over labels in a dynamic chart.
 #'    Accepts html, use \code{'\%{x}'} to reference corresponding x-axis values (i.e. date intervals)
 #'    and \code{'\%{y}'} to reference y-axis values, e.g. \code{hover_labels = "<b>Date:</b>
@@ -365,6 +399,7 @@ col_chart <- function(
       y_limit_max = NULL,
       x_axis_break_labels = NULL,
       y_axis_break_labels = NULL,
+      x_axis_n_breaks = NULL,
       y_axis_n_breaks = NULL,
       x_axis_reverse = FALSE,
       show_gridlines = TRUE,

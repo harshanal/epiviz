@@ -451,7 +451,7 @@ adorn_dates <- function(df, date_var) {
 #'
 #' @examples
 #' \dontrun{
-#' dataframe_out <- adorn_date(df = dataframe, date_var = "date_column")
+#' dataframe_out <- swap_object_names('x', 'y')
 #' }
 swap_object_names <- function(name1, name2) {
 
