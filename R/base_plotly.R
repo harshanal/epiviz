@@ -77,8 +77,12 @@ base_plotly <- function() {
         layout(title = list(text = html_bold(chart_title), # utils/html_bold function used to apply <b> </b> tags to title text
                             font = title_font,
                             x = 0.5,
+                            y = 1.1,
                             xanchor = "centre",
-                            xref = 'paper', yref = 'paper'))
+                            yanchor =  "bottom",
+                            xref = 'paper',
+                            yref = 'paper')
+               )
     }
 
     # Add footer
@@ -167,7 +171,7 @@ base_plotly <- function() {
     # Set margin to match ggplot
     base <- base |>
       layout(margin = list(r = if (y_sec_axis == TRUE) {40} else {10}, # increase right margin when secondary y-axis used
-                           t=30,
+                           t = if (axis_flip == FALSE) 30 else {50},
                            b = 60+abs((sin(-x_axis_label_angle))*50), # scale bottom margin according to x-label text angle
                            l=3))
 
