@@ -470,80 +470,93 @@ col_chart <- function(
   params$y_sec_axis_percent_full <- FALSE
 
 
-  # Rename certain parameters so that they will be recognised
-  #   by base_gg() and base_plotly()
-
-  # params <- param_rename(params,"date_start","x_limit_min")
-  # params <- param_rename(params,"date_end","x_limit_max")
-
-
+### DEV: IMPLEMENT
   # 'base' not a user define arguement for col_chart, so set to NULL
   #   for base_gg() and base_plotly()
   base <- NULL
-### DEV
 
 
 
 
-  # ##### Checks and warnings
-  #
-  # # Check if df is is.null
-  # if (!exists('df',where=params)) stop("A data frame argument is required")
-  #
-  # # Check df is a df class
-  # if(!is.data.frame(params$df)) stop("df is not a data frame object")
-  #
-  # # Check df is empty
-  # if(!not_empty(params$df)) stop("df is empty")
-  #
-  # # Check if date_var argument is null (date_var renamed to 'x' at this stage)
-  # if ((is.null(params$x)) | !exists('x',where=params))
-  #   stop("Please include a variable from df for date_var, i.e. date_var = \"variable_name\"")
-  #
-  # # # Check if date_var is in df (date_var renamed to 'x' at this stage)
-  # # if (!params$x %in% colnames(params$df))
-  # #   stop("date_var not found within df. Please include a variable from df for date_var, i.e. date_var = \"variable_name\"")
-  #
-  # # Check group_var_barmode valid
-  # if (!is.null(params$group_var) & !(params$group_var_barmode %in% c('stack', 'group'))) {
-  #   stop("group_var_barmode must equal 'stack' or 'group'")
-  # }
-  #
-  # # Check time_period valid
-  # if (!(params$time_period %in% c("day","year","month","quarter","year_month","year_quarter",
-  #                                 "iso_year","iso_week","start_iso_year_week","iso_year_week"))) {
-  #   stop("time_period must equal 'day', 'year', 'month', 'quarter', 'year_month', 'year_quarter',
-  #             'iso_year', 'iso_week', 'start_iso_year_week', or 'iso_year_week'")
-  # }
-  #
-  #
-  # # If provided, check if y is in df
-  # if (exists('y',where=params)) {
-  #   if (!params$y %in% colnames(params$df))
-  #     stop("y not found within df. Please include a variable from df for y, i.e. y = \"variable_name\"")
-  # }
-  #
-  # # If provided, check if group_var is in df
-  # if ("group_var" %in% names(params)) {
-  #   if (!params$group_var %in% colnames(params$df))
-  #     stop("group_var not found within df. Please include a variable from df for group_var, i.e. group_var = \"variable_name\"")
-  # }
-  #
-  # # Check if number of groups and number of point colours are the same
-  # if (exists('group_var', where=params) & length(params$fill_colours) > 1) {
-  #   if (length(params$fill_colours) != length(unique(params$df[[params$group_var]])))
-  #     stop("The number of fill_colours provided must equal the number of unique groups in group_var")
-  # }
-  #
-  #
-  # # Warn that multiple colours have been provided but group_var absent
-  # if (length(params$fill_colours) >1 & !exists('group_var',where=params))
-  #   warning("Multiple fill_colours have been provided but group_var is absent")
-  #
 
-  # CI = 'RIBBON' NOT ACCEPTED FOR COL_CHART()
+  ##### Checks and warnings
 
+  # Check if df is is.null
+  if (!exists('df',where=params)) stop("df = NULL; a data frame argument is required")
 
+  # Check df is a df class
+  if(!is.data.frame(params$df)) stop("df is not a data frame object")
+
+  # Check df is empty
+  if(!not_empty(params$df)) stop("df is empty")
+
+  # Check if x argument is null
+  if ((is.null(params$x)) | !exists('x',where=params))
+    stop("Please include a variable from df for x, i.e. x = \"variable_name\"")
+
+  # Check if x is in df
+  if (!params$x %in% colnames(params$df))
+    stop("x not found within df. Please include a variable from df for x, i.e. x = \"variable_name\"")
+
+  # Check if y argument is null
+  if ((is.null(params$y)) | !exists('y',where=params))
+    stop("Please include a variable from df for y, i.e. y = \"variable_name\"")
+
+  # Check if y is in df
+  if (!params$y %in% colnames(params$df))
+    stop("y not found within df. Please include a variable from df for y, i.e. y = \"variable_name\"")
+
+  # Check group_var_barmode valid
+  if (!is.null(params$group_var) & !(params$group_var_barmode %in% c('stack', 'group'))) {
+    stop("group_var_barmode must equal 'stack' or 'group'")
+  }
+
+  # Check bar_labels_pos valid
+  if (!(params$bar_labels_pos %in% c('bar_above','bar_base','bar_centre','above_errorbar'))) {
+    stop("bar_labels_pos must equal 'bar_above','bar_base','bar_centre', or 'above_errorbar'")
+  }
+
+  # Check time_period valid
+  if (!(params$time_period %in% c("day","year","month","quarter","year_month","year_quarter",
+                                  "iso_year","iso_week","start_iso_year_week","iso_year_week"))) {
+    stop("time_period must equal 'day', 'year', 'month', 'quarter', 'year_month', 'year_quarter',
+              'iso_year', 'iso_week', 'start_iso_year_week', or 'iso_year_week'")
+  }
+
+  # If provided, check if bar_labels is in df
+  if ("bar_labels" %in% names(params)) {
+    if (!params$bar_labels %in% colnames(params$df))
+      stop("bar_labels not found within df. Please include a variable from df for bar_labels, i.e. bar_labels = \"variable_name\"")
+  }
+
+  # If provided, check if group_var is in df
+  if ("group_var" %in% names(params)) {
+    if (!params$group_var %in% colnames(params$df))
+      stop("group_var not found within df. Please include a variable from df for group_var, i.e. group_var = \"variable_name\"")
+  }
+
+  # Check if number of groups and number of fill colours are the same
+  if (exists('group_var', where=params) & length(params$fill_colours) > 1) {
+    if (length(params$fill_colours) != length(unique(params$df[[params$group_var]])))
+      stop("The number of fill_colours provided must equal the number of unique groups in group_var")
+  }
+
+  # If ci = 'errorbar' and ci_colours has multiple values, check if number of groups and number of ci_colours are the same
+  if (exists('group_var', where=params) & length(params$ci_colours) > 1) {
+    if (length(params$ci_colours) != length(unique(params$df[[params$group_var]])))
+      stop("If providing multiple values for ci_colours, the number of ci_colours must equal
+           the number of unique groups in group_var")
+  }
+
+  # Warn that multiple colours have been provided but group_var absent
+  if (length(params$fill_colours) >1 & !exists('group_var',where=params))
+    warning("Multiple fill_colours have been provided but group_var is absent")
+
+  # Warn that ci = 'ribbon' is not accepted for col_chart()
+  if (exists('ci',where=params)) {
+    if (params$ci == 'ribbon')
+      warning("ci = \"ribbon\" is not accepted for col_chart()")
+  }
 
 
 
@@ -769,6 +782,15 @@ col_chart <- function(
 
 
 
+  ##### Expand ci_colours if group_var is provided but only 1 colour is provided
+  if(!is.null(ci) & !is.null(group_var)) {
+    if(length(ci_colours) == 1) {
+      ci_colours <- rep(ci_colours, each = length(unique(df[[group_var]])))
+    }
+  }
+
+
+
 
   #################### COL CHART #################################
 
@@ -932,7 +954,7 @@ col_chart <- function(
             }
           }
 
-          # Account for geom_ribbon show.legend parameter accepting values of 'NA' or 'FALSE'
+          # Account for geom show.legend parameter accepting values of 'NA' or 'FALSE'
           show_ci_leg <- ifelse(ci_legend == TRUE, NA, FALSE)
 
           # Plot for no group_var
