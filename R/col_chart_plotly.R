@@ -147,204 +147,206 @@
 #'
 #' \dontrun{
 #'
-#' # Example 1: Basic epi curve
+#' # Example 1: Basic column chart
 #'
-#' # Create a basic epi curve using the epiviz::lab_data dataset
+#' # Create a basic column chart using the epiviz::lab_data dataset
 #' library(epiviz)
 #'
-#' basic_epi_curve <- epi_curve(
+#' # Summarise the overall number of detections by region in 2023
+#' detections_by_region_2023 <- lab_data |>
+#'   filter(specimen_date >= as.Date("2023-01-01") & specimen_date <= as.Date("3023-12-31")) |>
+#'   group_by(region) |>
+#'   summarise(detections = n()) |>
+#'   ungroup() |>
+#'   # Place 'Yorkshire and Humber' on multiple lines
+#'   mutate(region = ifelse(region == "Yorkshire and Humber", "Yorkshire and \nHumber", region))
+#'
+#' # Create column chart
+#' basic_col_chart <- col_chart(
 #'   params = list(
-#'     df = lab_data,
-#'     date_var = "specimen_date",
-#'     date_start = "2020-01-01",
-#'     date_end = "2023-12-31",
-#'     time_period = "year_month",
+#'     df = detections_by_region_2023,
+#'     x = "region",
+#'     y = "detections",
 #'     fill_colours = "#007C91",
-#'     rolling_average_line = TRUE,
-#'     rolling_average_line_lookback = 3,
-#'     rolling_average_line_legend_label = "3-month rolling average",
-#'     chart_title = "Laboratory Detections per Month",
-#'     x_axis_title = "Year - Month",
+#'     chart_title = "Laboratory Detections by Region 2023",
+#'     x_axis_title = "Region",
 #'     y_axis_title = "Number of detections",
-#'     x_axis_label_angle = -90
+#'     x_axis_label_angle = -45
 #'   )
 #' )
 #'
-#' basic_epi_curve
+#' basic_col_chart
 #'
 #'
 #'
 #'
-#' # Example 2: Create both static and dynamic epi curves using grouped data
+#' # Example 2: Column chart with bar labels and errorbars
+#'
+#' # Create a basic column chart using the epiviz::lab_data dataset
+#' library(epiviz)
+#'
+#'
+#' # Summarise the overall number of detections by region in 2023
+#' detections_by_region_2023 <- lab_data |>
+#'   filter(specimen_date >= as.Date("2023-01-01") & specimen_date <= as.Date("3023-12-31")) |>
+#'   group_by(region) |>
+#'   summarise(detections = n()) |>
+#'   ungroup() |>
+#'   # Place 'Yorkshire and Humber' on multiple lines
+#'   mutate(region = ifelse(region == "Yorkshire and Humber", "Yorkshire and \nHumber", region)) |>
+#'   # Add random error for errorbars
+#'   rowwise() |>
+#'   mutate(lower_limit = detections - sample(50:200,1),
+#'          upper_limit = detections + sample(50:200,1)) |>
+#'   ungroup()
+#'
+#'
+#' # Create column chart
+#' col_chart <- col_chart(
+#'   params = list(
+#'     df = detections_by_region_2023,
+#'     x = "region",
+#'     y = "detections",
+#'     fill_colours = "#007C91",
+#'     ci = 'errorbar',
+#'     ci_lower = "lower_limit",
+#'     ci_upper = "upper_limit",
+#'     errorbar_width = 0.2,
+#'     bar_labels = 'detections',
+#'     bar_labels_pos = 'bar_base',
+#'     bar_labels_font_size = 12,
+#'     bar_labels_font_colour = 'white',
+#'     chart_title = "Laboratory Detections by Region 2023",
+#'     x_axis_title = "Region",
+#'     y_axis_title = "Number of detections",
+#'     show_gridlines = FALSE
+#'   )
+#' )
+#'
+#' col_chart
+#'
+#'
+#'
+#'
+#' # Example 3: Create both static and dynamic column charts using grouped data
 #'
 #' library(epiviz)
 #'
-#' # Define list of date breaks for x-axis; use every other ISO week in date range
-#' week_seq <- seq(as.Date("2021-01-01"),as.Date("2022-05-31"), by = '2 week')
-#' week_breaks <- paste0(lubridate::isoyear(week_seq),'-W',lubridate::isoweek(week_seq))
+#' # Summarise the overall number of detections by species and region in 2023
+#' detections_by_species_region_2023 <- lab_data |>
+#'   filter(specimen_date >= as.Date("2023-01-01") & specimen_date <= as.Date("3023-12-31")) |>
+#'   group_by(region, organism_species_name) |>
+#'   summarise(detections = n()) |>
+#'   ungroup() |>
+#'   # Place the name for 'Yorkshire and Humber' on multiple lines
+#'   mutate(region = ifelse(region == "Yorkshire and Humber", "Yorkshire and \nHumber", region))
 #'
 #' # Create parameter list
 #' params_list <- list(
-#'   df = lab_data,
-#'   date_var = "specimen_date",
-#'   date_start = "2021-01-01",
-#'   date_end = "2022-05-31",
-#'   time_period = "iso_year_week",
+#'   df = detections_by_species_region_2023,
+#'   x = "region",
+#'   y = "detections",
 #'   group_var = "organism_species_name",
 #'   group_var_barmode = "stack",
 #'   fill_colours = c("KLEBSIELLA PNEUMONIAE" = "#007C91",
 #'                    "STAPHYLOCOCCUS AUREUS" = "#8A1B61",
 #'                    "PSEUDOMONAS AERUGINOSA" = "#FF7F32"),
-#'   rolling_average_line = TRUE,
-#'   rolling_average_line_legend_label = "7-week rolling average",
-#'   chart_title = "Laboratory detections by species \n 2021-01 - 2022-05",
+#'   chart_title = "Laboratory Detections by Region \nand Species 2023",
 #'   chart_footer = "This chart has been created using simulated data.",
-#'   x_axis_title = "Year - ISO Week",
+#'   x_axis_title = "Region",
 #'   y_axis_title = "Number of detections",
-#'   x_axis_label_angle = -90,
-#'   x_axis_break_labels = week_breaks,
-#'   y_axis_break_labels = seq(0, 250, 20),
 #'   chart_title_colour = "#007C91",
-#'   chart_footer_colour = "#007C91"
+#'   chart_footer_colour = "#007C91",
+#'   show_gridlines = FALSE
 #' )
 #'
-#' # Create static epi curve
-#' static_curve <- epi_curve(params = params_list, dynamic = FALSE)
+#' # Create static column chart
+#' static_chart <- col_chart(params = params_list, dynamic = FALSE)
 #'
 #' # Create dynamic epi curve
-#' dynamic_curve <- epi_curve(params = params_list, dynamic = TRUE)
+#' dynamic_chart <- col_chart(params = params_list, dynamic = TRUE)
 #'
 #' # View both simultaneously using shiny app
 #' library(shiny)
 #' library(plotly)
 #' ui <- fluidPage(
-#'   plotOutput('static_curve'),
-#'   plotlyOutput('dynamic_curve')
+#'   plotOutput('static_chart'),
+#'   plotlyOutput('dynamic_chart')
 #' )
 #' server <- function(input, output, session) {
-#'   output$static_curve <- renderPlot(static_curve)
-#'   output$dynamic_curve <- renderPlotly(dynamic_curve)
+#'   output$static_chart <- renderPlot(static_chart)
+#'   output$dynamic_chart <- renderPlotly(dynamic_chart)
 #' }
 #' shinyApp(ui, server)
 #'
 #'
 #'
 #'
-#' # Example 3: Create static and dynamic curves using grouped data, include cumulative
-#' # sum line and boxes around each case
+#' # Example 4: Create both static and dynamic column charts using grouped data; apply
+#' #              bar labels and present as horizontal column chart.
 #'
 #' library(epiviz)
 #'
+#' # Summarise the overall number of detections by species and region in 2023
+#' detections_by_species_region_2023 <- lab_data |>
+#'   filter(specimen_date >= as.Date("2023-01-01") & specimen_date <= as.Date("3023-12-31")) |>
+#'   group_by(region, organism_species_name) |>
+#'   summarise(detections = n()) |>
+#'   ungroup() |>
+#'   # Place the name for 'Yorkshire and Humber' on multiple lines
+#'   mutate(region = ifelse(region == "Yorkshire and Humber", "Yorkshire and \nHumber", region))
+#'
+#'
+#' # Reorder dataframe so that regions with the largest total number of detections will
+#' #    appear at the top.
+#' detections_by_species_region_2023 <- detections_by_species_region_2023 |>
+#'   group_by(region) |>
+#'   mutate(group_detections = sum(detections)) |>
+#'   ungroup() |>
+#'   arrange(group_detections) |>
+#'   mutate(region = factor(region, levels = unique(region)))
+#'
+#'
 #' # Create parameter list
-#' params_cases <- list(
-#'   df = lab_data,
-#'   date_var = "specimen_date",
-#'   date_start = "2021-06-01",
-#'   date_end = "2021-07-31",
-#'   time_period = "day",
+#' params_list <- list(
+#'   df = detections_by_species_region_2023,
+#'   x = "region",
+#'   y = "detections",
 #'   group_var = "organism_species_name",
 #'   group_var_barmode = "stack",
-#'   fill_colours = c("#007C91","#8A1B61","#FF7F32"),
-#'   case_boxes = TRUE,
-#'   rolling_average_line = TRUE,
-#'   rolling_average_line_legend_label = "7-day rolling average",
-#'   cumulative_sum_line = TRUE,
-#'   chart_title = "Laboratory detections by species \n June - July 2021",
-#'   chart_title_colour = "#007C91",
-#'   hline = c(35),
-#'   hline_label = "Threshold",
-#'   hline_width = 0.5,
-#'   hline_colour = "orange",
-#'   hline_label_colour = "orange",
-#'   hline_type = "dotdash",
-#'   legend_title = "Detected organisms",
-#'   legend_pos = "right",
-#'   y_limit_max = 40,
-#'   x_axis_break_labels = as.character(seq(as.Date("2021-06-01"),
-#'                                          as.Date("2021-07-31"),
-#'                                          by = '2 days')),
-#'   y_axis_break_labels = seq(0, 40, 5),
-#'   x_axis_title = "Date",
+#'   fill_colours = c("KLEBSIELLA PNEUMONIAE" = "#007C91",
+#'                    "STAPHYLOCOCCUS AUREUS" = "#8A1B61",
+#'                    "PSEUDOMONAS AERUGINOSA" = "#FF7F32"),
+#'   bar_labels = 'detections',
+#'   bar_labels_pos = 'bar_centre',
+#'   bar_labels_font_size = 8,
+#'   bar_labels_font_colour = 'white',
+#'   chart_title = "Laboratory Detections by Region \nand Species 2023",
+#'   chart_footer = "This chart has been created using simulated data.",
+#'   x_axis_title = "Region",
 #'   y_axis_title = "Number of detections",
-#'   x_axis_label_angle = -90,
-#'   y_axis_label_angle = 90
+#'   chart_title_colour = "#007C91",
+#'   chart_footer_colour = "#007C91",
+#'   show_gridlines = FALSE,
+#'   axis_flip = TRUE  # Create horizontal chart using the axis_flip parameter
 #' )
 #'
 #'
-#' # Create static and dynamic curves
-#' static_curve <- epi_curve(params = params_cases, dynamic = FALSE)
-#' dynamic_curve <- epi_curve(params = params_cases, dynamic = TRUE)
+#' # Create static and dynamic column charts
+#' static_chart <- col_chart(params = params_list, dynamic = FALSE)
+#' dynamic_chart <- col_chart(params = params_list, dynamic = TRUE)
+#'
 #'
 #' # View both simultaneously using shiny app
 #' library(shiny)
 #' library(plotly)
 #' ui <- fluidPage(
-#'   plotOutput('static_curve'),
-#'   plotlyOutput('dynamic_curve')
+#'   plotOutput('static_chart'),
+#'   plotlyOutput('dynamic_chart')
 #' )
 #' server <- function(input, output, session) {
-#'   output$static_curve <- renderPlot(static_curve)
-#'   output$dynamic_curve <- renderPlotly(dynamic_curve)
-#' }
-#' shinyApp(ui, server)
-#'
-#'
-#'
-#'
-#' # Example 4: Create static and dynamic curves using pre-aggregated data
-#'
-#' library(epiviz)
-#'
-#' # Define a dataframe containing the number of detections by region
-#' regional_detections <- lab_data |>
-#'   group_by(specimen_date, region) |>
-#'   summarise(detections = n()) |>
-#'   ungroup()
-#'
-#'
-#' # Create parameter list
-#' params_regions <- list(
-#'   df = regional_detections,
-#'   y = "detections",
-#'   date_var = "specimen_date",
-#'   date_start = "2021-10-01",
-#'   date_end = "2022-03-31",
-#'   time_period = "iso_year_week",
-#'   group_var = "region",
-#'   group_var_barmode = "stack",
-#'   rolling_average_line = TRUE,
-#'   rolling_average_line_lookback = 3,
-#'   rolling_average_line_legend_label = "3-week rolling average",
-#'   rolling_average_line_colour = "#007C91",
-#'   rolling_average_line_width = 1.5,
-#'   cumulative_sum_line = TRUE,
-#'   cumulative_sum_line_colour = "orange",
-#'   chart_title = "Laboratory Detections by Region \nWinter 2021-22",
-#'   chart_title_colour = "#007C91",
-#'   legend_title = "Region",
-#'   legend_pos = "right",
-#'   y_axis_break_labels = seq(0, 300, 50),
-#'   x_axis_title = "ISO Week",
-#'   y_axis_title = "Number of detections",
-#'   x_axis_label_angle = -90,
-#'   hover_labels = "<b>Week:</b> %{x}<br><b>Count:</b> %{y}"
-#' )
-#'
-#'
-#' # Create static and dynamic curves
-#' static_curve <- epi_curve(params = params_regions, dynamic = FALSE)
-#' dynamic_curve <- epi_curve(params = params_regions, dynamic = TRUE)
-#'
-#' # View both simultaneously using shiny app
-#' library(shiny)
-#' library(plotly)
-#' ui <- fluidPage(
-#'   plotOutput('static_curve'),
-#'   plotlyOutput('dynamic_curve')
-#' )
-#' server <- function(input, output, session) {
-#'   output$static_curve <- renderPlot(static_curve)
-#'   output$dynamic_curve <- renderPlotly(dynamic_curve)
+#'   output$static_chart <- renderPlot(static_chart)
+#'   output$dynamic_chart <- renderPlotly(dynamic_chart)
 #' }
 #' shinyApp(ui, server)
 #'
@@ -548,6 +550,11 @@ col_chart <- function(
            the number of unique groups in group_var")
   }
 
+  # Check bar_labels_pos valid
+  if ((params$bar_labels_pos == 'above_errorbar') & (!exists('ci', where=params))) {
+    stop("If bar_labels_pos = 'above_errorbar' then ci must equal 'errorbar'")
+  }
+
   # Warn that multiple colours have been provided but group_var absent
   if (length(params$fill_colours) >1 & !exists('group_var',where=params))
     warning("Multiple fill_colours have been provided but group_var is absent")
@@ -556,6 +563,12 @@ col_chart <- function(
   if (exists('ci',where=params)) {
     if (params$ci == 'ribbon')
       warning("ci = \"ribbon\" is not accepted for col_chart()")
+  }
+
+  # Warn that ci_upper or ci_lower has been provided but ci has not.
+  if (!exists('ci',where=params)) {
+    if (exists('ci_lower',where=params) | exists('ci_upper',where=params))
+      warning("ci_lower / ci_upper have been provided but ci = NULL")
   }
 
 
@@ -1044,8 +1057,8 @@ col_chart <- function(
 
         # Define ynudge for non-right-angles to match with plotly
         ylength <- if (!is.na(ylim[2])) {ylim[2]} else {ggplot_build(base)$layout$panel_params[[1]]$y.range[2]}
-        #ynudge <- if(-bar_labels_angle %in% c(0,90,180,270,360)) {0} else {ylength * 0.02} # 2% of y-axis length, matches vjust distance
-        ynudge <- ylength * 0.02
+        ynudge <- if(abs(bar_labels_angle) %in% c(0,90,180,270,360)) {0} else {ylength * 0.02} # 2% of y-axis length, matches vjust distance
+        #ynudge <- ylength * 0.02
 
         # Define vjust and hjust
         #   - Keep as 0.5/0.5 (i.e. centre/centre) except when using a right angle, then other
@@ -1061,7 +1074,8 @@ col_chart <- function(
           h <- 0.5
         } else if (-bar_labels_angle == 270) {
           v <- 0.5
-          h <- -0.3
+          #h <- -0.3
+          h <- 0
         } else {
           v <- 0.5
           h <- 0.5
@@ -1087,6 +1101,10 @@ col_chart <- function(
           } else if (bar_labels_pos == 'bar_centre') {
             x_labpos <- df[[x]]
             y_labpos <- df[[y]] / 2
+              # Redfine ynudge, vjust, and hjust to centre text for bar_centre
+              ynudge <- 0
+              v <- 0.5
+              h <- 0.5
           } else if (bar_labels_pos == 'above_errorbar') {
             x_labpos <- df[[x]]
             y_labpos <- df[[ci_upper]]
@@ -1120,9 +1138,14 @@ col_chart <- function(
             arrange(.data[[x]], desc(.data[[group_var]])) |>
             mutate(cumul = cumsum(.data[[y]]),                        # cumulative position of top of each bar
                    cumul_bar_base = cumul - .data[[y]],               # cumulative position of bottom of each bar
-                   cumul_bar_centre = cumul - (.data[[y]]/2),         # cumulative position of centre of each bar
-                   ci_upper_diff = .data[[ci_upper]] - .data[[y]],    # define upper-ci-limit to y-value difference to use in above_errorbar label pos
-                   cumul_above_errorbar = cumul + ci_upper_diff)      # cumulative position above each errorbar
+                   cumul_bar_centre = cumul - (.data[[y]]/2))         # cumulative position of centre of each bar
+
+          # Calculate positions for above_errorbar; needs ci_upper defined
+          if(!is.null(ci_upper)) {
+            df_labels <- df_labels |>
+              mutate(ci_upper_diff = .data[[ci_upper]] - .data[[y]],    # define upper-ci-limit to y-value difference to use in above_errorbar label pos
+                     cumul_above_errorbar = cumul + ci_upper_diff)      # cumulative position above each errorbar
+          }
 
           # Define plot label positions depending on bar_labels_pos choice
           if(bar_labels_pos == 'bar_above') {
@@ -1748,10 +1771,14 @@ col_chart <- function(
           arrange(.data[[x]], desc(.data[[group_var]])) |>
           mutate(cumul = cumsum(.data[[y]]),                        # cumulative position of top of each bar
                  cumul_bar_base = cumul - .data[[y]],               # cumulative position of bottom of each bar
-                 cumul_bar_centre = cumul - (.data[[y]]/2),         # cumulative position of centre of each bar
-                 ci_upper_diff = .data[[ci_upper]] - .data[[y]],    # define upper-ci-limit to y-value difference to use in above_errorbar label pos
-                 cumul_above_errorbar = cumul + ci_upper_diff)      # cumulative position above each errorbar
+                 cumul_bar_centre = cumul - (.data[[y]]/2))         # cumulative position above each errorbar
 
+        # Calculate positions for above_errorbar; needs ci_upper defined
+        if(!is.null(ci_upper)) {
+          df_labels <- df_labels |>
+            mutate(ci_upper_diff = .data[[ci_upper]] - .data[[y]],    # define upper-ci-limit to y-value difference to use in above_errorbar label pos
+                   cumul_above_errorbar = cumul + ci_upper_diff)      # cumulative position above each errorbar
+        }
 
         # x-axis position of labels for grouped/dodged plots must be manually offset;
         #    offset is dependent on number of unique groups and x-axis resolution (calculated

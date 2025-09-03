@@ -69,7 +69,8 @@ base_plotly <- function() {
     # Replace R linebreaks with html linebreaks for plotly
     if (!is.null(chart_title)) {chart_title <- gsub("\\n","<br>",chart_title)}
     if (!is.null(chart_footer)) {chart_footer <- gsub("\\n","<br>",chart_footer)}
-
+    #if (is.character(x)) {x <- gsub("\\n","<br>",x)} # for axis tick labels
+    #if (is.character(y)) {x <- gsub("\\n","<br>",y)} # for axis tick labels
 
     # Add title
     if (!is.null(chart_title)) {
