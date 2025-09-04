@@ -154,7 +154,7 @@
 #'
 #' # Summarise the overall number of detections by region in 2023
 #' detections_by_region_2023 <- lab_data |>
-#'   filter(specimen_date >= as.Date("2023-01-01") & specimen_date <= as.Date("3023-12-31")) |>
+#'   filter(specimen_date >= as.Date("2023-01-01") & specimen_date <= as.Date("2023-12-31")) |>
 #'   group_by(region) |>
 #'   summarise(detections = n()) |>
 #'   ungroup() |>
@@ -180,7 +180,7 @@
 #'
 #'
 #'
-#' # Example 2: Column chart with bar labels and errorbars
+#' # Example 2: Column chart with bar labels, errorbars, and a horizontal threshold line
 #'
 #' # Create a basic column chart using the epiviz::lab_data dataset
 #' library(epiviz)
@@ -188,7 +188,7 @@
 #'
 #' # Summarise the overall number of detections by region in 2023
 #' detections_by_region_2023 <- lab_data |>
-#'   filter(specimen_date >= as.Date("2023-01-01") & specimen_date <= as.Date("3023-12-31")) |>
+#'   filter(specimen_date >= as.Date("2023-01-01") & specimen_date <= as.Date("2023-12-31")) |>
 #'   group_by(region) |>
 #'   summarise(detections = n()) |>
 #'   ungroup() |>
@@ -219,7 +219,11 @@
 #'     chart_title = "Laboratory Detections by Region 2023",
 #'     x_axis_title = "Region",
 #'     y_axis_title = "Number of detections",
-#'     show_gridlines = FALSE
+#'     show_gridlines = FALSE,
+#'     hline = 1200,
+#'     hline_colour = 'orange',
+#'     hline_label = 'Threshold',
+#'     hline_label_colour = 'orange'
 #'   )
 #' )
 #'
@@ -234,7 +238,7 @@
 #'
 #' # Summarise the overall number of detections by species and region in 2023
 #' detections_by_species_region_2023 <- lab_data |>
-#'   filter(specimen_date >= as.Date("2023-01-01") & specimen_date <= as.Date("3023-12-31")) |>
+#'   filter(specimen_date >= as.Date("2023-01-01") & specimen_date <= as.Date("2023-12-31")) |>
 #'   group_by(region, organism_species_name) |>
 #'   summarise(detections = n()) |>
 #'   ungroup() |>
@@ -289,7 +293,7 @@
 #'
 #' # Summarise the overall number of detections by species and region in 2023
 #' detections_by_species_region_2023 <- lab_data |>
-#'   filter(specimen_date >= as.Date("2023-01-01") & specimen_date <= as.Date("3023-12-31")) |>
+#'   filter(specimen_date >= as.Date("2023-01-01") & specimen_date <= as.Date("2023-12-31")) |>
 #'   group_by(region, organism_species_name) |>
 #'   summarise(detections = n()) |>
 #'   ungroup() |>
@@ -1309,6 +1313,11 @@ col_chart <- function(
     y_max <- ggplot_build(ggobj)$layout$panel_params[[1]]$y.range[2]
     # Harvest ggplot x-axis resolution to use as offset for dodged errorbars, and bar labels
     errorbar_offset <- resolution(as.numeric(df[[x]]))*0.9
+#
+#     if (is.character(df[[x]])) {
+#       n_cats <- length(unique(df[[x]]))
+#       errorbar_offset <- 1 / n_cats * 0.9
+#     }
 
 
     # # Handle dates converting to numeric when extracted from ggplot axis range
@@ -1426,6 +1435,17 @@ col_chart <- function(
 
     ##### Build col_chart
 
+    # Convert x-axis to numeric factor if using grouped bars and x is a categorical variable
+    #    -Necessary as we need to add a separate trace for the errorbars which need their
+    #     positions manually calculated for grouped bar charts. These positions are numeric
+    #     and thus can't be plotted over a categorical axis. Thus convert x to a numeric factor
+    #     so that the x-axis is numeric, and preserve the levels to use as axis labels.
+    if (group_var_barmode == 'group' & is.factor(df[[x]])) {
+      x_levels <- levels(df[[x]]) # preserve levels to use as axis ticks
+      df[[x]] <- as.numeric(factor(df[[x]]))-1  # -1 to shunt bars down 1 position to start at 0
+    }
+
+
     if (case_boxes == FALSE) {
 
       # Add bar plot without boxes around each case
@@ -1446,6 +1466,7 @@ col_chart <- function(
           ),
           text = if(is.null(ci)) {''} else {paste0('<br><i>Upper: ',df[[ci_upper]],'</i>',   # leverage 'text' parameter in add_trace to pass additional info to hoverlabels
                                                    '<br><i>Lower: ',df[[ci_lower]],'</i>')},
+          textposition = "none", # prevents text from being printed on plot
           hovertemplate = hoverlabels,
           #legendgroup = 'bars',
           orientation = if(axis_flip == TRUE) {'h'} else {'v'}, #set orientation to horizontal if axis_flip = TRUE
@@ -1483,6 +1504,7 @@ col_chart <- function(
           ),
           text = if(is.null(ci)) {''} else {paste0('<br><i>Upper: ',df_case_boxes[[ci_upper]],'</i>',   # leverage 'text' parameter in add_trace to pass additional info to hoverlabels
                                                    '<br><i>Lower: ',df_case_boxes[[ci_lower]],'</i>')},
+          textposition = "none", # prevents text from being printed on plot
           customdata = df_case_boxes[[y]], # for hoverlabels
           hovertemplate = hoverlabels,
           #legendgroup = 'bars',
@@ -1592,7 +1614,9 @@ col_chart <- function(
             arrange(.data[[x]], desc(.data[[group_var]])) |>
             mutate(cumul = cumsum(.data[[y]]),
                    lower_lim_stacked = cumul - (.data[[y]] - .data[[ci_lower]]),
-                   upper_lim_stacked = cumul + (.data[[ci_upper]] - .data[[y]]))
+                   upper_lim_stacked = cumul + (.data[[ci_upper]] - .data[[y]])) |>
+            ungroup()
+
 
 
           # x-axis position of errorbars for grouped/dodged plots must be manually offset;
@@ -1600,8 +1624,14 @@ col_chart <- function(
           #    from ggobj above = errorbar_offset)
           offset_multiplier <- seq(length(unique_groups)) - ceiling(length(unique_groups)/2) # generate vector of integars to multiply the base offset by
           if(length(unique_groups) %%2 != 0) {offset_multiplier - 0.5}                       # if the number of groups is odd, offset the multiplier by 0.5 as one of the bars will be in the middle (for even numbers, the middle will be between the 2 central bars)
-          offset_multiplier <- offset_multiplier * 0.9                                       # multiply this offset by 0.9 to match the ggplot defaults
-          x_offset <- offset_multiplier * (errorbar_offset/length(unique_groups))            # divide the x-axis resolution by the number of groups and multiply this by the multiplier to get the actual x-values of each bar
+          # Character x-axis offset needs to be treated differently to numeric offset
+          if(is.factor(df_errbar[[x]]) | is.character(df_errbar[[x]])) {
+            offset_multiplier <- offset_multiplier * 0.8                                     # multiply this offset by 0.8 to match the ggplot defaults
+            x_offset <- offset_multiplier * (1/length(unique_groups))                        # divide multiplier by the number of groups and multiply this by the multiplier to get the actual x-values of each bar (recycle errorbar_offset variable as it's doing the same job here but for label positions)
+          } else {
+            offset_multiplier <- offset_multiplier * 0.9                                     # multiply this offset by 0.9 to match the ggplot defaults
+            x_offset <- offset_multiplier * (errorbar_offset/length(unique_groups))          # divide the x-axis resolution by the number of groups and multiply this by the multiplier to get the actual x-values of each bar (recycle errorbar_offset variable as it's doing the same job here but for label positions)
+          }
           if(is.Date(df[[x]]) | is.POSIXct(df[[x]])) {                                                             # if x is a date then plotly will shunt the errorbars to the beginning of the nearest whole day (i.e. not in the middle of the barchart bars) so convert axis to time axis if this is the case
             df[[x]] <- as.POSIXct(df[[x]])
             x_offset <- x_offset * 24*60*60   # unit value for time is seconds rather than days as for date, so convert
@@ -1618,11 +1648,27 @@ col_chart <- function(
             # Plotly error bars require upper and lower error divergence rather
             #   than values, so create df for each group and calculate
             if(group_var_barmode == "group") {
-              df_group <- df |>
+
+              # For character axis bar position is an integer along the x-axis, calculate these in order to apply offset to
+              if(is.factor(df_errbar[[x]]) | is.character(df_errbar[[x]])) {
+                x_bar_order_lookup <- data.frame(x = levels(df_errbar[[x]])) |> mutate(bar_order = row_number()-1)
+              }
+
+              df_group <- df_errbar |>
                 filter(get(group_var) == unique_groups[i]) |>
                 mutate(diff_ci_lower = get(y) - get(ci_lower),
-                       diff_ci_upper = get(ci_upper) - get(y)) |>
-                mutate(x_grouped = get(x) + x_offset[i]) # offset x values for grouped bars
+                       diff_ci_upper = get(ci_upper) - get(y))
+
+
+              # Offset x values for grouped bars
+              # Character x-axis offset needs to be treated differently to numeric offset
+              if(is.factor(df_group[[x]]) | is.character(df_group[[x]])) {
+                df_group <- df_group |> left_join(x_bar_order_lookup, join_by(!!rlang::sym(x) == 'x')) |>
+                  mutate(x_grouped = as.numeric(bar_order) + x_offset[i])
+              } else {
+                df_group <- df_group |> mutate(x_grouped = get(x) + x_offset[i])
+              }
+
 
             } else if(group_var_barmode == "stack") {
               # Use stack values when group_var_barmode == "stack"
@@ -1672,6 +1718,16 @@ col_chart <- function(
                   visible = if (axis_flip == TRUE) {T} else {F}
                 )
               )
+
+            # Manually re-add labels for categorical x-values converted to numeric factors
+            if(exists('x_levels')) {
+              base <- base |>
+                layout(xaxis = list(
+                  tickvals = unique(df_errbar[[x]]),
+                  ticktext = x_levels
+                ))
+
+            }
 
 
           }
@@ -1771,7 +1827,8 @@ col_chart <- function(
           arrange(.data[[x]], desc(.data[[group_var]])) |>
           mutate(cumul = cumsum(.data[[y]]),                        # cumulative position of top of each bar
                  cumul_bar_base = cumul - .data[[y]],               # cumulative position of bottom of each bar
-                 cumul_bar_centre = cumul - (.data[[y]]/2))         # cumulative position above each errorbar
+                 cumul_bar_centre = cumul - (.data[[y]]/2)) |>         # cumulative position above each errorbar
+          ungroup()
 
         # Calculate positions for above_errorbar; needs ci_upper defined
         if(!is.null(ci_upper)) {
@@ -1786,19 +1843,38 @@ col_chart <- function(
         unique_groups <- unique(df_labels[[group_var]])                                    # get number of unique groups
         offset_multiplier <- seq(length(unique_groups)) - ceiling(length(unique_groups)/2) # generate vector of integars to multiply the base offset by
         if(length(unique_groups) %%2 != 0) {offset_multiplier - 0.5}                       # if the number of groups is odd, offset the multiplier by 0.5 as one of the bars will be in the middle (for even numbers, the middle will be between the 2 central bars)
-        offset_multiplier <- offset_multiplier * 0.9                                       # multiply this offset by 0.9 to match the ggplot defaults
-        x_offset <- offset_multiplier * (errorbar_offset/length(unique_groups))            # divide the x-axis resolution by the number of groups and multiply this by the multiplier to get the actual x-values of each bar (recycle errorbar_offset variable as it's doing the same job here but for label positions)
+        # Character x-axis offset needs to be treated differently to numeric offset
+        if(is.factor(df_labels[[x]]) | is.character(df_labels[[x]])) {
+          offset_multiplier <- offset_multiplier * 0.8                                     # multiply this offset by 0.8 to match the ggplot defaults
+          x_offset <- offset_multiplier * (1/length(unique_groups))                        # divide multiplier by the number of groups and multiply this by the multiplier to get the actual x-values of each bar (recycle errorbar_offset variable as it's doing the same job here but for label positions)
+        } else {
+          offset_multiplier <- offset_multiplier * 0.9                                       # multiply this offset by 0.9 to match the ggplot defaults
+          x_offset <- offset_multiplier * (errorbar_offset/length(unique_groups))            # divide the x-axis resolution by the number of groups and multiply this by the multiplier to get the actual x-values of each bar (recycle errorbar_offset variable as it's doing the same job here but for label positions)
+        }
         if(is.Date(df_labels[[x]]) | is.POSIXct(df_labels[[x]])) {                                                      # if x is a date then plotly will shunt the errorbars to the beginning of the nearest whole day (i.e. not in the middle of the barchart bars) so convert axis to time axis if this is the case
           df_labels[[x]] <- as.POSIXct(df_labels[[x]])
           x_offset <- x_offset * 24*60*60   # unit value for time is seconds rather than days as for date, so convert
         }
+
         # Create lookup table to link the offset values back to the main dataframe
         x_offset_lookup <- data.frame(x_offset = x_offset, group = levels(unique_groups))
 
-        # Join df and lookup table to create offset x values for plotting
-        df_labels <- left_join(df_labels, x_offset_lookup, join_by(!!rlang::sym(group_var) == 'group')) |>
-          mutate(x_grouped = get(x) + x_offset)
+        # For character axis bar position is an integar along the x-axis, calculate these in order to apply offset to
+        if(is.factor(df_labels[[x]]) | is.character(df_labels[[x]])) {
+          x_bar_order_lookup <- data.frame(x = levels(df_labels[[x]])) |> mutate(bar_order = row_number()-1)
+        }
 
+        # Join df and lookup table to create offset x values for plotting
+        if(group_var_barmode == "group") {
+          df_labels <- left_join(df_labels, x_offset_lookup, join_by(!!rlang::sym(group_var) == 'group')) |>
+            left_join(x_bar_order_lookup, join_by(!!rlang::sym(x) == 'x'))
+            # Character x-axis offset needs to be treated differently to numeric offset
+            if(is.factor(df_labels[[x]]) | is.character(df_labels[[x]])) {
+              df_labels <- df_labels |> mutate(x_grouped = as.numeric(bar_order) + x_offset)
+            } else {
+              df_labels <- df_labels |> mutate(x_grouped = get(x) + x_offset)
+            }
+        }
         #if(axis_flip == TRUE) {swap_object_names('x', 'y')}  # flip axis variables back after calculation
 
 
