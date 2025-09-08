@@ -1403,11 +1403,17 @@ col_chart <- function(
     # Define defaults if user does not define hover_labels
     if (is.null(hover_labels)) {
 
-      # Define total to display depending upon whether case boxes are enabled
-      hover_n <- if (case_boxes == FALSE) {'{y}'} else {'{customdata}'}
+      # Define title / total to display depending upon whether case boxes are enabled and axes are flipped
+      if (axis_flip == FALSE) {
+        hover_title <- '{x}'
+        hover_n <- if (case_boxes == FALSE) {'{y}'} else {'{customdata}'}
+      } else {
+        hover_title <- '{y}'
+        hover_n <- if (case_boxes == FALSE) {'{x}'} else {'{customdata}'}
+      }
 
       # Define hover label text
-      hoverlabels <- paste0('<b>%{x}</b>',
+      hoverlabels <- paste0('<b>%',hover_title,'</b>',
                             '<br>%',hover_n)
 
       # Add upper and lower limits to label if ci is defined
@@ -1440,15 +1446,18 @@ col_chart <- function(
     #     positions manually calculated for grouped bar charts. These positions are numeric
     #     and thus can't be plotted over a categorical axis. Thus convert x to a numeric factor
     #     so that the x-axis is numeric, and preserve the levels to use as axis labels.
-    if (group_var_barmode == 'group' & is.factor(df[[x]])) {
-      x_levels <- levels(df[[x]]) # preserve levels to use as axis ticks
-      df[[x]] <- as.numeric(factor(df[[x]]))-1  # -1 to shunt bars down 1 position to start at 0
-    }
+    if (axis_flip == TRUE) {swap_object_names('x', 'y')} # temp swap names back for calc
+      if (group_var_barmode == 'group' & is.factor(df[[x]]) & !is.null(group_var)) {
+        x_levels <- levels(df[[x]]) # preserve levels to use as axis ticks
+        df <- df |> mutate(x_orig = get(x)) # preserve original x column in df
+        df[[x]] <- as.numeric(factor(df[[x]]))-1  # -1 to shunt bars down 1 position to start at 0
+      }
+    if (axis_flip == TRUE) {swap_object_names('x', 'y')} # swap back
 
 
+    # Add bar plot without boxes around each case
     if (case_boxes == FALSE) {
 
-      # Add bar plot without boxes around each case
       base <- base |>
         add_trace(
           df,
@@ -1478,8 +1487,14 @@ col_chart <- function(
       # Add bar plot with boxes around each case
     } else if (case_boxes == TRUE) {
 
+      # Temporarily swap back axis names for uncount()
+      if(axis_flip == TRUE) {swap_object_names('x', 'y')}
+
       # Uncount data to get one row per case for one box per case.
       df_case_boxes <- df |> uncount(get(y)) |> mutate(box = 1)
+
+        # Swap them back
+        if(axis_flip == TRUE) {swap_object_names('x', 'y')}
 
       # Re-define colour_field parameter for bar plot
       #    Note:- Stacked bar colours need reversing to match with ggplot output
@@ -1493,8 +1508,8 @@ col_chart <- function(
       base <- base |>
         add_trace(
           df_case_boxes,
-          x = ~ df_case_boxes[[x]],
-          y = ~ df_case_boxes$box,
+          x = ~ if(axis_flip == FALSE) {df_case_boxes[[x]]} else {df_case_boxes$box},
+          y = ~ if(axis_flip == FALSE) {df_case_boxes$box} else {df_case_boxes[[y]]},
           type = 'bar',
           color = ~ colour_field, #df$fill_colour,
           colors = colormap,
@@ -1505,7 +1520,7 @@ col_chart <- function(
           text = if(is.null(ci)) {''} else {paste0('<br><i>Upper: ',df_case_boxes[[ci_upper]],'</i>',   # leverage 'text' parameter in add_trace to pass additional info to hoverlabels
                                                    '<br><i>Lower: ',df_case_boxes[[ci_lower]],'</i>')},
           textposition = "none", # prevents text from being printed on plot
-          customdata = df_case_boxes[[y]], # for hoverlabels
+          customdata = if(axis_flip == FALSE) {df_case_boxes[[y]]} else {df_case_boxes[[x]]}, # for hoverlabels
           hovertemplate = hoverlabels,
           #legendgroup = 'bars',
           orientation = if(axis_flip == TRUE) {'h'} else {'v'}, #set orientation to horizontal if axis_flip = TRUE
@@ -1516,6 +1531,21 @@ col_chart <- function(
     }
 
 
+    # Manually re-add labels for categorical x-values converted to numeric factors
+    if(exists('x_levels')) {
+      if(axis_flip == FALSE) {
+        base <- base |>
+          layout(xaxis = list(
+            tickvals = unique(df[[x]]),
+            ticktext = x_levels))
+      } else {
+        base <- base |>
+          layout(yaxis = list(
+            tickvals = unique(df[[y]]),
+            ticktext = x_levels))
+      }
+
+    }
 
 
 
@@ -1650,7 +1680,7 @@ col_chart <- function(
             if(group_var_barmode == "group") {
 
               # For character axis bar position is an integer along the x-axis, calculate these in order to apply offset to
-              if(is.factor(df_errbar[[x]]) | is.character(df_errbar[[x]])) {
+              if(exists('x_levels')) {
                 x_bar_order_lookup <- data.frame(x = levels(df_errbar[[x]])) |> mutate(bar_order = row_number()-1)
               }
 
@@ -1719,15 +1749,14 @@ col_chart <- function(
                 )
               )
 
-            # Manually re-add labels for categorical x-values converted to numeric factors
-            if(exists('x_levels')) {
-              base <- base |>
-                layout(xaxis = list(
-                  tickvals = unique(df_errbar[[x]]),
-                  ticktext = x_levels
-                ))
-
-            }
+            # # Manually re-add labels for categorical x-values converted to numeric factors
+            # if(exists('x_levels')) {
+            #   base <- base |>
+            #     layout(xaxis = list(
+            #       tickvals = unique(df_errbar[[x]]),
+            #       ticktext = x_levels
+            #     ))
+            # }
 
 
           }
@@ -1859,18 +1888,19 @@ col_chart <- function(
         # Create lookup table to link the offset values back to the main dataframe
         x_offset_lookup <- data.frame(x_offset = x_offset, group = levels(unique_groups))
 
-        # For character axis bar position is an integar along the x-axis, calculate these in order to apply offset to
-        if(is.factor(df_labels[[x]]) | is.character(df_labels[[x]])) {
-          x_bar_order_lookup <- data.frame(x = levels(df_labels[[x]])) |> mutate(bar_order = row_number()-1)
+        # For character axis bar position is an integer along the x-axis, calculate these in order to apply offset to
+        if(exists('x_levels')) {
+          x_bar_order_lookup <- data.frame(x = x_levels) |> mutate(bar_order = row_number()-1)
         }
+
 
         # Join df and lookup table to create offset x values for plotting
         if(group_var_barmode == "group") {
-          df_labels <- left_join(df_labels, x_offset_lookup, join_by(!!rlang::sym(group_var) == 'group')) |>
-            left_join(x_bar_order_lookup, join_by(!!rlang::sym(x) == 'x'))
+          df_labels <- left_join(df_labels, x_offset_lookup, join_by(!!rlang::sym(group_var) == 'group')) #|>
             # Character x-axis offset needs to be treated differently to numeric offset
-            if(is.factor(df_labels[[x]]) | is.character(df_labels[[x]])) {
-              df_labels <- df_labels |> mutate(x_grouped = as.numeric(bar_order) + x_offset)
+            if(exists('x_levels')) { # If x_levels exists then x is a factor/character
+              df_labels <- left_join(df_labels, x_bar_order_lookup, join_by('x_orig' == 'x')) |>  # join with preserved x-values
+                mutate(x_grouped = as.numeric(bar_order) + x_offset)
             } else {
               df_labels <- df_labels |> mutate(x_grouped = get(x) + x_offset)
             }
@@ -1925,6 +1955,15 @@ col_chart <- function(
                                     color = bar_labels_font_colour),
                           yanchor = y_anchor,
                           showarrow = FALSE)
+
+        # # Manually re-add labels for categorical x-values converted to numeric factors
+        # if(exists('x_levels')) {
+        #   base <- base |>
+        #     layout(xaxis = list(
+        #       tickvals = unique(df_labels[[x]]),
+        #       ticktext = x_levels
+        #     ))
+        # }
 
 
       }
