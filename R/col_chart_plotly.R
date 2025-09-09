@@ -1648,7 +1648,6 @@ col_chart <- function(
             ungroup()
 
 
-
           # x-axis position of errorbars for grouped/dodged plots must be manually offset;
           #    offset is dependent on number of unique groups and x-axis resolution (calculated
           #    from ggobj above = errorbar_offset)
@@ -1662,8 +1661,8 @@ col_chart <- function(
             offset_multiplier <- offset_multiplier * 0.9                                     # multiply this offset by 0.9 to match the ggplot defaults
             x_offset <- offset_multiplier * (errorbar_offset/length(unique_groups))          # divide the x-axis resolution by the number of groups and multiply this by the multiplier to get the actual x-values of each bar (recycle errorbar_offset variable as it's doing the same job here but for label positions)
           }
-          if(is.Date(df[[x]]) | is.POSIXct(df[[x]])) {                                                             # if x is a date then plotly will shunt the errorbars to the beginning of the nearest whole day (i.e. not in the middle of the barchart bars) so convert axis to time axis if this is the case
-            df[[x]] <- as.POSIXct(df[[x]])
+          if(is.Date(df_errbar[[x]]) | is.POSIXct(df_errbar[[x]])) {                         # if x is a date then plotly will shunt the errorbars to the beginning of the nearest whole day (i.e. not in the middle of the barchart bars) so convert axis to time axis if this is the case
+            df_errbar[[x]] <- as.POSIXct(df_errbar[[x]])
             x_offset <- x_offset * 24*60*60   # unit value for time is seconds rather than days as for date, so convert
           }
 
@@ -1681,7 +1680,7 @@ col_chart <- function(
 
               # For character axis bar position is an integer along the x-axis, calculate these in order to apply offset to
               if(exists('x_levels')) {
-                x_bar_order_lookup <- data.frame(x = levels(df_errbar[[x]])) |> mutate(bar_order = row_number()-1)
+                x_bar_order_lookup <- data.frame(x = x_levels) |> mutate(bar_order = row_number()-1)
               }
 
               df_group <- df_errbar |>
@@ -1692,13 +1691,12 @@ col_chart <- function(
 
               # Offset x values for grouped bars
               # Character x-axis offset needs to be treated differently to numeric offset
-              if(is.factor(df_group[[x]]) | is.character(df_group[[x]])) {
-                df_group <- df_group |> left_join(x_bar_order_lookup, join_by(!!rlang::sym(x) == 'x')) |>
+              if(exists('x_levels')) {
+                df_group <- df_group |> left_join(x_bar_order_lookup, join_by('x_orig' == 'x')) |>
                   mutate(x_grouped = as.numeric(bar_order) + x_offset[i])
               } else {
                 df_group <- df_group |> mutate(x_grouped = get(x) + x_offset[i])
               }
-
 
             } else if(group_var_barmode == "stack") {
               # Use stack values when group_var_barmode == "stack"

@@ -2154,6 +2154,9 @@ test_that("col_chart produces a dynamic chart (date x-axis)", {
 
 
 
+
+
+
 test_that("col_chart produces a static chart with grouped data (date x-axis)", {
 
   # Define test data
@@ -2929,7 +2932,7 @@ test_that("col_chart produces a dynamic chart with dodged bars and errorbars (da
 
 })
 
-#
+
 
 
 
@@ -2964,6 +2967,7 @@ test_that("col_chart produces a static chart with stacked bars, bar labels, and 
     chart_footer = "This chart has been created using simulated data.",
     x_axis_title = "Month",
     y_axis_title = "Number of detections",
+    x_axis_break_labels = unique(test_data$specimen_month),
     chart_title_colour = "#007C91",
     chart_footer_colour = "#007C91",
     bar_labels = 'detections',
@@ -3014,6 +3018,7 @@ test_that("col_chart produces a dynamic chart with stacked bars, bar labels, and
     chart_footer = "This chart has been created using simulated data.",
     x_axis_title = "Month",
     y_axis_title = "Number of detections",
+    x_axis_break_labels = unique(test_data$specimen_month),
     chart_title_colour = "#007C91",
     chart_footer_colour = "#007C91",
     bar_labels = 'detections',
@@ -3065,6 +3070,7 @@ test_that("col_chart produces a static chart with dodged bars, bar labels, and e
     chart_footer = "This chart has been created using simulated data.",
     x_axis_title = "Month",
     y_axis_title = "Number of detections",
+    x_axis_break_labels = unique(test_data$specimen_month),
     chart_title_colour = "#007C91",
     chart_footer_colour = "#007C91",
     bar_labels = 'detections',
@@ -3115,6 +3121,7 @@ test_that("col_chart produces a dynamic chart with dodged bars, bar labels, and 
     chart_footer = "This chart has been created using simulated data.",
     x_axis_title = "Month",
     y_axis_title = "Number of detections",
+    x_axis_break_labels = unique(test_data$specimen_month),
     chart_title_colour = "#007C91",
     chart_footer_colour = "#007C91",
     bar_labels = 'detections',
@@ -3144,7 +3151,7 @@ test_that("col_chart produces a static chart, flipped axes (date x-axis)", {
   # Define test data
   test_data <- lab_data |>
     filter(specimen_date >= as.Date("2023-01-01") & specimen_date <= as.Date("2023-12-31")) |>
-    group_by(region) |>
+    group_by(specimen_month = lubridate::floor_date(specimen_date, 'month')) |>
     summarise(detections = n()) |>
     ungroup()
 
@@ -3158,6 +3165,7 @@ test_that("col_chart produces a static chart, flipped axes (date x-axis)", {
     chart_title = "Laboratory Detections by Region 2023",
     x_axis_title = "Month",
     y_axis_title = "Number of detections",
+    x_axis_break_labels = unique(test_data$specimen_month),
     x_axis_label_angle = -45
   )
 
@@ -3176,7 +3184,7 @@ test_that("col_chart produces a dynamic chart, flipped axes (date x-axis)", {
   # Define test data
   test_data <- lab_data |>
     filter(specimen_date >= as.Date("2023-01-01") & specimen_date <= as.Date("2023-12-31")) |>
-    group_by(region) |>
+    group_by(specimen_month = lubridate::floor_date(specimen_date, 'month')) |>
     summarise(detections = n()) |>
     ungroup()
 
@@ -3190,6 +3198,7 @@ test_that("col_chart produces a dynamic chart, flipped axes (date x-axis)", {
     chart_title = "Laboratory Detections by Region 2023",
     x_axis_title = "Month",
     y_axis_title = "Number of detections",
+    x_axis_break_labels = unique(test_data$specimen_month),
     x_axis_label_angle = -45
   )
 
@@ -3200,6 +3209,8 @@ test_that("col_chart produces a dynamic chart, flipped axes (date x-axis)", {
   expect_true(inherits(result, "plotly"))
 
 })
+
+
 
 
 
@@ -3227,6 +3238,7 @@ test_that("col_chart produces a static chart with grouped data, flipped axes (da
     chart_footer = "This chart has been created using simulated data.",
     x_axis_title = "Month",
     y_axis_title = "Number of detections",
+    x_axis_break_labels = unique(test_data$specimen_month),
     chart_title_colour = "#007C91",
     chart_footer_colour = "#007C91",
     show_gridlines = FALSE
@@ -3268,6 +3280,7 @@ test_that("col_chart produces a dynamic chart with grouped data, flipped axes (d
     chart_footer = "This chart has been created using simulated data.",
     x_axis_title = "Month",
     y_axis_title = "Number of detections",
+    x_axis_break_labels = unique(test_data$specimen_month),
     chart_title_colour = "#007C91",
     chart_footer_colour = "#007C91",
     show_gridlines = FALSE
@@ -3309,6 +3322,7 @@ test_that("col_chart produces a static chart with grouped data and multiple hlin
     chart_footer = "This chart has been created using simulated data.",
     x_axis_title = "Month",
     y_axis_title = "Number of detections",
+    x_axis_break_labels = unique(test_data$specimen_month),
     chart_title_colour = "#007C91",
     chart_footer_colour = "#007C91",
     hline = c(50,100),
@@ -3353,6 +3367,7 @@ test_that("col_chart produces a dynamic chart with grouped data and multiple hli
     chart_footer = "This chart has been created using simulated data.",
     x_axis_title = "Month",
     y_axis_title = "Number of detections",
+    x_axis_break_labels = unique(test_data$specimen_month),
     chart_title_colour = "#007C91",
     chart_footer_colour = "#007C91",
     hline = c(50,100),
@@ -3378,14 +3393,14 @@ test_that("col_chart produces a static chart with grouped data and case boxes, f
   # Define test data
   test_data <- lab_data |>
     filter(specimen_date >= as.Date("2023-01-01") & specimen_date <= as.Date("2023-01-07")) |>
-    group_by(specimen_month = lubridate::floor_date(specimen_date, 'month'), organism_species_name) |>
+    group_by(specimen_date, organism_species_name) |>
     summarise(detections = n()) |>
     ungroup()
 
   # Create parameter list
   params <- list(
     df = test_data,
-    x = "specimen_month",
+    x = "specimen_date",
     y = "detections",
     axis_flip = TRUE,
     group_var = "organism_species_name",
@@ -3395,8 +3410,9 @@ test_that("col_chart produces a static chart with grouped data and case boxes, f
                      "PSEUDOMONAS AERUGINOSA" = "#FF7F32"),
     chart_title = "Laboratory Detections by Region \nand Species 2023",
     chart_footer = "This chart has been created using simulated data.",
-    x_axis_title = "Month",
+    x_axis_title = "Date",
     y_axis_title = "Number of detections",
+    x_axis_break_labels = unique(test_data$specimen_date),
     chart_title_colour = "#007C91",
     chart_footer_colour = "#007C91",
     case_boxes = TRUE
@@ -3419,14 +3435,14 @@ test_that("col_chart produces a dynamic chart with grouped data and case boxes, 
   # Define test data
   test_data <- lab_data |>
     filter(specimen_date >= as.Date("2023-01-01") & specimen_date <= as.Date("2023-01-07")) |>
-    group_by(specimen_month = lubridate::floor_date(specimen_date, 'month'), organism_species_name) |>
+    group_by(specimen_date, organism_species_name) |>
     summarise(detections = n()) |>
     ungroup()
 
   # Create parameter list
   params <- list(
     df = test_data,
-    x = "specimen_month",
+    x = "specimen_date",
     y = "detections",
     axis_flip = TRUE,
     group_var = "organism_species_name",
@@ -3436,8 +3452,9 @@ test_that("col_chart produces a dynamic chart with grouped data and case boxes, 
                      "PSEUDOMONAS AERUGINOSA" = "#FF7F32"),
     chart_title = "Laboratory Detections by Region \nand Species 2023",
     chart_footer = "This chart has been created using simulated data.",
-    x_axis_title = "Month",
+    x_axis_title = "Date",
     y_axis_title = "Number of detections",
+    x_axis_break_labels = unique(test_data$specimen_date),
     chart_title_colour = "#007C91",
     chart_footer_colour = "#007C91",
     case_boxes = TRUE
@@ -3454,12 +3471,13 @@ test_that("col_chart produces a dynamic chart with grouped data and case boxes, 
 
 
 
+
 test_that("col_chart produces a static chart with bar labels, flipped axes (date x-axis)", {
 
   # Define test data
   test_data <- lab_data |>
     filter(specimen_date >= as.Date("2023-01-01") & specimen_date <= as.Date("2023-12-31")) |>
-    group_by(region) |>
+    group_by(specimen_month = lubridate::floor_date(specimen_date, 'month')) |>
     summarise(detections = n()) |>
     ungroup()
 
@@ -3473,6 +3491,7 @@ test_that("col_chart produces a static chart with bar labels, flipped axes (date
     chart_title = "Laboratory Detections by Region 2023",
     x_axis_title = "Month",
     y_axis_title = "Number of detections",
+    x_axis_break_labels = unique(test_data$specimen_month),
     x_axis_label_angle = -45,
     bar_labels = 'detections',
     bar_labels_pos = 'bar_base',
@@ -3491,12 +3510,13 @@ test_that("col_chart produces a static chart with bar labels, flipped axes (date
 
 
 
+
 test_that("col_chart produces a dynamic chart with bar labels, flipped axes (date x-axis)", {
 
   # Define test data
   test_data <- lab_data |>
     filter(specimen_date >= as.Date("2023-01-01") & specimen_date <= as.Date("2023-12-31")) |>
-    group_by(region) |>
+    group_by(specimen_month = lubridate::floor_date(specimen_date, 'month')) |>
     summarise(detections = n()) |>
     ungroup()
 
@@ -3510,6 +3530,7 @@ test_that("col_chart produces a dynamic chart with bar labels, flipped axes (dat
     chart_title = "Laboratory Detections by Region 2023",
     x_axis_title = "Month",
     y_axis_title = "Number of detections",
+    x_axis_break_labels = unique(test_data$specimen_month),
     x_axis_label_angle = -45,
     bar_labels = 'detections',
     bar_labels_pos = 'bar_base',
@@ -3552,6 +3573,7 @@ test_that("col_chart produces a static chart with stacked bars and bar labels, f
     chart_footer = "This chart has been created using simulated data.",
     x_axis_title = "Month",
     y_axis_title = "Number of detections",
+    x_axis_break_labels = unique(test_data$specimen_month),
     chart_title_colour = "#007C91",
     chart_footer_colour = "#007C91",
     bar_labels = 'detections',
@@ -3595,6 +3617,7 @@ test_that("col_chart produces a dynamic chart with stacked bars and bar labels, 
     chart_footer = "This chart has been created using simulated data.",
     x_axis_title = "Month",
     y_axis_title = "Number of detections",
+    x_axis_break_labels = unique(test_data$specimen_month),
     chart_title_colour = "#007C91",
     chart_footer_colour = "#007C91",
     bar_labels = 'detections',
@@ -3639,6 +3662,7 @@ test_that("col_chart produces a static chart with dodged bars and bar labels, fl
     chart_footer = "This chart has been created using simulated data.",
     x_axis_title = "Month",
     y_axis_title = "Number of detections",
+    x_axis_break_labels = unique(test_data$specimen_month),
     chart_title_colour = "#007C91",
     chart_footer_colour = "#007C91",
     bar_labels = 'detections',
@@ -3683,6 +3707,7 @@ test_that("col_chart produces a dynamic chart with dodged bars and bar labels, f
     chart_footer = "This chart has been created using simulated data.",
     x_axis_title = "Month",
     y_axis_title = "Number of detections",
+    x_axis_break_labels = unique(test_data$specimen_month),
     chart_title_colour = "#007C91",
     chart_footer_colour = "#007C91",
     bar_labels = 'detections',
@@ -3709,7 +3734,7 @@ test_that("col_chart produces a static chart with errorbars, flipped axes (date 
   # Define test data
   test_data <- lab_data |>
     filter(specimen_date >= as.Date("2023-01-01") & specimen_date <= as.Date("2023-12-31")) |>
-    group_by(region) |>
+    group_by(specimen_month = lubridate::floor_date(specimen_date, 'month')) |>
     summarise(detections = n()) |>
     ungroup() |>
     rowwise() |>
@@ -3732,6 +3757,7 @@ test_that("col_chart produces a static chart with errorbars, flipped axes (date 
     chart_footer = "This chart has been created using simulated data.",
     x_axis_title = "Month",
     y_axis_title = "Number of detections",
+    x_axis_break_labels = unique(test_data$specimen_month),
     chart_title_colour = "#007C91",
     chart_footer_colour = "#007C91"
   )
@@ -3752,7 +3778,7 @@ test_that("col_chart produces a dynamic chart with errorbars, flipped axes (date
   # Define test data
   test_data <- lab_data |>
     filter(specimen_date >= as.Date("2023-01-01") & specimen_date <= as.Date("2023-12-31")) |>
-    group_by(region) |>
+    group_by(specimen_month = lubridate::floor_date(specimen_date, 'month')) |>
     summarise(detections = n()) |>
     ungroup() |>
     rowwise() |>
@@ -3775,6 +3801,7 @@ test_that("col_chart produces a dynamic chart with errorbars, flipped axes (date
     chart_footer = "This chart has been created using simulated data.",
     x_axis_title = "Month",
     y_axis_title = "Number of detections",
+    x_axis_break_labels = unique(test_data$specimen_month),
     chart_title_colour = "#007C91",
     chart_footer_colour = "#007C91"
   )
@@ -3823,6 +3850,7 @@ test_that("col_chart produces a static chart with stacked bars and errorbars, fl
     chart_footer = "This chart has been created using simulated data.",
     x_axis_title = "Month",
     y_axis_title = "Number of detections",
+    x_axis_break_labels = unique(test_data$specimen_month),
     chart_title_colour = "#007C91",
     chart_footer_colour = "#007C91"
   )
@@ -3871,6 +3899,7 @@ test_that("col_chart produces a dynamic chart with stacked bars and errorbars, f
     chart_footer = "This chart has been created using simulated data.",
     x_axis_title = "Month",
     y_axis_title = "Number of detections",
+    x_axis_break_labels = unique(test_data$specimen_month),
     chart_title_colour = "#007C91",
     chart_footer_colour = "#007C91"
   )
@@ -3919,6 +3948,7 @@ test_that("col_chart produces a static chart with dodged bars and errorbars, fli
     chart_footer = "This chart has been created using simulated data.",
     x_axis_title = "Month",
     y_axis_title = "Number of detections",
+    x_axis_break_labels = unique(test_data$specimen_month),
     chart_title_colour = "#007C91",
     chart_footer_colour = "#007C91"
   )
@@ -3966,6 +3996,7 @@ test_that("col_chart produces a dynamic chart with dodged bars and errorbars, fl
     chart_footer = "This chart has been created using simulated data.",
     x_axis_title = "Month",
     y_axis_title = "Number of detections",
+    x_axis_break_labels = unique(test_data$specimen_month),
     chart_title_colour = "#007C91",
     chart_footer_colour = "#007C91"
   )
@@ -4014,6 +4045,7 @@ test_that("col_chart produces a static chart with stacked bars, bar labels, and 
     chart_footer = "This chart has been created using simulated data.",
     x_axis_title = "Month",
     y_axis_title = "Number of detections",
+    x_axis_break_labels = unique(test_data$specimen_month),
     chart_title_colour = "#007C91",
     chart_footer_colour = "#007C91",
     bar_labels = 'detections',
@@ -4065,6 +4097,7 @@ test_that("col_chart produces a dynamic chart with stacked bars, bar labels, and
     chart_footer = "This chart has been created using simulated data.",
     x_axis_title = "Month",
     y_axis_title = "Number of detections",
+    x_axis_break_labels = unique(test_data$specimen_month),
     chart_title_colour = "#007C91",
     chart_footer_colour = "#007C91",
     bar_labels = 'detections',
@@ -4117,6 +4150,7 @@ test_that("col_chart produces a static chart with dodged bars, bar labels, and e
     chart_footer = "This chart has been created using simulated data.",
     x_axis_title = "Month",
     y_axis_title = "Number of detections",
+    x_axis_break_labels = unique(test_data$specimen_month),
     chart_title_colour = "#007C91",
     chart_footer_colour = "#007C91",
     bar_labels = 'detections',
@@ -4168,6 +4202,7 @@ test_that("col_chart produces a dynamic chart with dodged bars, bar labels, and 
     chart_footer = "This chart has been created using simulated data.",
     x_axis_title = "Month",
     y_axis_title = "Number of detections",
+    x_axis_break_labels = unique(test_data$specimen_month),
     chart_title_colour = "#007C91",
     chart_footer_colour = "#007C91",
     bar_labels = 'detections',

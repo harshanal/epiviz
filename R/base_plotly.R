@@ -245,6 +245,19 @@ base_plotly <- function() {
     x_range <- c(x_min, x_max)
     y_range <- c(y_min, y_max)
 
+    # Convert dates back to dates
+    if(lubridate::is.Date(df[[x]])) {
+      suppressWarnings(
+        x_range <- if(!is.na(as.numeric(x_range[1]))) {as.Date(as.numeric((x_range)))} else {as.Date(x_range)}    # if date is stored in a "19345.4" character/numeric form, convert to numeric first then to date
+      )
+    }
+    if(lubridate::is.Date(df[[y]])) {
+      suppressWarnings(
+        y_range <- if(!is.na(as.numeric(y_range[1]))) {as.Date(as.numeric((y_range)))} else {as.Date(y_range)}    # if date is stored in a "19345.4" character/numeric form, convert to numeric first then to date
+      )
+    }
+
+
     # For col_chart, shunt x-axis along 1 place if x is a categorical variable
     #   else the first set of bars in the range will be cut off
     if (substr(deparse(sys.calls()[[sys.nframe()-1]]),1,9)[1] == "col_chart") {
