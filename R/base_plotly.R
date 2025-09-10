@@ -172,7 +172,8 @@ base_plotly <- function() {
     # Set margin to match ggplot
     base <- base |>
       layout(margin = list(r = if (y_sec_axis == TRUE) {40} else {10}, # increase right margin when secondary y-axis used
-                           t = if (axis_flip == FALSE) 30 else {50},
+                           #t = if (axis_flip == FALSE) 30 else {50},
+                           t = 50,
                            b = 60+abs((sin(-x_axis_label_angle))*50), # scale bottom margin according to x-label text angle
                            l=3))
 
@@ -221,6 +222,7 @@ base_plotly <- function() {
     if(!is.null(y_limit_min)) {y_min <- y_limit_min}
     if(!is.null(y_limit_max)) {y_max <- y_limit_max}
 
+
     # Pad x-axis range in-line with ggplot formatting (5% on each side)
     #   -Only do this if x and y axes have not been flipped (only happens in col_chart())
     if(axis_flip == FALSE) {
@@ -229,6 +231,7 @@ base_plotly <- function() {
         x_max <- x_max+xpad
         x_min <- x_min-xpad
       } else if (lubridate::is.Date(df[[x]])) {
+        #xpad <- difftime(as.Date(x_max), as.Date(x_min), units="days")*0.05
         xpad <- round(as.numeric(difftime(x_max, x_min, units="days"))*0.05, digits = 0)
         x_max <- as.Date(x_max)+xpad
         x_min <- as.Date(x_min)-xpad
@@ -257,10 +260,11 @@ base_plotly <- function() {
       )
     }
 
-
-    # For col_chart, shunt x-axis along 1 place if x is a categorical variable
-    #   else the first set of bars in the range will be cut off
+    # For col_chart only:
     if (substr(deparse(sys.calls()[[sys.nframe()-1]]),1,9)[1] == "col_chart") {
+
+      # Shunt x-axis along 1 place if x is a categorical variable else the first
+      #    set of bars in the range will be cut off
       if(axis_flip == FALSE) { # account for axis flipping
         if(lubridate::is.Date(df[[x]]) == FALSE & is.numeric(df[[x]]) == FALSE) {
           x_range <- x_range - 1
@@ -270,12 +274,18 @@ base_plotly <- function() {
           y_range <- y_range - 1
         }
       }
-    }
 
+      # Extend date axis ranges by 1-day so that half a bar isn't cut off at the
+      #   top end of the axis
+      if(lubridate::is.Date(df[[x]]) == TRUE) {x_range[2] <- x_range[2]+1}
+      if(lubridate::is.Date(df[[y]]) == TRUE) {y_range[2] <- y_range[2]+1}
+
+    }
 
 
     #Reverse x-axis range if specified
     if (x_axis_reverse == TRUE) {x_range <- rev(x_range)}
+
 
     # Apply axis ranges to chart
     base <- base |>

@@ -1455,6 +1455,7 @@ col_chart <- function(
     if (axis_flip == TRUE) {swap_object_names('x', 'y')} # swap back
 
 
+
     # Add bar plot without boxes around each case
     if (case_boxes == FALSE) {
 
@@ -1878,7 +1879,7 @@ col_chart <- function(
           offset_multiplier <- offset_multiplier * 0.9                                       # multiply this offset by 0.9 to match the ggplot defaults
           x_offset <- offset_multiplier * (errorbar_offset/length(unique_groups))            # divide the x-axis resolution by the number of groups and multiply this by the multiplier to get the actual x-values of each bar (recycle errorbar_offset variable as it's doing the same job here but for label positions)
         }
-        if(is.Date(df_labels[[x]]) | is.POSIXct(df_labels[[x]])) {                                                      # if x is a date then plotly will shunt the errorbars to the beginning of the nearest whole day (i.e. not in the middle of the barchart bars) so convert axis to time axis if this is the case
+        if(is.Date(df_labels[[x]]) | is.POSIXct(df_labels[[x]])) {                           # if x is a date then plotly will shunt the errorbars to the beginning of the nearest whole day (i.e. not in the middle of the barchart bars) so convert axis to time axis if this is the case
           df_labels[[x]] <- as.POSIXct(df_labels[[x]])
           x_offset <- x_offset * 24*60*60   # unit value for time is seconds rather than days as for date, so convert
         }
