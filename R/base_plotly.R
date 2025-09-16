@@ -263,6 +263,11 @@ base_plotly <- function() {
     # For col_chart only:
     if (substr(deparse(sys.calls()[[sys.nframe()-1]]),1,9)[1] == "col_chart") {
 
+      # In col_chart plotly axis limits are already derived from col_chart ggplot,
+      #    so if x_axis_reverse == TRUE the x limits will already be flipped which
+      #    will invalidate subsequent code. Thus un-flip them here.
+      if (x_axis_reverse == TRUE) {x_range <- rev(x_range)}
+
       # Shunt x-axis along 1 place if x is a categorical variable else the first
       #    set of bars in the range will be cut off
       if(axis_flip == FALSE) { # account for axis flipping

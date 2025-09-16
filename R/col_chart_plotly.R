@@ -1313,11 +1313,13 @@ col_chart <- function(
     y_max <- ggplot_build(ggobj)$layout$panel_params[[1]]$y.range[2]
     # Harvest ggplot x-axis resolution to use as offset for dodged errorbars, and bar labels
     errorbar_offset <- resolution(as.numeric(df[[x]]))*0.9
-#
-#     if (is.character(df[[x]])) {
-#       n_cats <- length(unique(df[[x]]))
-#       errorbar_offset <- 1 / n_cats * 0.9
-#     }
+
+
+    # Handle numeric-class dates being converted to -ve numbers in ggobj when x_axis_reverse = TRUE
+    if(x_axis_reverse == TRUE & is.Date(df[[x]]) & is.numeric(x_max)) {
+      x_min <- abs(x_min)
+      x_max <- abs(x_max)
+    }
 
 
     # # Handle dates converting to numeric when extracted from ggplot axis range
