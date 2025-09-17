@@ -260,9 +260,9 @@ base_plotly <- function() {
       )
     }
 
+
     # For col_chart only:
     if (substr(deparse(sys.calls()[[sys.nframe()-1]]),1,9)[1] == "col_chart") {
-
 
       # In col_chart plotly axis limits are already derived from col_chart ggplot,
       #    so if x_axis_reverse == TRUE the x limits will already be flipped which

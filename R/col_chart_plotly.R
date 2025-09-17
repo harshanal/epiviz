@@ -794,6 +794,10 @@ col_chart <- function(
   ##### Handle categorical x-axis not stored as factor
   if(is.character(df[[x]])) {
     df[[x]] <- as.factor(df[[x]])
+    # Reverse level order for dynamic charts if x_axis_reverse == TRUE so that axis labels are printed in reversed order
+    if (x_axis_reverse == TRUE & dynamic == TRUE) {
+      df[[x]] <- forcats::fct_rev(df[[x]])
+    }
   }
  ### DEV: Apply this to base_gg to generalise to all functions?
 
