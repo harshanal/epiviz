@@ -263,6 +263,7 @@ base_plotly <- function() {
     # For col_chart only:
     if (substr(deparse(sys.calls()[[sys.nframe()-1]]),1,9)[1] == "col_chart") {
 
+
       # In col_chart plotly axis limits are already derived from col_chart ggplot,
       #    so if x_axis_reverse == TRUE the x limits will already be flipped which
       #    will invalidate subsequent code. Thus un-flip them here.
@@ -282,9 +283,14 @@ base_plotly <- function() {
 
       # Extend date axis ranges by 1-day so that half a bar isn't cut off at the
       #   top end of the axis
+      # x-axis range
       if(lubridate::is.Date(df[[x]]) == TRUE) {x_range[2] <- x_range[2]+1}
-      if(lubridate::is.Date(df[[y]]) == TRUE) {y_range[2] <- y_range[2]+1}
-
+      # y-axis range (requires addition consideration if axes are flipped)
+      if (x_axis_reverse == FALSE) {
+        if(lubridate::is.Date(df[[y]]) == TRUE) {y_range[2] <- y_range[2]+1}
+      } else {
+        if(lubridate::is.Date(df[[y]]) == TRUE) {y_range[1] <- y_range[1]+1}
+      }
     }
 
 

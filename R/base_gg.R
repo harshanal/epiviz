@@ -425,19 +425,21 @@ base_gg <- function() {
 
 
     # Apply axis reversal
-    if (lubridate::is.Date(df[[x]])) {
-      # Handle date axes
-        if (!is.null(x_axis_break_labels)) { # take into account x_axis_break_labels if provided
-          base <- base + scale_x_continuous(trans = c("date", "reverse"), breaks = x_axis_break_labels)
-        } else {
-          base <- base + scale_x_continuous(trans = c("date", "reverse"))
-        }
-    } else if (is.factor(df[[x]])) {
-      # Handle discrete / categorical axes (i.e. factors)
-      base <- base + scale_x_discrete(limits = rev(levels(df[[x]])))
-    } else {
-      base <- base + scale_x_reverse()
-    }
+    suppressMessages(
+      if (lubridate::is.Date(df[[x]])) {
+        # Handle date axes
+          if (!is.null(x_axis_break_labels)) { # take into account x_axis_break_labels if provided
+            base <- base + scale_x_continuous(trans = c("date", "reverse"), breaks = x_axis_break_labels)
+          } else {
+            base <- base + scale_x_continuous(trans = c("date", "reverse"))
+          }
+      } else if (is.factor(df[[x]])) {
+        # Handle discrete / categorical axes (i.e. factors)
+        base <- base + scale_x_discrete(limits = rev(levels(df[[x]])))
+      } else {
+        base <- base + scale_x_reverse()
+      }
+    )
 
   }
 
@@ -508,6 +510,9 @@ base_gg <- function() {
 
   ##### Apply hlines
 
+  # if no hline, return hline_xpos = NULL for function export list at end
+  if (is.null(hline) | is.null(hline_label)) {hline_xpos <- NULL}
+
   # adds horizontal line at the y value specified for hline
   if (!is.null(hline)) {
     base <-
@@ -515,8 +520,6 @@ base_gg <- function() {
                         colour = hline_colour,
                         linewidth = hline_width,
                         linetype = hline_type)
-  } else {
-    hline_xpos <- NULL    # if no hline, return hline_xpos = NULL for function export list at end
   }
 
   # If specified, add label to the start of the horizontal line

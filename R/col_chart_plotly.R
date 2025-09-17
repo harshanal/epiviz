@@ -1320,6 +1320,11 @@ col_chart <- function(
       x_min <- abs(x_min)
       x_max <- abs(x_max)
     }
+    # Handle same scenario when axes are flipped, as then y-axis from ggobj will contain x values / limits
+    if (axis_flip == TRUE & x_axis_reverse == TRUE & is.Date(df[[x]]) & is.numeric(y_max)) {
+      y_min <- abs(y_min)
+      y_max <- abs(y_max)
+    }
 
 
     # # Handle dates converting to numeric when extracted from ggplot axis range
@@ -1341,6 +1346,12 @@ col_chart <- function(
       swap_object_names('x_limit_max', 'y_limit_max')
       swap_object_names('x_axis_break_labels', 'y_axis_break_labels')
     }
+
+
+    # # If axes are flipped and x_axis_reverse = TRUE, then y-axis values need to be reversed
+    # if(axis_flip == TRUE & x_axis_reverse == TRUE) {
+    #   swap_object_names('y_limit_min', 'y_limit_max')
+    # }
 
 
 
@@ -1386,6 +1397,9 @@ col_chart <- function(
       # Add colour field to df
       df <- df |>
         mutate(fill_colour = if (is.factor(get(group_var))) {get(group_var)} else {as.factor(get(group_var))} )
+
+      # Reverse the colour levels if axis is reversed and bars are grouped / dodged (axis reversal changes the colour order if not)
+      if (x_axis_reverse == TRUE & group_var_barmode == 'group') {df <- df |> mutate(fill_colour = forcats::fct_rev(fill_colour))}
 
     }
 
