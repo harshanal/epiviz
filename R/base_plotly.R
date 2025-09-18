@@ -203,8 +203,11 @@ base_plotly <- function() {
     ##### Apply y percentage axis
 
     if ((y_percent == TRUE) & (y_sec_axis == FALSE)) {
-      #base <- base |> layout(yaxis = list(ticksuffix  = "%"))
-      base <- base |> layout(yaxis = list(tickformat  = ".0%"))
+      if (axis_flip == FALSE) {
+        base <- base |> layout(yaxis = list(tickformat  = ".0%"))
+      } else {
+        base <- base |> layout(xaxis = list(tickformat  = ".0%"))
+      }
     }
 
 
