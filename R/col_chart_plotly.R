@@ -100,6 +100,7 @@
 #'    \item{y_axis_n_breaks}{Scales y-axis with approximately n breaks. Cannot be used
 #'    if \code{y_axis_break_labels} has also been provided.}
 #'    \item{x_axis_reverse}{Reverses x-axis scale if \code{x_axis_reverse = TRUE}.}
+#'    \item{y_percent}{Converts y-axis to percentage scale if \code{y_percent = TRUE}.}
 #'    \item{show_gridlines}{Logical to show chart gridlines. Default = \code{TRUE}.}
 #'    \item{show_axislines}{Logical to show chart axis lines. Default = \code{TRUE}.}
 #'    \item{legend_title}{Text used for legend title.}
@@ -408,6 +409,7 @@ col_chart <- function(
       x_axis_n_breaks = NULL,
       y_axis_n_breaks = NULL,
       x_axis_reverse = FALSE,
+      y_percent = FALSE,
       show_gridlines = TRUE,
       show_axislines = TRUE,
       legend_title = "",
@@ -468,9 +470,9 @@ col_chart <- function(
   if(!exists('hline_width',where=params)) params$hline_width <- 0.5
   if(!exists('hline_type',where=params)) params$hline_type <- "dashed"
   if(!exists('hline_label_colour',where=params)) params$hline_label_colour <- "black"
+  if(!exists('y_percent',where=params)) params$y_percent <- FALSE
   # The following are not input parameters for col_chart, but are needed
   #   for base_gg and base_plotly so set defaults
-  params$y_percent <- FALSE
   params$y_sec_axis <- FALSE
   params$y_sec_axis_no_shift <- TRUE
   params$y_sec_axis_percent_full <- FALSE
@@ -628,6 +630,7 @@ col_chart <- function(
                  "y_axis_label_font_size",
                  "st_theme",
                  "x_axis_reverse",
+                 "y_percent",
                  "y_limit_min",
                  "y_limit_max",
                  "x_limit_min",
@@ -1223,13 +1226,20 @@ col_chart <- function(
 
 
       # Redefine y-axis scale to remove gap between bars and x-axis
-
       if (!is.null(y_axis_break_labels)) {
         base <- base + scale_y_continuous(breaks = y_axis_break_labels,
+                                          labels = if (y_percent == TRUE) {scales::label_percent()} else {waiver()},
                                           expand = c(0,0))
       } else {
-        base <- base + scale_y_continuous(expand = c(0,0))
+        base <- base + scale_y_continuous(labels = if (y_percent == TRUE) {scales::label_percent()} else {waiver()},
+                                          expand = c(0,0))
       }
+
+      # if (y_percent == TRUE) {
+      #   base <-
+      #     base + scale_y_continuous(labels = scales::label_percent(),
+      #                               expand = c(0,0))
+      # }
 
 
 
