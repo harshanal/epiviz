@@ -468,7 +468,7 @@ col_chart <- function(
   if(!exists('hline_width',where=params)) params$hline_width <- 0.5
   if(!exists('hline_type',where=params)) params$hline_type <- "dashed"
   if(!exists('hline_label_colour',where=params)) params$hline_label_colour <- "black"
-  # The following are not input parameters for epi_curve, but are needed
+  # The following are not input parameters for col_chart, but are needed
   #   for base_gg and base_plotly so set defaults
   params$y_percent <- FALSE
   params$y_sec_axis <- FALSE
@@ -1408,8 +1408,11 @@ col_chart <- function(
     }
 
     # Define colour_field parameter for bar plot
-    #    Note:- Stacked bar colours need reversing to match with ggplot output
+    #    Note:- Stacked bar colours need reversing to match with ggplot output, as
+    #           do grouped bars when x-axis is reversed
     if (is.factor(df$fill_colour) & group_var_barmode == "stack") {
+      colour_field <- forcats::fct_rev(df$fill_colour)
+    } else if (x_axis_reverse == TRUE & group_var_barmode == "group") {
       colour_field <- forcats::fct_rev(df$fill_colour)
     } else {
       colour_field <- df$fill_colour
@@ -1469,6 +1472,7 @@ col_chart <- function(
     if (axis_flip == TRUE) {swap_object_names('x', 'y')} # temp swap names back for calc
       if (group_var_barmode == 'group' & is.factor(df[[x]]) & !is.null(group_var)) {
         x_levels <- levels(df[[x]]) # preserve levels to use as axis ticks
+          if(x_axis_reverse == TRUE) {x_levels <- rev(x_levels)} # reverse levels if x-axis reversed
         df <- df |> mutate(x_orig = get(x)) # preserve original x column in df
         df[[x]] <- as.numeric(factor(df[[x]]))-1  # -1 to shunt bars down 1 position to start at 0
       }
@@ -1655,8 +1659,10 @@ col_chart <- function(
 
           # Define unique groups
           unique_groups <- unique(df[[group_var]])
+              # # Reverse order when x-axis is reversed
+              # if(x_axis_reverse == TRUE & group_var_barmode == 'group') {unique_groups <- fct_rev(unique_groups)}
 
-          if(axis_flip == TRUE) {swap_object_names('x', 'y')} # temporarily swap back axis names for calculation if aex are flipped
+          if(axis_flip == TRUE) {swap_object_names('x', 'y')} # temporarily swap back axis names for calculation if axes are flipped
 
           # y-axis positions of errorbars for stacked plots must be calculated
           #   manually, create new dataframe to manage this.
@@ -1701,7 +1707,8 @@ col_chart <- function(
 
               # For character axis bar position is an integer along the x-axis, calculate these in order to apply offset to
               if(exists('x_levels')) {
-                x_bar_order_lookup <- data.frame(x = x_levels) |> mutate(bar_order = row_number()-1)
+                if(x_axis_reverse == FALSE) {x_level_lkp <- x_levels} else {x_level_lkp <- rev(x_levels)} # reverse order for reversed x-axis
+                x_bar_order_lookup <- data.frame(x = x_level_lkp) |> mutate(bar_order = row_number()-1)
               }
 
               df_group <- df_errbar |>
@@ -1735,6 +1742,7 @@ col_chart <- function(
                 data = df_group,
                 # Select x and y based on grouped barmode and whether axes are flipped
                 #    Note:- There is probably a neater way of coding this.
+                # else if(group_var_barmode == "group" & axis_flip == FALSE & x_axis_reverse == TRUE) {rev(df_group$x_grouped)}
                 x = if(group_var_barmode == "group" & axis_flip == FALSE) {df_group$x_grouped} else if(group_var_barmode == "stack" & axis_flip == TRUE) {df_group$cumul} else {df_group[[x]]},
                 y = if(group_var_barmode == "stack" & axis_flip == FALSE) {df_group$cumul} else if(group_var_barmode == "group" & axis_flip == TRUE) {df_group$x_grouped} else {df_group[[y]]},
                 type = 'scatter',
@@ -1909,7 +1917,8 @@ col_chart <- function(
 
         # For character axis bar position is an integer along the x-axis, calculate these in order to apply offset to
         if(exists('x_levels')) {
-          x_bar_order_lookup <- data.frame(x = x_levels) |> mutate(bar_order = row_number()-1)
+          if(x_axis_reverse == FALSE) {x_level_lkp <- x_levels} else {x_level_lkp <- rev(x_levels)} # reverse order for reversed x-axis
+          x_bar_order_lookup <- data.frame(x = x_level_lkp) |> mutate(bar_order = row_number()-1)
         }
 
 
@@ -2017,6 +2026,24 @@ col_chart <- function(
         )
       )
 
+
+
+
+    # Manually re-add labels for categorical x-values converted to numeric factors
+    if(exists('x_levels')) {
+      if(axis_flip == FALSE) {
+        base <- base |>
+          layout(xaxis = list(
+            tickvals = unique(df[[x]]),
+            ticktext = x_levels))
+      } else {
+        base <- base |>
+          layout(yaxis = list(
+            tickvals = unique(df[[y]]),
+            ticktext = x_levels))
+      }
+
+    }
 
 
 
