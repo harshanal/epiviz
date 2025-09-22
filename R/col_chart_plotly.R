@@ -814,6 +814,12 @@ col_chart <- function(
   }
 
 
+  ##### Apply bar_label_percent = TRUE
+  if(bar_labels_percent == TRUE) {
+    df <- df |> mutate(bar_labels_perc = scales::percent(round(.data[[bar_labels]], digits = 2)))
+    bar_labels <- "bar_labels_perc"
+  }
+
 
 
   #################### COL CHART #################################
