@@ -1,4 +1,3 @@
-
 #' Creates base ggplot object for use across other functions.
 #' Parameters are not passed explicitly to the function, so
 #' function call needs to be proceeded by environment(base_gg) <- environment()
@@ -577,13 +576,13 @@ base_gg <- function() {
   ##### Change y-axis to percentage scale
 
   if (y_percent == TRUE) {
-
-    base <-
-      base + scale_y_continuous(
-        ##labels = function(x) paste0(x, "%")
-        labels = scales::label_percent()
-      )
-
+    suppressMessages(
+      base <-
+        base + scale_y_continuous(
+          ##labels = function(x) paste0(x, "%")
+          labels = scales::label_percent()
+        )
+    )
   }
 
 
