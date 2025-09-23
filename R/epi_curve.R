@@ -126,6 +126,7 @@
 #' @import forcats
 #' @import slider
 #' @importFrom graphics box
+#' @importFrom assertthat not_empty
 #' @rawNamespace import(plotly, except = last_plot)
 #'
 #' @return A ggplot or plotly object.
@@ -474,7 +475,7 @@ epi_curve <- function(
   if(!is.data.frame(params$df)) stop("df is not a data frame object")
 
   # Check df is empty
-  if(!not_empty(params$df)) stop("df is empty")
+  if(!assertthat::not_empty(params$df)) stop("df is empty")
 
   # Check if date_var argument is null (date_var renamed to 'x' at this stage)
   if ((is.null(params$x)) | !exists('x',where=params))

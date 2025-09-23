@@ -75,6 +75,7 @@
 #' @import ggplot2
 #' @importFrom dplyr group_by summarise
 #' @importFrom rlang .data
+#' @importFrom assertthat not_empty
 #' @export
 
 age_sex_pyramid <- function(
@@ -129,7 +130,7 @@ age_sex_pyramid <- function(
   if(!is.data.frame(params$df)) stop("df is not a data frame object")
 
   # Check df is empty
-  if(!not_empty(params$df)) stop("df is empty")
+  if(!assertthat::not_empty(params$df)) stop("df is empty")
 
 
   .grp_df <- NULL
@@ -194,11 +195,11 @@ age_sex_pyramid <- function(
     return(result)
   }else{
     # plotly implementation of dynamic age-sex-pyramid
-    
+
     # Process data similarly to static version
 # plotly implementation of dynamic age-sex-pyramid
   var_map <- params$var_map
-  
+
   if (params$grouped == FALSE) {
     .grp_df <- process_line_list_for_age_sex_pyramid(
       df = params$df,
@@ -209,21 +210,21 @@ age_sex_pyramid <- function(
   } else {
     .grp_df <- params$df
   }
-  
+
   # Create the plotly visualization
   male_data <- .grp_df[.grp_df$sex == "Male", ]
   female_data <- .grp_df[.grp_df$sex == "Female", ]
-  
+
   # Convert values for males to negative for visualization
   male_data$value <- -male_data$value
   if (params$conf_limits) {
     male_data$lowercl <- -male_data$lowercl
     male_data$uppercl <- -male_data$uppercl
   }
-  
+
   # Calculate maximum range for symmetric axis
   if (params$conf_limits) {
-    all_x <- c(male_data$value, female_data$value, male_data$lowercl, male_data$uppercl, 
+    all_x <- c(male_data$value, female_data$value, male_data$lowercl, male_data$uppercl,
                female_data$lowercl, female_data$uppercl)
   } else {
     all_x <- c(male_data$value, female_data$value)
@@ -231,15 +232,15 @@ age_sex_pyramid <- function(
   min_x <- min(all_x)
   max_x <- max(all_x)
   max_range <- max(abs(min_x), max_x)
-  
+
   # Generate symmetric tick values and positive labels
   positive_ticks <- pretty(c(0, max_range), n = ceiling(params$x_breaks / 2))
   tickvals <- sort(unique(c(-positive_ticks, positive_ticks)))
   ticktext <- as.character(abs(tickvals))
-  
+
   # Create the plot
   p <- plot_ly(showlegend = TRUE)
-  
+
   # Add male bars
   p <- add_trace(p,
                  x = male_data$value,
@@ -249,7 +250,7 @@ age_sex_pyramid <- function(
                  marker = list(color = params$colours[1]),
                  orientation = 'h',
                  hoverinfo = "none")
-  
+
   # Add female bars
   p <- add_trace(p,
                  x = female_data$value,
@@ -259,7 +260,7 @@ age_sex_pyramid <- function(
                  marker = list(color = params$colours[2]),
                  orientation = 'h',
                  hoverinfo = "none")
-  
+
   # Add confidence limits if requested
   if (params$conf_limits) {
     p <- add_trace(p,
@@ -295,7 +296,7 @@ age_sex_pyramid <- function(
                    marker = list(color = params$colours[2]),
                    showlegend = FALSE)
   }
-  
+
   # Update layout with corrected titles and custom ticks
   p <- layout(p,
               title = params$legend_title,
@@ -328,7 +329,7 @@ age_sex_pyramid <- function(
                             x = 0.5,
                             y = -0.2)
   )
-  
+
   return(p)
   }
 }

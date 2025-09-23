@@ -23,6 +23,6 @@ all x and y variables.
 }
 \examples{
 \dontrun{
-dataframe_out <- adorn_date(df = dataframe, date_var = "date_column")
+dataframe_out <- swap_object_names('x', 'y')
 }
 }

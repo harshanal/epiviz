@@ -33,6 +33,7 @@
 #' }
 #'
 #' @import ggplot2
+#' @importFrom assertthat not_empty
 #' @rawNamespace import(plotly, except = last_plot)
 #'
 #' @return A plotly or ggplot2 object representing the line chart.
@@ -211,7 +212,7 @@ line_chart <-  function(dynamic = FALSE,
     stop("dfr is not a data frame object")
 
   # Check dfr is empty
-  if (!not_empty(params$dfr))
+  if (!assertthat::not_empty(params$dfr))
     stop("dfr is empty")
 
   # Check if x argument is is.null
