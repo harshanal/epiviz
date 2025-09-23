@@ -489,7 +489,7 @@ base_gg <- function() {
   # In epi_curve(), and in col_chart() where x_time_series = TRUE, a full time series is
   #    defined from date_start/x_limit_min to date_end/x_limit_min and the full x-axis
   #    plotted from this, thus meaning that xlim must be set to c(NA,NA) so that the
-  #    whole axis is plotted. In col_chart() where x_time_series = FALSE conventional
+  #    whole axis is plotted. Where x_time_series = FALSE conventional
   #    limits can be defined, and thus xlim does not need to be reset to c(NA,NA).
 
 

@@ -12,8 +12,11 @@
 #'    to populate the x-axis.}
 #'    \item{y}{character, Name of the variable in \code{df} containing the values used
 #'    to populate the y-axis.)}
-#'    \item{x_time_series}{XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-#'    XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
+#'    \item{x_time_series}{If \code{x_time_series = TRUE} then x-axis data will be aggregated into
+#'    a time series. \code{x} must be a date variable when \code{x_time_series = TRUE}. The
+#'    granularity of the time series can be set using the \code{time_period}
+#'    parameter. If \code{y} is not provided, then x_time_series will assume that each row
+#'    corresponds to a single observation and aggregate accordingly.}
 #'    \item{time_period}{The time period to be used along the x-axis. Options include
 #'    \code{c("day","year","month","quarter","year_month","year_quarter",
 #'      "iso_year","iso_week","start_iso_year_week","iso_year_week")}. Default = \code{"day"}}
@@ -506,13 +509,28 @@ col_chart <- function(
   if (!params$x %in% colnames(params$df))
     stop("x not found within df. Please include a variable from df for x, i.e. x = \"variable_name\"")
 
-  # Check if y argument is null
-  if ((is.null(params$y)) | !exists('y',where=params))
-    stop("Please include a variable from df for y, i.e. y = \"variable_name\"")
+  # Check if y argument is null (allowed if x_time_series = TRUE)
+  if (params$x_time_series == FALSE) {
+    if ((is.null(params$y)) | !exists('y',where=params))
+      stop("Please include a variable from df for y, i.e. y = \"variable_name\"")
+  } else if (params$x_time_series == TRUE) {
+    if ((is.null(params$y)) | !exists('y',where=params))
+      warning("x_time_series: No field stated for y, aggregating df assuming each line equals 1 observation.")
+  }
 
-  # Check if y is in df
-  if (!params$y %in% colnames(params$df))
-    stop("y not found within df. Please include a variable from df for y, i.e. y = \"variable_name\"")
+  # Check if y is in df (may be omitted if x_time_series = TRUE)
+  if (params$x_time_series == FALSE) {
+    if (!params$y %in% colnames(params$df))
+      stop("y not found within df. Please include a variable from df for y, i.e. y = \"variable_name\"")
+  }
+
+  # Check time_period valid
+  if (!(params$time_period %in% c("day","year","month","quarter","year_month","year_quarter",
+                                  "iso_year","iso_week","start_iso_year_week","iso_year_week",
+                                  "use_date_var"))) {
+    stop("time_period must equal 'day', 'year', 'month', 'quarter', 'year_month', 'year_quarter',
+              'iso_year', 'iso_week', 'start_iso_year_week', 'iso_year_week', or 'use_date_var'")
+  }
 
   # Check group_var_barmode valid
   if (!is.null(params$group_var) & !(params$group_var_barmode %in% c('stack', 'group'))) {
@@ -673,6 +691,10 @@ col_chart <- function(
 
   if(x_time_series == TRUE) {
 
+    # Check that x is a date
+    if (!is.Date(df[[x]])) {
+      stop("If x_time_series = TRUE then x must be a date.")
+    }
 
     # Define start and end dates if not provided
     if(is.null(x_limit_min)){
@@ -723,7 +745,6 @@ col_chart <- function(
 
     # Redefine x so that it points towards date_factor
     x <- "date_factor"
-
 
 
     ### Change x_limit_max and x_limit_min to match time_period choice
@@ -1486,6 +1507,11 @@ col_chart <- function(
     #     and thus can't be plotted over a categorical axis. Thus convert x to a numeric factor
     #     so that the x-axis is numeric, and preserve the levels to use as axis labels.
     if (axis_flip == TRUE) {swap_object_names('x', 'y')} # temp swap names back for calc
+
+      # Reverse x levels if x_time_series == TRUE & x_axis_reverse == TRUE else they get double reversed
+      if (x_time_series == TRUE & x_axis_reverse == TRUE) {df[[x]] <- forcats::fct_rev(df[[x]])}
+
+      # Adjust grouping parameters
       if (group_var_barmode == 'group' & is.factor(df[[x]]) & !is.null(group_var)) {
         x_levels <- levels(df[[x]]) # preserve levels to use as axis ticks
           if(x_axis_reverse == TRUE) {x_levels <- rev(x_levels)} # reverse levels if x-axis reversed

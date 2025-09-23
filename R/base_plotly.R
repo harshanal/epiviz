@@ -270,18 +270,19 @@ base_plotly <- function() {
       # In col_chart plotly axis limits are already derived from col_chart ggplot,
       #    so if x_axis_reverse == TRUE the x limits will already be flipped which
       #    will invalidate subsequent code. Thus un-flip them here.
-      if (x_axis_reverse == TRUE) {x_range <- rev(x_range)}
+      if (x_axis_reverse == TRUE) {x_range <- rev(x_range)} #& x_time_series == FALSE
 
       # Shunt x-axis along 1 place if x is a categorical variable else the first
       #    set of bars in the range will be cut off
-      if(axis_flip == FALSE) { # account for axis flipping
+      # account for axis flipping
+      if(axis_flip == FALSE) {
         if(lubridate::is.Date(df[[x]]) == FALSE & is.numeric(df[[x]]) == FALSE) {
-          x_range <- x_range - 1
-        }
-      } else if(axis_flip == TRUE) {
-        if(lubridate::is.Date(df[[y]]) == FALSE & is.numeric(df[[y]]) == FALSE) {
-          y_range <- y_range - 1
-        }
+            x_range <- x_range - 1
+          }
+      } else if(axis_flip == TRUE & x_time_series == FALSE) { # x_time_series variables handled differently
+          if(lubridate::is.Date(df[[y]]) == FALSE & is.numeric(df[[y]]) == FALSE) {
+            y_range <- y_range - 1
+          }
       }
 
       # Extend date axis ranges by 1-day so that half a bar isn't cut off at the
@@ -294,7 +295,7 @@ base_plotly <- function() {
       } else {
         if(lubridate::is.Date(df[[y]]) == TRUE) {y_range[1] <- y_range[1]+1}
       }
-    }
+    } # col_chart only END
 
 
     #Reverse x-axis range if specified
