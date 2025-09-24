@@ -17,6 +17,8 @@
 #'    granularity of the time series can be set using the \code{time_period}
 #'    parameter. If \code{y} is not provided, then x_time_series will assume that each row
 #'    corresponds to a single observation and aggregate accordingly.}
+#'    \item{x_time_series_bar_labels}{If \code{x_time_series_bar_labels = TRUE} then labels
+#'    equalling y-axis values will be added to each bar.}
 #'    \item{time_period}{The time period to be used along the x-axis. Options include
 #'    \code{c("day","year","month","quarter","year_month","year_quarter",
 #'      "iso_year","iso_week","start_iso_year_week","iso_year_week")}. Default = \code{"day"}}
@@ -36,7 +38,8 @@
 #'    \item{bar_border_colour}{character, Colour of the border around each bar. Default = \code{"transparent"},
 #'    meaning that no border colour is drawn as default.}
 #'    \item{bar_labels}{character, Name of the variable in \code{df} containing the labels to be used
-#'    for each bar.}
+#'    for each bar. To set bar lables when \code{x_time_series = TRUE}, set \code{x_time_series_bar_labels = TRUE}
+#'    and labels will be added to each bar equal to y-axis values.}
 #'    \item{bar_labels_pos}{character, The position on the bars that labels will be plotted, permitted
 #'    values are \code{c('bar_above','bar_base','bar_centre','above_errorbar')}. Default = \code{'bar_above'}.}
 #'    \item{bar_labels_font_size}{numeric, Font size for the bar labels. Default = \code{8}.}
@@ -256,7 +259,7 @@
 #'   x = "region",
 #'   y = "detections",
 #'   group_var = "organism_species_name",
-#'   group_var_barmode = "stack",
+#'   group_var_barmode = "group",
 #'   fill_colours = c("KLEBSIELLA PNEUMONIAE" = "#007C91",
 #'                    "STAPHYLOCOCCUS AUREUS" = "#8A1B61",
 #'                    "PSEUDOMONAS AERUGINOSA" = "#FF7F32"),
@@ -360,6 +363,65 @@
 #' shinyApp(ui, server)
 #'
 #'
+#'
+#' # Example 5: Create both static and dynamic column charts using a time-series x-axis
+#' #              and a percentage y-axis.
+#'
+#' library(epiviz)
+#'
+#' # Create parameter list
+#' params_list <- list(
+#'   df = lab_data,
+#'   x = "specimen_date",
+#'   x_limit_min = "2022-12-01",
+#'   x_limit_max = "2023-03-31",
+#'   # Set x_time_series = TRUE and time_period = "iso_year_week" to aggregate data
+#'   #   into a time series by ISO week (assumes each row in df corresponds to a
+#'   #   single observation).
+#'   x_time_series = TRUE,
+#'   time_period = "iso_year_week",
+#'   x_time_series_bar_labels = TRUE,
+#'   # Set y_percent = TRUE to convert y-axis to percentage scale (when x_time_series
+#'   #   = TRUE this will also convert y values and bar labels to percentages by group).
+#'   y_percent = TRUE,
+#'   group_var = "organism_species_name",
+#'   group_var_barmode = "stack",
+#'   fill_colours = c("KLEBSIELLA PNEUMONIAE" = "#007C91",
+#'                    "STAPHYLOCOCCUS AUREUS" = "#8A1B61",
+#'                    "PSEUDOMONAS AERUGINOSA" = "#FF7F32"),
+#'   bar_labels_pos = 'bar_centre',
+#'   bar_labels_font_size = 8,
+#'   bar_labels_font_colour = 'white',
+#'   chart_title = "Laboratory Detections by ISO week \nand Species, winter 2022-23",
+#'   chart_footer = "This chart has been created using simulated data.",
+#'   x_axis_title = "ISO Week",
+#'   y_axis_title = "Number of detections",
+#'   x_axis_label_angle = -45,
+#'   chart_title_colour = "#007C91",
+#'   chart_footer_colour = "#007C91",
+#'   show_gridlines = FALSE
+#' )
+#'
+#'
+#' # Create static and dynamic column charts
+#' static_chart <- col_chart(params = params_list, dynamic = FALSE)
+#' dynamic_chart <- col_chart(params = params_list, dynamic = TRUE)
+#'
+#'
+#' # View both simultaneously using shiny app
+#' library(shiny)
+#' library(plotly)
+#' ui <- fluidPage(
+#'   plotOutput('static_chart'),
+#'   plotlyOutput('dynamic_chart')
+#' )
+#' server <- function(input, output, session) {
+#'   output$static_chart <- renderPlot(static_chart)
+#'   output$dynamic_chart <- renderPlotly(dynamic_chart)
+#' }
+#' shinyApp(ui, server)
+#'
+#'
 #' }
 #'
 col_chart <- function(
@@ -369,6 +431,7 @@ col_chart <- function(
       x = NULL,
       y = NULL,
       x_time_series = FALSE,
+      x_time_series_bar_labels = FALSE,
       time_period = "day",
       group_var = NULL,
       group_var_barmode = 'stack',
@@ -438,6 +501,7 @@ col_chart <- function(
   # Where relevant, assign defaults to any parameters not specified by the user
   if(!exists('group_var_barmode',where=params)) params$group_var_barmode <- "stack"
   if(!exists('x_time_series',where=params)) params$x_time_series <- FALSE
+  if(!exists('x_time_series_bar_labels',where=params)) params$x_time_series_bar_labels <- FALSE
   if(!exists('time_period',where=params)) params$time_period <- "day"
   if(!exists('fill_colours',where=params)) params$fill_colours <- "lightblue"
   if(!exists('bar_border_colour',where=params)) params$bar_border_colour <- "transparent"
@@ -514,10 +578,10 @@ col_chart <- function(
   if (params$x_time_series == FALSE) {
     if ((is.null(params$y)) | !exists('y',where=params))
       stop("Please include a variable from df for y, i.e. y = \"variable_name\"")
-  } else if (params$x_time_series == TRUE) {
-    if ((is.null(params$y)) | !exists('y',where=params))
-      warning("x_time_series: No field stated for y, aggregating df assuming each line equals 1 observation.")
-  }
+  } #else if (params$x_time_series == TRUE) {
+  #   if ((is.null(params$y)) | !exists('y',where=params))
+  #     warning("x_time_series: No field stated for y, aggregating df assuming each line equals 1 observation.")
+  # }
 
   # Check if y is in df (may be omitted if x_time_series = TRUE)
   if (params$x_time_series == FALSE) {
@@ -612,6 +676,7 @@ col_chart <- function(
                  "x",
                  "y",
                  "x_time_series",
+                 "x_time_series_bar_labels",
                  "time_period",
                  "group_var",
                  "group_var_barmode",
@@ -778,10 +843,20 @@ col_chart <- function(
       } else {
 
         # Grouped
-        df <- df |>
-          group_by(date_factor, .data[[group_var]]) |>
-          summarise(n = n()) |>
-          ungroup()
+        # Calculate raw totals by default, but percentages by group if y_percent = TRUE
+        if(y_percent == FALSE) {
+          df <- df |>
+            group_by(date_factor, .data[[group_var]]) |>
+            summarise(n = n()) |>
+            ungroup()
+        } else {
+          df <- df |>
+            group_by(date_factor, .data[[group_var]]) |>
+            summarise(n = n()) |>
+            ungroup() |>
+            mutate(date_sum = sum(n), .by=date_factor,
+                   n = n / date_sum)
+        }
 
       }
 
@@ -799,10 +874,20 @@ col_chart <- function(
       } else {
 
         # Grouped
-        df <- df |>
-          group_by(date_factor, .data[[group_var]]) |>
-          summarise(n = sum(.data[[y]])) |>
-          ungroup()
+        # Calculate raw totals by default, but percentages by group if y_percent = TRUE
+        if(y_percent == FALSE) {
+          df <- df |>
+            group_by(date_factor, .data[[group_var]]) |>
+            summarise(n = sum(.data[[y]])) |>
+            ungroup()
+        } else {
+          df <- df |>
+            group_by(date_factor, .data[[group_var]]) |>
+            summarise(n = sum(.data[[y]])) |>
+            ungroup() |>
+            mutate(date_sum = sum(n), .by=date_factor,
+                   n = n / date_sum)
+        }
 
       }
 
@@ -810,6 +895,9 @@ col_chart <- function(
 
     # Re-define y so that it points towards n
     y <- "n"
+
+    # Define bar labels for time series
+    if (x_time_series_bar_labels == TRUE) {bar_labels <- "n"} else {bar_labels <- NULL}
 
 
   }
@@ -837,8 +925,8 @@ col_chart <- function(
 
 
   ##### Apply bar_label_percent = TRUE
-  if(bar_labels_percent == TRUE) {
-    df <- df |> mutate(bar_labels_perc = scales::percent(round(.data[[bar_labels]], digits = 2)))
+  if(bar_labels_percent == TRUE | (y_percent == TRUE & x_time_series_bar_labels == TRUE)) {
+    df <- df |> mutate(bar_labels_perc = scales::percent(.data[[bar_labels]], accuracy=1))
     bar_labels <- "bar_labels_perc"
   }
 

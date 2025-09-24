@@ -21,7 +21,9 @@ utils::globalVariables(c(
   "bar_labels_font_size",
   "ci_upper_diff",
   "fill_colour",
-  "bar_order"
+  "bar_order",
+  "date_sum",
+  "x_time_series_bar_labels"
 ))
 
 

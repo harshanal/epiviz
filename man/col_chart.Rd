@@ -6,27 +6,27 @@
 \usage{
 col_chart(
   dynamic = FALSE,
-  params = list(df = NULL, x = NULL, y = NULL, x_time_series = FALSE, time_period =
-    "day", group_var = NULL, group_var_barmode = "stack", fill_colours = "lightblue",
-    bar_border_colour = "transparent", bar_labels = NULL, bar_labels_pos = "bar_above",
-    bar_labels_font_size = 8, bar_labels_font_colour = "black", bar_labels_angle = 0,
-    bar_labels_percent = FALSE, case_boxes = FALSE, case_boxes_colour = "white",
-    axis_flip = FALSE, ci = NULL, ci_upper = NULL, ci_lower = NULL, ci_legend = TRUE,
-    ci_legend_title = "Confidence interval", 
-     ci_colours = "red", errorbar_width =
-    NULL, chart_title = NULL, chart_title_size = 13, chart_title_colour = "black",
-    chart_footer = NULL, chart_footer_size = 12, chart_footer_colour = "black",
-    x_axis_title = NULL, y_axis_title = NULL, x_axis_title_font_size = 11,
-    y_axis_title_font_size = 11, x_axis_label_angle = NULL, y_axis_label_angle = NULL,
-    x_axis_label_font_size = 9, y_axis_label_font_size = 9, x_limit_min = NULL,
-    x_limit_max = NULL, y_limit_min = NULL, y_limit_max = NULL, x_axis_break_labels =
+  params = list(df = NULL, x = NULL, y = NULL, x_time_series = FALSE,
+    x_time_series_bar_labels = FALSE, time_period = "day", group_var = NULL,
+    group_var_barmode = "stack", fill_colours = "lightblue", bar_border_colour =
+    "transparent", bar_labels = NULL, bar_labels_pos = "bar_above", bar_labels_font_size
+    = 8, bar_labels_font_colour = "black", bar_labels_angle = 0, bar_labels_percent =
+    FALSE, case_boxes = FALSE, case_boxes_colour = "white", axis_flip = FALSE, ci = NULL,
+    ci_upper = NULL, ci_lower = NULL, ci_legend = TRUE, 
+     ci_legend_title =
+    "Confidence interval", ci_colours = "red", errorbar_width = NULL, chart_title = NULL,
+    chart_title_size = 13, chart_title_colour = "black", chart_footer = NULL,
+    chart_footer_size = 12, chart_footer_colour = "black", x_axis_title = NULL,
+    y_axis_title = NULL, x_axis_title_font_size = 11, y_axis_title_font_size = 11,
+    x_axis_label_angle = NULL, y_axis_label_angle = NULL, x_axis_label_font_size = 9,
+    y_axis_label_font_size = 9, x_limit_min = NULL, x_limit_max = NULL, y_limit_min =
     NULL, 
-     y_axis_break_labels = NULL, x_axis_n_breaks = NULL, y_axis_n_breaks =
-    NULL, x_axis_reverse = FALSE, y_percent = FALSE, show_gridlines = TRUE,
-    show_axislines = TRUE, legend_title = "", legend_pos = "right", legend_font_size = 8,
-    legend_title_font_size = 8, hline = NULL, hline_colour = "black", hline_width = 0.5,
-    hline_type = "dashed", hline_label = NULL, hline_label_colour = "black", hover_labels
-    = NULL)
+     y_limit_max = NULL, x_axis_break_labels = NULL, y_axis_break_labels =
+    NULL, x_axis_n_breaks = NULL, y_axis_n_breaks = NULL, x_axis_reverse = FALSE,
+    y_percent = FALSE, show_gridlines = TRUE, show_axislines = TRUE, legend_title = "",
+    legend_pos = "right", legend_font_size = 8, legend_title_font_size = 8, hline = NULL,
+    hline_colour = "black", hline_width = 0.5, hline_type = "dashed", hline_label = NULL,
+    hline_label_colour = "black", hover_labels = NULL)
 )
 }
 \arguments{
@@ -45,6 +45,8 @@ a time series. \code{x} must be a date variable when \code{x_time_series = TRUE}
 granularity of the time series can be set using the \code{time_period}
 parameter. If \code{y} is not provided, then x_time_series will assume that each row
 corresponds to a single observation and aggregate accordingly.}
+\item{x_time_series_bar_labels}{If \code{x_time_series_bar_labels = TRUE} then labels
+equalling y-axis values will be added to each bar.}
 \item{time_period}{The time period to be used along the x-axis. Options include
 \code{c("day","year","month","quarter","year_month","year_quarter",
      "iso_year","iso_week","start_iso_year_week","iso_year_week")}. Default = \code{"day"}}
@@ -64,7 +66,8 @@ on the output chart and legend (e.g. \code{c("KLEBSIELLA PNEUMONIAE" = "#007C91"
 \item{bar_border_colour}{character, Colour of the border around each bar. Default = \code{"transparent"},
 meaning that no border colour is drawn as default.}
 \item{bar_labels}{character, Name of the variable in \code{df} containing the labels to be used
-for each bar.}
+for each bar. To set bar lables when \code{x_time_series = TRUE}, set \code{x_time_series_bar_labels = TRUE}
+and labels will be added to each bar equal to y-axis values.}
 \item{bar_labels_pos}{character, The position on the bars that labels will be plotted, permitted
 values are \code{c('bar_above','bar_base','bar_centre','above_errorbar')}. Default = \code{'bar_above'}.}
 \item{bar_labels_font_size}{numeric, Font size for the bar labels. Default = \code{8}.}
@@ -274,7 +277,7 @@ params_list <- list(
   x = "region",
   y = "detections",
   group_var = "organism_species_name",
-  group_var_barmode = "stack",
+  group_var_barmode = "group",
   fill_colours = c("KLEBSIELLA PNEUMONIAE" = "#007C91",
                    "STAPHYLOCOCCUS AUREUS" = "#8A1B61",
                    "PSEUDOMONAS AERUGINOSA" = "#FF7F32"),
@@ -356,6 +359,65 @@ params_list <- list(
   chart_footer_colour = "#007C91",
   show_gridlines = FALSE,
   axis_flip = TRUE  # Create horizontal chart using the axis_flip parameter
+)
+
+
+# Create static and dynamic column charts
+static_chart <- col_chart(params = params_list, dynamic = FALSE)
+dynamic_chart <- col_chart(params = params_list, dynamic = TRUE)
+
+
+# View both simultaneously using shiny app
+library(shiny)
+library(plotly)
+ui <- fluidPage(
+  plotOutput('static_chart'),
+  plotlyOutput('dynamic_chart')
+)
+server <- function(input, output, session) {
+  output$static_chart <- renderPlot(static_chart)
+  output$dynamic_chart <- renderPlotly(dynamic_chart)
+}
+shinyApp(ui, server)
+
+
+
+# Example 5: Create both static and dynamic column charts using a time-series x-axis
+#              and a percentage y-axis.
+
+library(epiviz)
+
+# Create parameter list
+params_list <- list(
+  df = lab_data,
+  x = "specimen_date",
+  x_limit_min = "2022-12-01",
+  x_limit_max = "2023-03-31",
+  # Set x_time_series = TRUE and time_period = "iso_year_week" to aggregate data
+  #   into a time series by ISO week (assumes each row in df corresponds to a
+  #   single observation).
+  x_time_series = TRUE,
+  time_period = "iso_year_week",
+  x_time_series_bar_labels = TRUE,
+  # Set y_percent = TRUE to convert y-axis to percentage scale (when x_time_series
+  #   = TRUE this will also convert y values and bar labels to percentages by group).
+  y_percent = TRUE,
+  group_var = "organism_species_name",
+  group_var_barmode = "stack",
+  fill_colours = c("KLEBSIELLA PNEUMONIAE" = "#007C91",
+                   "STAPHYLOCOCCUS AUREUS" = "#8A1B61",
+                   "PSEUDOMONAS AERUGINOSA" = "#FF7F32"),
+  bar_labels_pos = 'bar_centre',
+  bar_labels_font_size = 8,
+  bar_labels_font_colour = 'white',
+  chart_title = "Laboratory Detections by ISO week \nand Species, winter 2022-23",
+  chart_footer = "This chart has been created using simulated data.",
+  x_axis_title = "ISO Week",
+  y_axis_title = "Number of detections",
+  x_axis_label_angle = -45,
+  chart_title_colour = "#007C91",
+  chart_footer_colour = "#007C91",
+  show_gridlines = FALSE
 )
 
 
