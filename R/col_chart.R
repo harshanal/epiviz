@@ -61,7 +61,7 @@ col_chart <- function(
     params = list(
       df = NULL,
       x = NULL,
-      y = NULL, 
+      y = NULL,
       group_var = NULL,
       fill = "blue",
       y_axis = "y1",
@@ -76,7 +76,7 @@ col_chart <- function(
       x_label_angle = NULL,
       y_label_angle = NULL,
       x_labels_reverse = NULL,
-      y_min_limit = NULL, 
+      y_min_limit = NULL,
       y_max_limit = NULL,
       x_axis_breaks = NULL,
       legend_pos = "bottom",
@@ -94,7 +94,7 @@ col_chart <- function(
   dots <- list(...)
   plotly_params <- c("opacity", "hoverlabel", "showlegend")
   ggplot_dots <- dots[!names(dots) %in% plotly_params]
-  
+
   # Where relevant, assign defaults to any parameters not specified by the user
   if(!exists('df',where=params)) stop("A data frame argument is required")
   if(!exists('x',where=params)) stop('Please include argument data frame variable for x axis, ie x = "variable_name"')
@@ -229,21 +229,24 @@ col_chart <- function(
 
   # if group variable not provided build plot accordingly
   if(is.null(group_var)){
-    base <- base + geom_col(data = df, 
-                           aes(x = .data[[x]], y = .data[[y]]), 
+    base <- base + geom_col(data = df,
+                           aes(x = .data[[x]], y = .data[[y]]),
                            fill = fill,  # Move fill outside aes()
                            position = position,
+                           stat = "identity",
                            !!!ggplot_dots)  # Pass filtered aesthetics
   } else if (!is.null(group_var) && is.null(fill)) {
-    base <- base + geom_col(data = df, 
-                           aes(x = .data[[x]], y = .data[[y]], fill = .data[[group_var]]), 
+    base <- base + geom_col(data = df,
+                           aes(x = .data[[x]], y = .data[[y]], fill = .data[[group_var]]),
                            position = position,
+                           stat = "identity",
                            !!!ggplot_dots)  # Pass filtered aesthetics
   } else if (!is.null(group_var) && !is.null(fill)) {
-    base <- base + geom_col(data = df, 
-                           aes(x = .data[[x]], y = .data[[y]], 
-                               group = .data[[group_var]], fill = .data[[group_var]]), 
+    base <- base + geom_col(data = df,
+                           aes(x = .data[[x]], y = .data[[y]],
+                               group = .data[[group_var]], fill = .data[[group_var]]),
                            position = position,
+                           stat = "identity",
                            !!!ggplot_dots)  # Pass filtered aesthetics
   }
 
@@ -296,7 +299,7 @@ col_chart <- function(
   }
 
   # Theme settings - Update to match age_sex_pyramid style
-  base <- base + 
+  base <- base +
     theme_minimal() +  # Use minimal theme as base
     theme(
       axis.title.x = element_text(size = 12, face = "bold"),
@@ -341,13 +344,13 @@ col_chart <- function(
 
   if (dynamic) {
     # produce plotly graph if 'dynamic' is set to TRUE
-    
+
     # Extract plotly-specific parameters from the ellipsis
     plotly_params <- list(...)
-    
+
     # Create a new plotly object directly instead of converting from ggplot
     p <- plotly::plot_ly()
-    
+
     # Handle grouped vs non-grouped plotting
     if(is.null(group_var)) {
       # Single group plotting
@@ -360,10 +363,10 @@ col_chart <- function(
     } else {
       # Multiple group plotting
       unique_groups <- unique(df[[group_var]])
-      
+
       for(i in seq_along(unique_groups)) {
         group_data <- df[df[[group_var]] == unique_groups[i],]
-        
+
         p <- plotly::add_bars(p,
                         data = group_data,
                         x = group_data[[x]],
@@ -379,12 +382,12 @@ col_chart <- function(
       if("opacity" %in% names(plotly_params)) {
         p <- plotly::style(p, opacity = plotly_params$opacity)
       }
-      
+
       # Apply hoverlabel if provided
       if("hoverlabel" %in% names(plotly_params)) {
         p <- plotly::style(p, hoverlabel = plotly_params$hoverlabel)
       }
-      
+
       # Apply showlegend if provided
       if("showlegend" %in% names(plotly_params)) {
         p <- plotly::layout(p, showlegend = plotly_params$showlegend)
