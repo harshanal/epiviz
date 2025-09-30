@@ -13,7 +13,7 @@ point_chart(
     point_labels_nudge_y = 0, group_var = NULL, ci = NULL, ci_upper = NULL, ci_lower =
     NULL, ci_legend = TRUE, ci_legend_title = "Confidence interval", ci_colours = "red",
     errorbar_width = NULL, y_sec_axis = FALSE, y_sec_axis_no_shift = TRUE,
-    y_sec_axis_percent_full = FALSE, chart_title = NULL, 
+    y_sec_axis_percent_full = FALSE, chart_title = NULL,
      chart_title_size = 13,
     chart_title_colour = "black", chart_footer = NULL, chart_footer_size = 12,
     chart_footer_colour = "black", x_axis_title = NULL, y_axis_title = NULL,
@@ -21,7 +21,7 @@ point_chart(
     y_percent = FALSE, x_limit_min = NULL, x_limit_max = NULL, y_limit_min = NULL,
     y_limit_max = NULL, x_axis_break_labels = NULL, y_axis_break_labels = NULL,
     x_axis_n_breaks = NULL, y_axis_n_breaks = NULL, x_axis_date_breaks = NULL, st_theme =
-    NULL, show_gridlines = TRUE, 
+    NULL, show_gridlines = TRUE,
      show_axislines = TRUE, legend_title = "",
     legend_pos = "right", point_size_legend = FALSE, point_size_legend_title = "", hline
     = NULL, hline_colour = "black", hline_width = 0.5, hline_type = "dashed", hline_label
@@ -102,8 +102,12 @@ when \code{y_percent = TRUE}}
 not stated.}
 \item{y_axis_title}{Text used for y-axis title. Defaults to name of y-variable if
 not stated.}
+\item{x_axis_title_font_size}{Font size of the x-axis title.}
+\item{y_axis_title_font_size}{Font size of the y-axis title.}
 \item{x_axis_label_angle}{Angle for x-axis label text.}
 \item{y_axis_label_angle}{Angle for y-axis label text.}
+\item{x_axis_label_font_size}{Font size for the x-axis tick labels.}
+\item{y_axis_label_font_size}{Font size for the y-axis tick labels.}
 \item{x_axis_reverse}{Reverses x-axis scale if \code{x_axis_reverse = TRUE}.}
 \item{y_percent}{Converts y-axis to percentage scale if \code{y_percent = TRUE}.}
 \item{x_limit_min}{Lower limit for the x-axis. Default used if not provided.}
@@ -126,6 +130,8 @@ when \code{dynamic = FALSE}}
 \item{show_axislines}{Logical to show chart axis lines. Default = \code{TRUE}.}
 \item{legend_title}{Text used for legend title.}
 \item{legend_pos}{Position of the legend. Permitted values = c("top","bootom","right","left")}
+\item{legend_font_size}{Font size used in the legend.}
+\item{legend_title_font_size}{Font size used for the legend title.}
 \item{point_size_legend}{Include a legend for \code{point_size}. Default = \code{FALSE}}
 \item{point_size_legend_title}{Text used for point legend title.}
 \item{hline}{Adds horizontal line across the chart at the corresponding y-value. Multiple
