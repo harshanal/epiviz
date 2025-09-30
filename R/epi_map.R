@@ -584,9 +584,10 @@ epi_map <- function (dynamic = FALSE,
     map <- ggplot() +
       geom_sf(data = data_sf,
               alpha = fill_opacity,
-              key_glyph = "rect", # remove border around legend keys
+              #key_glyph = "rect", # remove border around legend keys; NO LONGER WORKS AS OF GGPLOT 2 V4.0.0
               aes(fill = value_cat),
               show.legend = TRUE) +  # ensure unused legend keys are coloured in: https://github.com/tidyverse/ggplot2/issues/5728
+      guides(fill = guide_legend(override.aes = list(colour = NA))) + # remove border around legend keys; ALTERNATIVE TO ABOVE FUNCTIONALITY FOR GGPLOT2 V4.0.0
       # Set colours
       scale_fill_manual(
         values = alpha(pal$fill_colour, fill_opacity),
