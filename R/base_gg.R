@@ -265,8 +265,14 @@ base_gg <- function() {
 
 
 
+  ##### Apply axis breaks to factored x-axis
 
-  ##### Apply axis breaks if provided
+  if (is.factor(df[[x]])) {
+    base <- base + scale_x_discrete(limits = levels(df[[x]]))
+  }
+
+
+  ##### Apply user-specified axis breaks if provided
 
   # Apply specified axis_break_labels
 

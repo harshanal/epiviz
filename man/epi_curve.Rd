@@ -7,26 +7,25 @@
 epi_curve(
   dynamic = FALSE,
   params = list(df = NULL, y = NULL, date_var = NULL, date_start = NULL, date_end = NULL,
-    time_period = "use_date_var", group_var = NULL, group_var_barmode = "stack",
-    fill_colours = "lightblue", bar_border_colour = "transparent", case_boxes = FALSE,
-    case_boxes_colour = "white", rolling_average_line = FALSE,
-    rolling_average_line_lookback = 7, rolling_average_line_colour = "red",
-    rolling_average_line_width = 1, rolling_average_line_legend_label =
-    "Rolling average", cumulative_sum_line = FALSE, cumulative_sum_line_colour =
-    "darkblue", 
-     cumulative_sum_line_width = 1, cumulative_sum_line_legend_label =
-    "Cumulative sum", cumulative_sum_line_axis_title = "Cumulative Sum", chart_title =
-    NULL, chart_title_size = 13, chart_title_colour = "black", chart_footer = NULL,
-    chart_footer_size = 12, chart_footer_colour = "black", x_axis_title = NULL,
-    y_axis_title = NULL, x_axis_title_font_size = 11, y_axis_title_font_size = 11,
-    x_axis_label_angle = NULL, y_axis_label_angle = NULL, x_axis_label_font_size = 9,
-    y_axis_label_font_size = 9, y_limit_min = NULL, 
-     y_limit_max = NULL,
-    x_axis_break_labels = NULL, y_axis_break_labels = NULL, y_axis_n_breaks = NULL,
-    show_gridlines = TRUE, show_axislines = TRUE, legend_title = "", legend_pos =
-    "right", legend_font_size = 8, legend_title_font_size = 8, hline = NULL, hline_colour
-    = "black", hline_width = 0.5, hline_type = "dashed", hline_label = NULL,
-    hline_label_colour = "black", hover_labels = NULL)
+    time_period = "day", group_var = NULL, group_var_barmode = "stack", fill_colours =
+    "lightblue", bar_border_colour = "transparent", case_boxes = FALSE, case_boxes_colour
+    = "white", rolling_average_line = FALSE, rolling_average_line_lookback = 7,
+    rolling_average_line_colour = "red", rolling_average_line_width = 1,
+    rolling_average_line_legend_label = "Rolling average", cumulative_sum_line = FALSE,
+    cumulative_sum_line_colour = "darkblue", 
+     cumulative_sum_line_width = 1,
+    cumulative_sum_line_legend_label = "Cumulative sum", cumulative_sum_line_axis_title =
+    "Cumulative Sum", chart_title = NULL, chart_title_size = 13, chart_title_colour =
+    "black", chart_footer = NULL, chart_footer_size = 12, chart_footer_colour = "black",
+    x_axis_title = NULL, y_axis_title = NULL, x_axis_title_font_size = 11,
+    y_axis_title_font_size = 11, x_axis_label_angle = NULL, y_axis_label_angle = NULL,
+    x_axis_label_font_size = 9, y_axis_label_font_size = 9, y_limit_min = NULL, 
+    
+    y_limit_max = NULL, x_axis_break_labels = NULL, y_axis_break_labels = NULL,
+    y_axis_n_breaks = NULL, show_gridlines = TRUE, show_axislines = TRUE, legend_title =
+    "", legend_pos = "right", legend_font_size = 8, legend_title_font_size = 8, hline =
+    NULL, hline_colour = "black", hline_width = 0.5, hline_type = "dashed", hline_label =
+    NULL, hline_label_colour = "black", hover_labels = NULL)
 )
 }
 \arguments{
@@ -46,9 +45,7 @@ with \code{date_var < date_start} will be excluded from aggregates.}
 with \code{date_var > date_end} will be excluded from aggregates.}
 \item{time_period}{The time period to be used along the x-axis. Options include
 \code{c("day","year","month","quarter","year_month","year_quarter",
-     "iso_year","iso_week","start_iso_year_week","iso_year_week",
-     "use_date_var")}. Default = \code{"use_date_var"}, which indicates that the dates
-as they appear in the \code{date_var} column will be used to populate the x-axis.}
+     "iso_year","iso_week","start_iso_year_week","iso_year_week")}. Default = \code{"day"}}
 \item{group_var}{Name of the variable in df used to define separate groups within each bar,
 e.g. species or region.}
 \item{group_var_barmode}{Indicates how grouped bar data should be plotted. Options include
