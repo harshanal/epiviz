@@ -88,9 +88,9 @@
 #'    \item{x_axis_break_labels}{Vector of values to use for x-axis breaks. Defaults used if not provided.}
 #'    \item{y_axis_break_labels}{Vector of values to use for y-axis breaks. Defaults used if not provided.}
 #'    \item{x_axis_n_breaks}{Scales x-axis with approximately n breaks. Cannot be provided
-#'    if \code{x_axis_break_labels} is provided.}
+#'    if \code{x_axis_break_labels} has also been provided.}
 #'    \item{y_axis_n_breaks}{Scales y-axis with approximately n breaks. Cannot be used
-#'    if \code{y_axis_break_labels} is also provided.}
+#'    if \code{y_axis_break_labels} has also been provided.}
 #'    \item{x_axis_date_breaks}{A string giving the distance between breaks like "2 weeks", or "10 years".
 #'    Valid specifications are 'sec', 'min', 'hour', 'day', 'week', 'month' or 'year', optionally followed
 #'    by 's'. Matches ggplot scale_date() conventions (see https://ggplot2.tidyverse.org/reference/scale_date.html).
@@ -129,6 +129,7 @@
 #' @import scales
 #' @import tidyr
 #' @import lubridate
+#' @importFrom assertthat not_empty
 #' @rawNamespace import(plotly, except = last_plot)
 #'
 #' @return A ggplot or plotly object.
@@ -552,7 +553,7 @@ point_chart <- function(
   if(!is.data.frame(params$df)) stop("df is not a data frame object")
 
   # Check df is empty
-  if(!not_empty(params$df)) stop("df is empty")
+  if(!assertthat::not_empty(params$df)) stop("df is empty")
 
   # Check if x argument is is.null
   if ((is.null(params$x)) | !exists('x',where=params))

@@ -13,6 +13,11 @@
 base_plotly <- function() {
 
 
+    # Ensure that unused variables exist
+    if(!exists("x_time_series")) {x_time_series <- FALSE}
+    if(!exists("axis_flip")) {axis_flip <- FALSE}
+
+
     ##### Create base plotly object
     if (!is.null(base)) {
       base <- base
@@ -64,7 +69,8 @@ base_plotly <- function() {
     # Replace R linebreaks with html linebreaks for plotly
     if (!is.null(chart_title)) {chart_title <- gsub("\\n","<br>",chart_title)}
     if (!is.null(chart_footer)) {chart_footer <- gsub("\\n","<br>",chart_footer)}
-
+    #if (is.character(x)) {x <- gsub("\\n","<br>",x)} # for axis tick labels
+    #if (is.character(y)) {x <- gsub("\\n","<br>",y)} # for axis tick labels
 
     # Add title
     if (!is.null(chart_title)) {
@@ -72,8 +78,12 @@ base_plotly <- function() {
         layout(title = list(text = html_bold(chart_title), # utils/html_bold function used to apply <b> </b> tags to title text
                             font = title_font,
                             x = 0.5,
+                            y = 1.1,
                             xanchor = "centre",
-                            xref = 'paper', yref = 'paper'))
+                            yanchor =  "bottom",
+                            xref = 'paper',
+                            yref = 'paper')
+               )
     }
 
     # Add footer
@@ -162,7 +172,8 @@ base_plotly <- function() {
     # Set margin to match ggplot
     base <- base |>
       layout(margin = list(r = if (y_sec_axis == TRUE) {40} else {10}, # increase right margin when secondary y-axis used
-                           t=30,
+                           #t = if (axis_flip == FALSE) 30 else {50},
+                           t = 50,
                            b = 60+abs((sin(-x_axis_label_angle))*50), # scale bottom margin according to x-label text angle
                            l=3))
 
@@ -192,8 +203,11 @@ base_plotly <- function() {
     ##### Apply y percentage axis
 
     if ((y_percent == TRUE) & (y_sec_axis == FALSE)) {
-      #base <- base |> layout(yaxis = list(ticksuffix  = "%"))
-      base <- base |> layout(yaxis = list(tickformat  = ".0%"))
+      if (axis_flip == FALSE) {
+        base <- base |> layout(yaxis = list(tickformat  = ".0%"))
+      } else {
+        base <- base |> layout(xaxis = list(tickformat  = ".0%"))
+      }
     }
 
 
@@ -203,20 +217,28 @@ base_plotly <- function() {
     # Uses x_min, x_max, y_min, y_max variables derived from ggobj outside of base_plotly()
 
     # Replace existing limits with user defined x / y limits if provided
-    if(!is.null(x_limit_min)) {x_min <- x_limit_min}
-    if(!is.null(x_limit_max)) {x_max <- x_limit_max}
+    #    Do not do this for x-limits if x_time_series = TRUE, as dates outside the
+    #      date limits will have already been filtered out by this stage and re-applying
+    #      them here will disrupt axis reversals etc. later on.
+    if(!is.null(x_limit_min) & (x_time_series == FALSE)) {x_min <- x_limit_min}
+    if(!is.null(x_limit_max) & (x_time_series == FALSE)) {x_max <- x_limit_max}
     if(!is.null(y_limit_min)) {y_min <- y_limit_min}
     if(!is.null(y_limit_max)) {y_max <- y_limit_max}
 
+
     # Pad x-axis range in-line with ggplot formatting (5% on each side)
-    if (is.numeric(df[[x]])) {
-      xpad <- (x_max-x_min)*0.05
-      x_max <- x_max+xpad
-      x_min <- x_min-xpad
-    } else if (lubridate::is.Date(df[[x]])) {
-      xpad <- round(as.numeric(difftime(x_max, x_min, units="days"))*0.05, digits = 0)
-      x_max <- as.Date(x_max)+xpad
-      x_min <- as.Date(x_min)-xpad
+    #   -Only do this if x and y axes have not been flipped (only happens in col_chart())
+    if(axis_flip == FALSE) {
+      if (is.numeric(df[[x]])) {
+        xpad <- (x_max-x_min)*0.05
+        x_max <- x_max+xpad
+        x_min <- x_min-xpad
+      } else if (lubridate::is.Date(df[[x]])) {
+        #xpad <- difftime(as.Date(x_max), as.Date(x_min), units="days")*0.05
+        xpad <- round(as.numeric(difftime(x_max, x_min, units="days"))*0.05, digits = 0)
+        x_max <- as.Date(x_max)+xpad
+        x_min <- as.Date(x_min)-xpad
+      }
     }
 
     # Convert dates to character so they aren't coerced to numeric when added to range vector
@@ -229,8 +251,56 @@ base_plotly <- function() {
     x_range <- c(x_min, x_max)
     y_range <- c(y_min, y_max)
 
+    # Convert dates back to dates
+    if(lubridate::is.Date(df[[x]])) {
+      suppressWarnings(
+        x_range <- if(!is.na(as.numeric(x_range[1]))) {as.Date(as.numeric((x_range)))} else {as.Date(x_range)}    # if date is stored in a "19345.4" character/numeric form, convert to numeric first then to date
+      )
+    }
+    if(lubridate::is.Date(df[[y]])) {
+      suppressWarnings(
+        y_range <- if(!is.na(as.numeric(y_range[1]))) {as.Date(as.numeric((y_range)))} else {as.Date(y_range)}    # if date is stored in a "19345.4" character/numeric form, convert to numeric first then to date
+      )
+    }
+
+
+    # For col_chart only:
+    if (substr(deparse(sys.calls()[[sys.nframe()-1]]),1,9)[1] == "col_chart") {
+
+      # In col_chart plotly axis limits are already derived from col_chart ggplot,
+      #    so if x_axis_reverse == TRUE the x limits will already be flipped which
+      #    will invalidate subsequent code. Thus un-flip them here.
+      if (x_axis_reverse == TRUE) {x_range <- rev(x_range)} #& x_time_series == FALSE
+
+      # Shunt x-axis along 1 place if x is a categorical variable else the first
+      #    set of bars in the range will be cut off
+      # account for axis flipping
+      if(axis_flip == FALSE) {
+        if(lubridate::is.Date(df[[x]]) == FALSE & is.numeric(df[[x]]) == FALSE) {
+            x_range <- x_range - 1
+          }
+      } else if(axis_flip == TRUE & x_time_series == FALSE) { # x_time_series variables handled differently
+          if(lubridate::is.Date(df[[y]]) == FALSE & is.numeric(df[[y]]) == FALSE) {
+            y_range <- y_range - 1
+          }
+      }
+
+      # Extend date axis ranges by 1-day so that half a bar isn't cut off at the
+      #   top end of the axis
+      # x-axis range
+      if(lubridate::is.Date(df[[x]]) == TRUE) {x_range[2] <- x_range[2]+1}
+      # y-axis range (requires addition consideration if axes are flipped)
+      if (x_axis_reverse == FALSE) {
+        if(lubridate::is.Date(df[[y]]) == TRUE) {y_range[2] <- y_range[2]+1}
+      } else {
+        if(lubridate::is.Date(df[[y]]) == TRUE) {y_range[1] <- y_range[1]+1}
+      }
+    } # col_chart only END
+
+
     #Reverse x-axis range if specified
     if (x_axis_reverse == TRUE) {x_range <- rev(x_range)}
+
 
     # Apply axis ranges to chart
     base <- base |>
@@ -448,14 +518,15 @@ base_plotly <- function() {
       # create each sub-list iteratively
       for (i in 1:length(hline)) {
 
+        # Account for axis_flip within each sub-list
         hline_sublist <- list(
               type = "line",
-              x0 = 0,
-              x1 = 1,
-              xref = "paper",
-              yref = y_axis_choice,
-              y0 = hline[i],
-              y1 = hline[i],
+              x0 = if(axis_flip==FALSE) {0} else {hline[i]},
+              x1 = if(axis_flip==FALSE) {1} else {hline[i]},
+              xref = if(axis_flip==FALSE) {"paper"} else {x},
+              yref = if(axis_flip==FALSE) {y_axis_choice} else {"paper"},
+              y0 = if(axis_flip==FALSE) {hline[i]} else {0},
+              y1 = if(axis_flip==FALSE) {hline[i]} else {1},
               line = list(color = if (length(hline_colour)>1) {hline_colour[i]} else {hline_colour},
                           dash = if (length(hline_type)>1) {plotly_line_style(hline_type[i])} else {plotly_line_style(hline_type)},   # uses utils/plotly_line_style() function
                           width = if (length(hline_width)>1) {hline_width[i]} else {hline_width})
@@ -481,18 +552,26 @@ base_plotly <- function() {
             hline_xpos <- if(!is.null(x_limit_max)) {x_limit_max} else {xpos_high}
           }
 
+          # handle flipped axes
+          if (axis_flip == TRUE) {
+            ypos_high <- if (!is.factor(df[[y]])) {max(df[[y]])} else {last(df[[y]])}
+            ypos_low <- if (!is.factor(df[[y]])) {min(df[[y]])} else {first(df[[y]])}
+
+            hline_ypos <- if(!is.null(y_limit_max)) {y_limit_max} else {ypos_high} # puts label at top of line
+          }
 
           base <- base |>
             add_annotations(
               text = hline_label[i],
-              x = hline_xpos,
-              y = hline[i],
+              x = if(axis_flip==FALSE) {hline_xpos} else {hline[i]},
+              y = if(axis_flip==FALSE) {hline[i]} else{hline_ypos},
               #yaxis = y_axis_choice,
               yref = y_axis_choice,
               xanchor = "left",
-              yanchor = "bottom",
+              yanchor = if(axis_flip==FALSE) {"bottom"} else {"top"},
               showarrow = FALSE,
               bgcolor = "#ffffff00",
+              textangle = if(axis_flip==FALSE) {0} else {90},
               font = list(color = if (length(hline_colour)>1) {hline_colour[i]} else {hline_colour},
                           size = 12)
             )

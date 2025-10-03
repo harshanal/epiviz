@@ -1,4 +1,3 @@
-
 #' Creates base ggplot object for use across other functions.
 #' Parameters are not passed explicitly to the function, so
 #' function call needs to be proceeded by environment(base_gg) <- environment()
@@ -12,6 +11,10 @@
 #' }
 base_gg <- function() {
 
+
+  # Ensure that unused variables exist
+  if(!exists("x_time_series")) {x_time_series <- FALSE}
+  if(!exists("axis_flip")) {axis_flip <- FALSE}
 
   ##### Create base ggplot object
 
@@ -72,13 +75,88 @@ base_gg <- function() {
     base <- base + labs(y = y) # default to variable name if label not provided
   }
 
+
+
   # Rotate axis text
+
+  # x-axis
   if (!is.null(x_axis_label_angle)) {
-    base <- base + theme(axis.text.x = element_text(angle  = x_axis_label_angle, vjust = 0.5))
+
+    # Anchor middle-right of text box when angle is 1-89 degrees (to match plotly)
+    if(x_axis_label_angle >= 1 & x_axis_label_angle <= 89) {
+      base <- base + theme(axis.text.x = element_text(angle  = x_axis_label_angle,
+                                                      vjust = 1, hjust = 1))
+
+    } else if(x_axis_label_angle == 90) {
+      # Center justify when y-axis label is vertical
+      base <- base + theme(axis.text.x = element_text(angle  = x_axis_label_angle,
+                                                      vjust = 0.5, hjust = 1))
+
+    } else if(x_axis_label_angle == -90) {
+      # Center justify when y-axis label is vertical
+      base <- base + theme(axis.text.x = element_text(angle  = x_axis_label_angle,
+                                                      vjust = 0.5, hjust = 0))
+
+    } else if(abs(x_axis_label_angle) %in% c(270,-270)) {
+      # Center justify when y-axis label is vertical
+      base <- base + theme(axis.text.x = element_text(angle  = x_axis_label_angle,
+                                                      vjust = 0.5, hjust = 0))
+
+    } else if(x_axis_label_angle <= -1 & x_axis_label_angle >= -89) {
+      # Anchor middle-right of text box when angle is 1-89 degrees (to match plotly)
+      base <- base + theme(axis.text.x = element_text(angle  = x_axis_label_angle,
+                                                      vjust = 1, hjust = 0))
+
+    } else if(x_axis_label_angle >= 181 & x_axis_label_angle <= 269) {
+      # Anchor middle-right of text box when angle is 181-359 degrees (to match plotly)
+      base <- base + theme(axis.text.x = element_text(angle  = x_axis_label_angle,
+                                                      vjust = 0, hjust = 0))
+
+    } else if(x_axis_label_angle >= 271 & x_axis_label_angle <= 359) {
+      # Anchor middle-right of text box when angle is 181-359 degrees (to match plotly)
+      base <- base + theme(axis.text.x = element_text(angle  = x_axis_label_angle,
+                                                      vjust = 0.5, hjust = 0))
+
+    } else {
+      base <- base + theme(axis.text.x = element_text(angle  = x_axis_label_angle,
+                                                      vjust = 0.5))
+    }
+
+
+    # base <- base + theme(axis.text.x = element_text(angle  = x_axis_label_angle,
+    #                                                 vjust = 1,
+    #                                                 hjust = 0))
   }
 
+
+
+  # y-axis
   if (!is.null(y_axis_label_angle)) {
-    base <- base + theme(axis.text.y = element_text(angle  = y_axis_label_angle, vjust = 0.5))
+
+    # Anchor middle-right of text box when angle is 1-89 degrees (to match plotly)
+    if(y_axis_label_angle >= 1 & y_axis_label_angle <= 89) {
+      base <- base + theme(axis.text.y = element_text(angle  = y_axis_label_angle,
+                                                      vjust = 0.5, hjust = 1))
+
+    } else if(abs(y_axis_label_angle) %in% c(90,270,-90,-270)) {
+      # Center justify when y-axis label is vertical
+      base <- base + theme(axis.text.y = element_text(angle  = y_axis_label_angle,
+                                                      vjust = 0, hjust = 0.5))
+
+    } else if(y_axis_label_angle <= -1 & y_axis_label_angle >= -89) {
+      # Anchor middle-right of text box when angle is 1-89 degrees (to match plotly)
+      base <- base + theme(axis.text.y = element_text(angle  = y_axis_label_angle,
+                                                      vjust = 1, hjust = 1))
+
+    } else if(y_axis_label_angle >= 201 & y_axis_label_angle <= 359) {
+      # Anchor middle-right of text box when angle is 201-359 degrees (to match plotly)
+      base <- base + theme(axis.text.y = element_text(angle  = y_axis_label_angle,
+                                                      vjust = 1, hjust = 1))
+
+    } else {
+      base <- base + theme(axis.text.y = element_text(angle  = y_axis_label_angle,
+                                                      vjust = 0.5))
+    }
   }
 
 
@@ -352,19 +430,21 @@ base_gg <- function() {
 
 
     # Apply axis reversal
-    if (lubridate::is.Date(df[[x]])) {
-      # Handle date axes
-        if (!is.null(x_axis_break_labels)) { # take into account x_axis_break_labels if provided
-          base <- base + scale_x_continuous(trans = c("date", "reverse"), breaks = x_axis_break_labels)
-        } else {
-          base <- base + scale_x_continuous(trans = c("date", "reverse"))
-        }
-    } else if (is.factor(df[[x]])) {
-      # Handle discrete axes (i.e. factors)
-      base <- base + scale_x_discrete(limits = rev(levels(df[[x]])))
-    } else {
-      base <- base + scale_x_reverse()
-    }
+    suppressMessages(
+      if (lubridate::is.Date(df[[x]])) {
+        # Handle date axes
+          if (!is.null(x_axis_break_labels)) { # take into account x_axis_break_labels if provided
+            base <- base + scale_x_continuous(trans = c("date", "reverse"), breaks = x_axis_break_labels)
+          } else {
+            base <- base + scale_x_continuous(trans = c("date", "reverse"))
+          }
+      } else if (is.factor(df[[x]])) {
+        # Handle discrete / categorical axes (i.e. factors)
+        base <- base + scale_x_discrete(limits = rev(levels(df[[x]])))
+      } else {
+        base <- base + scale_x_reverse()
+      }
+    )
 
   }
 
@@ -407,10 +487,16 @@ base_gg <- function() {
   if (lubridate::is.Date(df[[x]]) & !is.null(xlim)) {xlim <- as.Date(xlim)}
 
 
-  # Handle base_gg() being called inside epi_curve()
-  if (substr(deparse(sys.calls()[[sys.nframe()-1]]),1,9)[1] == "epi_curve") {
+  # Handle base_gg() being called inside epi_curve() & col_chart where the x-limits are redefined
+  if (substr(deparse(sys.calls()[[sys.nframe()-1]]),1,9)[1] == "epi_curve" |
+        (substr(deparse(sys.calls()[[sys.nframe()-1]]),1,9)[1] == "col_chart" & x_time_series == TRUE)) {
     xlim <- c(NA,NA)
   }
+  # In epi_curve(), and in col_chart() where x_time_series = TRUE, a full time series is
+  #    defined from date_start/x_limit_min to date_end/x_limit_min and the full x-axis
+  #    plotted from this, thus meaning that xlim must be set to c(NA,NA) so that the
+  #    whole axis is plotted. Where x_time_series = FALSE conventional
+  #    limits can be defined, and thus xlim does not need to be reset to c(NA,NA).
 
 
   # Apply axis limits to base plot
@@ -429,6 +515,9 @@ base_gg <- function() {
 
   ##### Apply hlines
 
+  # if no hline, return hline_xpos = NULL for function export list at end
+  if (is.null(hline) | is.null(hline_label)) {hline_xpos <- NULL}
+
   # adds horizontal line at the y value specified for hline
   if (!is.null(hline)) {
     base <-
@@ -436,8 +525,6 @@ base_gg <- function() {
                         colour = hline_colour,
                         linewidth = hline_width,
                         linetype = hline_type)
-  } else {
-    hline_xpos <- NULL    # if no hline, return hline_xpos = NULL for function export list at end
   }
 
   # If specified, add label to the start of the horizontal line
@@ -456,6 +543,23 @@ base_gg <- function() {
         hline_xpos <- if (x_axis_reverse == TRUE) {last(df[[x]])} else {first(df[[x]])}
       }
     }
+
+    # Account for flipped axes
+    if (axis_flip == TRUE) {
+      # If upper x-axis limit present use that
+      if (!is.na(base$coordinates$limits$x[[2]])) {
+        hline_xpos <- base$coordinates$limits$x[[2]]
+      } else {
+        # else use max value of x, or min if values reversed
+        if (!is.factor(df[[x]])) {
+          hline_xpos <- if (x_axis_reverse == TRUE) {min(df[[x]])} else {max(df[[x]])}
+        } else {
+          # handle factor x-axes
+          hline_xpos <- if (x_axis_reverse == TRUE) {first(df[[x]])} else {last(df[[x]])}
+        }
+      }
+    }
+
 
     # Apply hline label to plot
     base <- base +
@@ -478,13 +582,13 @@ base_gg <- function() {
   ##### Change y-axis to percentage scale
 
   if (y_percent == TRUE) {
-
-    base <-
-      base + scale_y_continuous(
-        ##labels = function(x) paste0(x, "%")
-        labels = scales::label_percent()
-      )
-
+    suppressMessages(
+      base <-
+        base + scale_y_continuous(
+          ##labels = function(x) paste0(x, "%")
+          labels = scales::label_percent()
+        )
+    )
   }
 
 
@@ -519,7 +623,11 @@ base_gg <- function() {
   #       (df$y may have been modified through sec axis scaling)
   #       (hline_xpos required in case hline needs to be reapplied over other plots)
 
-  return_list <- list("base" = base, "df" = df, "hline_xpos" = hline_xpos)
+  return_list <- list("base" = base,
+                      "df" = df,
+                      "hline_xpos" = hline_xpos,
+                      "xlim" = xlim,
+                      "ylim" = ylim)
 
   return(return_list)
 

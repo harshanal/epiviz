@@ -2,106 +2,444 @@
 % Please edit documentation in R/col_chart.R
 \name{col_chart}
 \alias{col_chart}
-\title{Column Chart}
+\title{col_chart}
 \usage{
 col_chart(
-  df,
-  base = NULL,
-  x = NULL,
-  y = NULL,
-  group_var = NULL,
-  fill = "blue",
-  y_axis = "y1",
-  position = "dodge",
-  ci = NULL,
-  lower = NULL,
-  upper = NULL,
-  error_colour = "red",
-  h_line = NULL,
-  y_label = NULL,
-  x_label = NULL,
-  x_label_angle = NULL,
-  y_label_angle = NULL,
-  x_labels_reverse = NULL,
-  y_min_limit = NULL,
-  y_max_limit = NULL,
-  x_axis_breaks = NULL,
-  legend_pos = "bottom",
-  remove_gridlines = NULL,
-  percent = NULL,
-  cap_text = NULL,
-  no_shift = FALSE
+  dynamic = FALSE,
+  params = list(df = NULL, x = NULL, y = NULL, x_time_series = FALSE,
+    x_time_series_bar_labels = FALSE, time_period = "day", group_var = NULL,
+    group_var_barmode = "stack", fill_colours = "lightblue", bar_border_colour =
+    "transparent", bar_labels = NULL, bar_labels_pos = "bar_above", bar_labels_font_size
+    = 8, bar_labels_font_colour = "black", bar_labels_angle = 0, bar_labels_percent =
+    FALSE, case_boxes = FALSE, case_boxes_colour = "white", axis_flip = FALSE, ci = NULL,
+    ci_upper = NULL, ci_lower = NULL, ci_legend = TRUE, 
+     ci_legend_title =
+    "Confidence interval", ci_colours = "red", errorbar_width = NULL, chart_title = NULL,
+    chart_title_size = 13, chart_title_colour = "black", chart_footer = NULL,
+    chart_footer_size = 12, chart_footer_colour = "black", x_axis_title = NULL,
+    y_axis_title = NULL, x_axis_title_font_size = 11, y_axis_title_font_size = 11,
+    x_axis_label_angle = NULL, y_axis_label_angle = NULL, x_axis_label_font_size = 9,
+    y_axis_label_font_size = 9, x_limit_min = NULL, x_limit_max = NULL, y_limit_min =
+    NULL, 
+     y_limit_max = NULL, x_axis_break_labels = NULL, y_axis_break_labels =
+    NULL, x_axis_n_breaks = NULL, y_axis_n_breaks = NULL, x_axis_reverse = FALSE,
+    y_percent = FALSE, show_gridlines = TRUE, show_axislines = TRUE, legend_title = "",
+    legend_pos = "right", legend_font_size = 8, legend_title_font_size = 8, hline = NULL,
+    hline_colour = "black", hline_width = 0.5, hline_type = "dashed", hline_label = NULL,
+    hline_label_colour = "black", hover_labels = NULL)
 )
 }
 \arguments{
-\item{df}{the dataframe containing the data to be plotted}
+\item{dynamic}{Logical indicating whether to produce a dynamic (plotly) output.
+Default is \code{FALSE}, which will return a static ggplot output.}
 
-\item{base}{a ggplot instance or NULL if creating a new plot}
+\item{params}{A named list containing arguements used to create the plot.
+\describe{
+\item{df}{A data frame containing data used to create the column chart.}
+\item{x}{character, Name of the variable in \code{df} containing the values used
+to populate the x-axis.}
+\item{y}{character, Name of the variable in \code{df} containing the values used
+to populate the y-axis.)}
+\item{x_time_series}{If \code{x_time_series = TRUE} then x-axis data will be aggregated into
+a time series. \code{x} must be a date variable when \code{x_time_series = TRUE}. The
+granularity of the time series can be set using the \code{time_period}
+parameter. If \code{y} is not provided, then x_time_series will assume that each row
+corresponds to a single observation and aggregate accordingly.}
+\item{x_time_series_bar_labels}{If \code{x_time_series_bar_labels = TRUE} then labels
+equalling y-axis values will be added to each bar.}
+\item{time_period}{The time period to be used along the x-axis. Options include
+\code{c("day","year","month","quarter","year_month","year_quarter",
+     "iso_year","iso_week","start_iso_year_week","iso_year_week")}. Default = \code{"day"}}
+\item{group_var}{Name of the variable in df used to define separate groups within each bar,
+e.g. 'species' or 'region'.}
+\item{group_var_barmode}{Indicates how grouped bar data should be plotted. Options include
+\code{c("group","stack")}. Default = \code{"stack"}.}
+\item{fill_colours}{Colours used to fill bars on chart. If \code{group_var} has not been
+provided, then \code{fill_colours} must be a character containing a single colour (default =
+\code{"lightblue"}). If \code{group_var} has been provided, then \code{fill_colours} must be
+a character vector of colours with a number of elements equal to the number of unique groups
+in \code{group_var}. If a named character vector is provided where the names are values within
+\code{group_var}, then each colour will be mapped to it's corresponding value in \code{group_var}
+on the output chart and legend (e.g. \code{c("KLEBSIELLA PNEUMONIAE" = "#007C91", "STAPHYLOCOCCUS
+   AUREUS" = "#8A1B61", "PSEUDOMONAS AERUGINOSA" = "#FF7F32")} or \code{setNames(c("#007C91",
+   "#8A1B61","#FF7F32"), c("KLEBSIELLA PNEUMONIAE","STAPHYLOCOCCUS AUREUS","PSEUDOMONAS AERUGINOSA"))})}
+\item{bar_border_colour}{character, Colour of the border around each bar. Default = \code{"transparent"},
+meaning that no border colour is drawn as default.}
+\item{bar_labels}{character, Name of the variable in \code{df} containing the labels to be used
+for each bar. To set bar lables when \code{x_time_series = TRUE}, set \code{x_time_series_bar_labels = TRUE}
+and labels will be added to each bar equal to y-axis values.}
+\item{bar_labels_pos}{character, The position on the bars that labels will be plotted, permitted
+values are \code{c('bar_above','bar_base','bar_centre','above_errorbar')}. Default = \code{'bar_above'}.}
+\item{bar_labels_font_size}{numeric, Font size for the bar labels. Default = \code{8}.}
+\item{bar_labels_font_colour}{character, Font colour for the bar labels. Default = \code{'black'}.}
+\item{bar_labels_angle}{numeric, Font angle for the bar labels.}
+\item{bar_labels_percent}{boolean, If \code{bar_labels_percent = TRUE} then the values in \code{bar_labels}
+will be converted into a percentage before plotting.}
+\item{case_boxes}{boolean, If \code{case_boxes = TRUE} then a boundary box will be drawn around
+each case within each bar. Defaults to \code{case_boxes = FALSE}.}
+\item{case_boxes_colour}{The colour of the border around each case box if \code{case_boxes =
+   TRUE}. Default = \code{"white"}.}
+\item{axis_flip}{boolean, If set to \code{TRUE} then x and y axes will be flipped and bars will
+be drawn hozizontally rather than vertically.}
+\item{ci}{Confidence interval. If \code{ci = "errorbar"} then confidence intervals be
+be plotted with each bar as errorbars. If \code{ci} is provided, then \code{ci_upper}
+and \code{ci_lower} must also be provided.}
+\item{ci_upper}{character, Name of the variable in df used as the upper confidence limit for
+each bar. Mandatory when \code{ci} is provided.}
+\item{ci_lower}{character, Name of the variable in df used as the lower confidence limit for
+each bar. Mandatory when \code{ci} is provided.}
+\item{ci_legend}{Logical indicating whether a separate legend should be included
+in the chart for confidence interval parameters. Only applies when \code{group_var}
+is provided. Defaults to \code{FALSE}.}
+\item{ci_legend_title}{Text to use as title for separate legend when \code{ci_legend = TRUE}.
+Default = \code{"Confidence interval"}.}
+\item{ci_colours}{Colour(s) used for plotting errorbars when \code{ci = "errorbar"}.
+If \code{group_var} has been provided, then \code{fill_colours} must be a character
+vector of colours with a number of elements equal to the number of unique groups
+in \code{group_var}. If a named character vector is provided where the names are
+values within \code{group_var}, then each colour will be mapped to it's corresponding
+value in \code{group_var} on the output chart and legend (e.g. \code{c("KLEBSIELLA PNEUMONIAE"
+   = "#007C91", "STAPHYLOCOCCUS AUREUS" = "#8A1B61","PSEUDOMONAS AERUGINOSA" = "#FF7F32")} or
+\code{setNames(c("#007C91","#8A1B61","#FF7F32"), c("KLEBSIELLA PNEUMONIAE","STAPHYLOCOCCUS
+   AUREUS","PSEUDOMONAS AERUGINOSA"))})}
+\item{errorbar_width}{Horizontal width of the plotted error bars when \code{ci =
+   "errorbar"}.}
+\item{chart_title}{Text to use as the chart title.}
+\item{chart_title_size}{Font size of chart title. Default = \code{13}.}
+\item{chart_title_colour}{Font colour of chart title. Default = \code{"black"}.}
+\item{chart_footer}{Text to use as chart footer.}
+\item{chart_footer_size}{Font size of chart footer. Default = \code{12}.}
+\item{chart_footer_colour}{Font colour of chart footer. Default = \code{"black"}.}
+\item{x_axis_title}{Text used for x-axis title. Defaults to name of x-variable if
+not stated.}
+\item{y_axis_title}{Text used for y-axis title. Defaults to name of y-variable if
+not stated.}
+\item{x_axis_title_font_size}{Font size of the x-axis title. Default = \code{11}.}
+\item{y_axis_title_font_size}{Font size of the y-axis title. Default = \code{11}.}
+\item{x_axis_label_angle}{Angle for x-axis label text.}
+\item{y_axis_label_angle}{Angle for y-axis label text.}
+\item{x_axis_label_font_size}{Font size for the x-axis tick labels. Default = \code{9}.}
+\item{y_axis_label_font_size}{Font size for the y-axis tick labels. Default = \code{9}.}
+\item{x_limit_min}{Lower limit for the x-axis. Default used if not provided.}
+\item{x_limit_max}{Upper limit for the x-axis. Default used if not provided.}
+\item{y_limit_min}{Lower limit for the y-axis. Default used if not provided.}
+\item{y_limit_max}{Upper limit for the y-axis. Default used if not provided.}
+\item{x_axis_break_labels}{Vector of values to use for x-axis breaks. Defaults
+used if not provided. If \code{x_time_series = TRUE} then Values provided must
+match the formatting of \code{time_period}.}
+\item{y_axis_break_labels}{Vector of values to use for y-axis breaks. Defaults
+used if not provided.}
+\item{x_axis_n_breaks}{Scales x-axis with approximately n breaks. Cannot be provided
+if \code{x_axis_break_labels} has also been provided.}
+\item{y_axis_n_breaks}{Scales y-axis with approximately n breaks. Cannot be used
+if \code{y_axis_break_labels} has also been provided.}
+\item{x_axis_reverse}{Reverses x-axis scale if \code{x_axis_reverse = TRUE}.}
+\item{y_percent}{Converts y-axis to percentage scale if \code{y_percent = TRUE}.}
+\item{show_gridlines}{Logical to show chart gridlines. Default = \code{TRUE}.}
+\item{show_axislines}{Logical to show chart axis lines. Default = \code{TRUE}.}
+\item{legend_title}{Text used for legend title.}
+\item{legend_pos}{Position of the legend. Permitted values = c("top","bottom","right","left")}
+\item{legend_font_size}{Font size used in the legend. Default = \code{8}.}
+\item{legend_title_font_size}{Font size used for the legend title. Default = \code{8}.}
+\item{hline}{Adds horizontal line across the chart at the corresponding y-value. Multiple
+values may be provided as a vector to add multiple horizontal lines.}
+\item{hline_colour}{Colour of the horizontal lines if \code{hline} is provided. A vector of colours
+can be provided to colour individual hlines if multiple hlines have been provided. Default = \code{"black"}.}
+\item{hline_width}{Numerical width of the horizontal lines if \code{hline} is provided. A vector of numerical widths
+can be provided for individual hlines if multiple hlines have been provided. Default = \code{0.5}.}
+\item{hline_type}{Line style of the horizontal lines if \code{hline} is provided. A vector of line styles
+can be provided to style hlines if multiple hlines have been provided. Permitted values = c("solid", "dotted",
+"dashed", "longdash", "dotdash"). Default = \code{"dashed"}.}
+\item{hline_label}{Text to label the horizontal lines if \code{hline} is provided. A vector of text strings
+can be provided to label individual hlines if multiple hlines have been provided.}
+\item{hline_label_colour}{Colour of the horizontal line labels if \code{hline_labels} is provided.
+A vector of colours can be provided to colour individual hline_labels if multiple hline_labels have been
+provided. Default = \code{"black"}.}
+\item{hover_labels}{string, Text to be used in the hover-over labels in a dynamic chart.
+Accepts html, use \code{'\%{x}'} to reference corresponding x-axis values (i.e. date intervals)
+and \code{'\%{y}'} to reference y-axis values, e.g. \code{hover_labels = "<b>Date:</b>
+   \%{x}<br><b>Count:</b> \%{y}"}.}
 
-\item{x}{the x value column name to be plotted}
-
-\item{y}{the y value column name to be plotted}
-
-\item{group_var}{the variable used to group the bars i.e. region if plotting by region}
-
-\item{fill}{the colour with which to fill the columns}
-
-\item{y_axis}{either "y1" for the primary y-axis or "y2" for the secondary y-axis.}
-
-\item{position}{the positions of the bars to be plotted i.e."dodge", "stack" etc}
-
-\item{ci}{indicator for using ribbon or error bar geom (if required), enter 'e' for error bar, enter any other value for ribbon}
-
-\item{lower}{lower value for error \ ribbon geom (mandatory if ci argument passed)}
-
-\item{upper}{upper upper value for error \ ribbon geom (mandatory if ci argument passed)}
-
-\item{error_colour}{if not plotting by group this is the colour of the error bars or ribbon}
-
-\item{h_line}{will display a horizontal line if valid inter passed}
-
-\item{y_label}{for provision of an y axis label}
-
-\item{x_label}{for provision of an x axis label}
-
-\item{x_label_angle}{to adjust the x axis label by the degrees of the integer provided}
-
-\item{y_label_angle}{to adjust the y axis label by the degrees of the integer provided}
-
-\item{x_labels_reverse}{enter an argument of any value i.e. 'y' to reverse the x labeling order when using categorical data}
-
-\item{y_min_limit}{set the limit on the y axis scaling by proving an integer}
-
-\item{y_max_limit}{set the limit on the x axis scaling by proving an integer}
-
-\item{x_axis_breaks}{modify the x axis breaks by providing an integer}
-
-\item{legend_pos}{modify the position of the legend (where applicable) with appropriate value i.e. bottom (default position), top, right, left}
-
-\item{remove_gridlines}{enter an argument of any value i.e. 'y' to remove the grid lines}
-
-\item{percent}{enter an argument of any value i.e. 'y' to include the \% symbol for y axis labels}
-
-\item{cap_text}{enter text for a caption to appear below plot}
-
-\item{no_shift}{If no shift should be applied to the secondary y-axis}
+}}
 }
 \value{
-a ggplot instance
+A ggplot or plotly object.
 }
 \description{
-Column Chart
+A function for producing either a static (ggplot) or dynamic (plotly)
+column chart.
 }
 \examples{
-\dontrun{
-library(dplyr)
-data <- epiviz::lab_data |>
- group_by(organism_species_name) |>
- summarise(Count=n())
 
-col_chart(data,
-          x="organism_species_name",
-          y="Count"
+\dontrun{
+
+# Example 1: Basic column chart
+
+# Create a basic column chart using the epiviz::lab_data dataset
+library(epiviz)
+
+# Summarise the overall number of detections by region in 2023
+detections_by_region_2023 <- lab_data |>
+  filter(specimen_date >= as.Date("2023-01-01") & specimen_date <= as.Date("2023-12-31")) |>
+  group_by(region) |>
+  summarise(detections = n()) |>
+  ungroup() |>
+  # Place 'Yorkshire and Humber' on multiple lines
+  mutate(region = ifelse(region == "Yorkshire and Humber", "Yorkshire and \nHumber", region))
+
+# Create column chart
+basic_col_chart <- col_chart(
+  params = list(
+    df = detections_by_region_2023,
+    x = "region",
+    y = "detections",
+    fill_colours = "#007C91",
+    chart_title = "Laboratory Detections by Region 2023",
+    x_axis_title = "Region",
+    y_axis_title = "Number of detections",
+    x_axis_label_angle = -45
+  )
 )
+
+basic_col_chart
+
+
+
+
+# Example 2: Column chart with bar labels, errorbars, and a horizontal threshold line
+
+# Create a basic column chart using the epiviz::lab_data dataset
+library(epiviz)
+
+
+# Summarise the overall number of detections by region in 2023
+detections_by_region_2023 <- lab_data |>
+  filter(specimen_date >= as.Date("2023-01-01") & specimen_date <= as.Date("2023-12-31")) |>
+  group_by(region) |>
+  summarise(detections = n()) |>
+  ungroup() |>
+  # Place 'Yorkshire and Humber' on multiple lines
+  mutate(region = ifelse(region == "Yorkshire and Humber", "Yorkshire and \nHumber", region)) |>
+  # Add random error for errorbars
+  rowwise() |>
+  mutate(lower_limit = detections - sample(50:200,1),
+         upper_limit = detections + sample(50:200,1)) |>
+  ungroup()
+
+
+# Create column chart
+col_chart <- col_chart(
+  params = list(
+    df = detections_by_region_2023,
+    x = "region",
+    y = "detections",
+    fill_colours = "#007C91",
+    ci = 'errorbar',
+    ci_lower = "lower_limit",
+    ci_upper = "upper_limit",
+    errorbar_width = 0.2,
+    bar_labels = 'detections',
+    bar_labels_pos = 'bar_base',
+    bar_labels_font_size = 12,
+    bar_labels_font_colour = 'white',
+    chart_title = "Laboratory Detections by Region 2023",
+    x_axis_title = "Region",
+    y_axis_title = "Number of detections",
+    show_gridlines = FALSE,
+    hline = 1200,
+    hline_colour = 'orange',
+    hline_label = 'Threshold',
+    hline_label_colour = 'orange'
+  )
+)
+
+col_chart
+
+
+
+
+# Example 3: Create both static and dynamic column charts using grouped data
+
+library(epiviz)
+
+# Summarise the overall number of detections by species and region in 2023
+detections_by_species_region_2023 <- lab_data |>
+  filter(specimen_date >= as.Date("2023-01-01") & specimen_date <= as.Date("2023-12-31")) |>
+  group_by(region, organism_species_name) |>
+  summarise(detections = n()) |>
+  ungroup() |>
+  # Place the name for 'Yorkshire and Humber' on multiple lines
+  mutate(region = ifelse(region == "Yorkshire and Humber", "Yorkshire and \nHumber", region))
+
+# Create parameter list
+params_list <- list(
+  df = detections_by_species_region_2023,
+  x = "region",
+  y = "detections",
+  group_var = "organism_species_name",
+  group_var_barmode = "group",
+  fill_colours = c("KLEBSIELLA PNEUMONIAE" = "#007C91",
+                   "STAPHYLOCOCCUS AUREUS" = "#8A1B61",
+                   "PSEUDOMONAS AERUGINOSA" = "#FF7F32"),
+  chart_title = "Laboratory Detections by Region \nand Species 2023",
+  chart_footer = "This chart has been created using simulated data.",
+  x_axis_title = "Region",
+  y_axis_title = "Number of detections",
+  chart_title_colour = "#007C91",
+  chart_footer_colour = "#007C91",
+  show_gridlines = FALSE
+)
+
+# Create static column chart
+static_chart <- col_chart(params = params_list, dynamic = FALSE)
+
+# Create dynamic epi curve
+dynamic_chart <- col_chart(params = params_list, dynamic = TRUE)
+
+# View both simultaneously using shiny app
+library(shiny)
+library(plotly)
+ui <- fluidPage(
+  plotOutput('static_chart'),
+  plotlyOutput('dynamic_chart')
+)
+server <- function(input, output, session) {
+  output$static_chart <- renderPlot(static_chart)
+  output$dynamic_chart <- renderPlotly(dynamic_chart)
 }
+shinyApp(ui, server)
+
+
+
+
+# Example 4: Create both static and dynamic column charts using grouped data; apply
+#              bar labels and present as horizontal column chart.
+
+library(epiviz)
+
+# Summarise the overall number of detections by species and region in 2023
+detections_by_species_region_2023 <- lab_data |>
+  filter(specimen_date >= as.Date("2023-01-01") & specimen_date <= as.Date("2023-12-31")) |>
+  group_by(region, organism_species_name) |>
+  summarise(detections = n()) |>
+  ungroup() |>
+  # Place the name for 'Yorkshire and Humber' on multiple lines
+  mutate(region = ifelse(region == "Yorkshire and Humber", "Yorkshire and \nHumber", region))
+
+
+# Reorder dataframe so that regions with the largest total number of detections will
+#    appear at the top.
+detections_by_species_region_2023 <- detections_by_species_region_2023 |>
+  group_by(region) |>
+  mutate(group_detections = sum(detections)) |>
+  ungroup() |>
+  arrange(group_detections) |>
+  mutate(region = factor(region, levels = unique(region)))
+
+
+# Create parameter list
+params_list <- list(
+  df = detections_by_species_region_2023,
+  x = "region",
+  y = "detections",
+  group_var = "organism_species_name",
+  group_var_barmode = "stack",
+  fill_colours = c("KLEBSIELLA PNEUMONIAE" = "#007C91",
+                   "STAPHYLOCOCCUS AUREUS" = "#8A1B61",
+                   "PSEUDOMONAS AERUGINOSA" = "#FF7F32"),
+  bar_labels = 'detections',
+  bar_labels_pos = 'bar_centre',
+  bar_labels_font_size = 8,
+  bar_labels_font_colour = 'white',
+  chart_title = "Laboratory Detections by Region \nand Species 2023",
+  chart_footer = "This chart has been created using simulated data.",
+  x_axis_title = "Region",
+  y_axis_title = "Number of detections",
+  chart_title_colour = "#007C91",
+  chart_footer_colour = "#007C91",
+  show_gridlines = FALSE,
+  axis_flip = TRUE  # Create horizontal chart using the axis_flip parameter
+)
+
+
+# Create static and dynamic column charts
+static_chart <- col_chart(params = params_list, dynamic = FALSE)
+dynamic_chart <- col_chart(params = params_list, dynamic = TRUE)
+
+
+# View both simultaneously using shiny app
+library(shiny)
+library(plotly)
+ui <- fluidPage(
+  plotOutput('static_chart'),
+  plotlyOutput('dynamic_chart')
+)
+server <- function(input, output, session) {
+  output$static_chart <- renderPlot(static_chart)
+  output$dynamic_chart <- renderPlotly(dynamic_chart)
+}
+shinyApp(ui, server)
+
+
+
+# Example 5: Create both static and dynamic column charts using a time-series x-axis
+#              and a percentage y-axis.
+
+library(epiviz)
+
+# Create parameter list
+params_list <- list(
+  df = lab_data,
+  x = "specimen_date",
+  x_limit_min = "2022-12-01",
+  x_limit_max = "2023-03-31",
+  # Set x_time_series = TRUE and time_period = "iso_year_week" to aggregate data
+  #   into a time series by ISO week (assumes each row in df corresponds to a
+  #   single observation).
+  x_time_series = TRUE,
+  time_period = "iso_year_week",
+  x_time_series_bar_labels = TRUE,
+  # Set y_percent = TRUE to convert y-axis to percentage scale (when x_time_series
+  #   = TRUE this will also convert y values and bar labels to percentages by group).
+  y_percent = TRUE,
+  group_var = "organism_species_name",
+  group_var_barmode = "stack",
+  fill_colours = c("KLEBSIELLA PNEUMONIAE" = "#007C91",
+                   "STAPHYLOCOCCUS AUREUS" = "#8A1B61",
+                   "PSEUDOMONAS AERUGINOSA" = "#FF7F32"),
+  bar_labels_pos = 'bar_centre',
+  bar_labels_font_size = 8,
+  bar_labels_font_colour = 'white',
+  chart_title = "Laboratory Detections by ISO week \nand Species, winter 2022-23",
+  chart_footer = "This chart has been created using simulated data.",
+  x_axis_title = "ISO Week",
+  y_axis_title = "Number of detections",
+  x_axis_label_angle = -45,
+  chart_title_colour = "#007C91",
+  chart_footer_colour = "#007C91",
+  show_gridlines = FALSE
+)
+
+
+# Create static and dynamic column charts
+static_chart <- col_chart(params = params_list, dynamic = FALSE)
+dynamic_chart <- col_chart(params = params_list, dynamic = TRUE)
+
+
+# View both simultaneously using shiny app
+library(shiny)
+library(plotly)
+ui <- fluidPage(
+  plotOutput('static_chart'),
+  plotlyOutput('dynamic_chart')
+)
+server <- function(input, output, session) {
+  output$static_chart <- renderPlot(static_chart)
+  output$dynamic_chart <- renderPlotly(dynamic_chart)
+}
+shinyApp(ui, server)
+
+
+}
+
 }
