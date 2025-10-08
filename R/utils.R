@@ -463,3 +463,42 @@ swap_object_names <- function(name1, name2) {
 
 
 
+
+#' A function to manage 'Ignoring unknown labels:' messages output to
+#' console by ggplot. These happen when items in your_ggplot_object$labels
+#' are NULL or "". The most efficient way of suppressing these is by
+#' dropping these blank labels from the ggplot object before printing it.
+#'
+#' @param p A ggplot object
+#'
+#' @return A cleaned ggplot object
+#'
+#' @examples
+#' \dontrun{
+#' final_ggplot_object <- clean_gg_labels(your_ggplot_object)
+#' }
+clean_gg_labels <- function(p) {
+
+  # Make sure labels element exists
+  if (length(p$labels) > 0) {
+
+    labs <- p$labels
+
+    # Identify valid elements of <ggplot2::labels> (i.e. where the element isn't NULL or "")
+    valid_names <- names(labs)[vapply(labs, function(x) {
+      !(is.null(x) || (is.character(x) && identical(x, "")))
+    }, logical(1))]
+
+    # Rebuild a valid labels object
+    new_labs <- labs[valid_names]
+    attr(new_labs, "class") <- attr(labs, "class")  # preserve "<ggplot2::labels>" class
+    p$labels <- new_labs
+
+  }
+
+  return(p)
+
+}
+
+
+
