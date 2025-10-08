@@ -16,6 +16,8 @@ base_gg <- function() {
   if(!exists("x_time_series")) {x_time_series <- FALSE}
   if(!exists("axis_flip")) {axis_flip <- FALSE}
 
+
+
   ##### Create base ggplot object
 
   # create base plot
@@ -623,7 +625,7 @@ base_gg <- function() {
   #       (df$y may have been modified through sec axis scaling)
   #       (hline_xpos required in case hline needs to be reapplied over other plots)
 
-  return_list <- list("base" = base,
+  return_list <- list("base" = clean_gg_labels(base), # use utils/clean_gg_labels() to prevent 'Ignoring unknown labels:' messages
                       "df" = df,
                       "hline_xpos" = hline_xpos,
                       "xlim" = xlim,

@@ -1396,7 +1396,7 @@ col_chart <- function(
 
 
       ##### Return final output
-      return(base)
+      return(clean_gg_labels(base))  # use utils/clean_gg_labels() to prevent 'Ignoring unknown labels:' messages
 
     }) # suppressMessage() end
 
