@@ -521,9 +521,11 @@ epi_curve <- function(
     warning("Multiple fill_colours have been provided but group_var is absent")
 
 
-
-
-
+  # Warn that legend_title will not be used unless group_var is set
+  if (params$legend_title != "" & !exists('group_var', where=params)) {
+    if (length(params$fill_colours) != length(unique(params$df[[params$group_var]])))
+      warning("legend_title will not be used unless group_var is set")
+  }
 
 
 
@@ -605,6 +607,10 @@ epi_curve <- function(
   if(!is.null(group_var) & length(fill_colours) == 1) {
     fill_colours <- hue_pal()(length(unique(df[[group_var]])))
   }
+
+  # Neutralise legend_title parameter if group_var is not set, else it leads to
+  #   spurious console messaging.
+  if(legend_title != "" & is.null(group_var)) {legend_title <- ""}
 
 
 
@@ -850,10 +856,12 @@ epi_curve <- function(
     ##### Apply legend parameters
 
     # Legend title
-    if (!is.null(legend_title)) {
+    if (legend_title != "" & !is.null(group_var)) {
       base <-  base + labs(#name = legend_title,
-                           fill = legend_title,
-                           colour = legend_title)
+                           #colour = legend_title,
+                           fill = legend_title)
+    } else if (legend_title == "" | is.null(group_var)) {
+      base <-  base + theme(legend.title=element_blank())
     }
 
     # Legend position
@@ -1116,7 +1124,8 @@ epi_curve <- function(
 
       # Define colour map for multiple colours if not already defined by user
       if (is.null(names(fill_colours))) {
-        colormap <- setNames(fill_colours, unique(df[[group_var]]))
+        colour_names <- if (is.factor(df[[group_var]])) {unique(df[[group_var]])} else {as.factor(sort(unique(df[[group_var]])))}
+        colormap <- setNames(fill_colours, colour_names)
       } else {
         colormap <- fill_colours
       }
