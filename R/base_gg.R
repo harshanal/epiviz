@@ -17,6 +17,10 @@ base_gg <- function() {
   if(!exists("axis_flip")) {axis_flip <- FALSE}
 
 
+  # Suppress spurious 'Scale for X is already present' messages
+  #   -Will suppress other messages
+  suppressMessages({
+
 
   ##### Create base ggplot object
 
@@ -618,7 +622,7 @@ base_gg <- function() {
     }
   }
 
-
+  }) # SUPPRESS MESSAGES END
 
 
   ##### Return df, base, and hline_xpos as list

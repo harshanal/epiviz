@@ -788,6 +788,7 @@ epi_curve <- function(
   environment(base_gg) <- environment()
   base_return <- base_gg()
 
+
   # base_gg() returns a list containing base and df; extract here
   base <- base_return$base
   df <- base_return$df
@@ -795,7 +796,7 @@ epi_curve <- function(
 
 
 
-  # Supress spurious 'Scale for X is already present' messages
+  # Suppress spurious 'Scale for X is already present' messages
   #   -Will suppress other messages
   suppressMessages({
 
@@ -850,7 +851,7 @@ epi_curve <- function(
 
     # Legend title
     if (!is.null(legend_title)) {
-      base <-  base + labs(name = legend_title,
+      base <-  base + labs(#name = legend_title,
                            fill = legend_title,
                            colour = legend_title)
     }
