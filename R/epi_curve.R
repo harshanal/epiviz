@@ -1246,7 +1246,7 @@ epi_curve <- function(
           x = ~ df_rolling_average[[x]],
           y = ~ df_rolling_average$rolling_average,
           type = 'scatter',
-          mode = 'line',
+          mode = 'lines',
           #mode = 'lines+markers',
           line = list(color = rolling_average_line_colour,
                       width = rolling_average_line_width*2), # *2 to match ggplot formatting),
@@ -1292,7 +1292,7 @@ epi_curve <- function(
             y = ~ df_cumulative_sum$cumulative_sum,
             yaxis = "y2",
             type = 'scatter',
-            mode = 'line',
+            mode = 'lines',
             line = list(color = cumulative_sum_line_colour,
                         width = cumulative_sum_line_width*2), # *2 to match ggplot formatting
             name = cumulative_sum_line_legend_label,
