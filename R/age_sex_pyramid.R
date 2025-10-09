@@ -216,6 +216,7 @@ age_sex_pyramid <- function(
   female_data <- .grp_df[.grp_df$sex == "Female", ]
 
   # Convert values for males to negative for visualization
+  male_data$value_pos <- male_data$value # preserve positive values for hover label
   male_data$value <- -male_data$value
   if (params$conf_limits) {
     male_data$lowercl <- -male_data$lowercl
@@ -243,13 +244,18 @@ age_sex_pyramid <- function(
 
   # Add male bars
   p <- add_trace(p,
+                 #data = male_data,
                  x = male_data$value,
                  y = male_data$age_group,
                  type = "bar",
                  name = "Male",
                  marker = list(color = params$colours[1]),
                  orientation = 'h',
-                 hoverinfo = "none")
+                 customdata = male_data$value_pos,
+                 hovertemplate = paste(
+                   "Age group: %{y}<br>",
+                   "Value: %{customdata}<extra></extra>"
+                 ))
 
   # Add female bars
   p <- add_trace(p,
@@ -259,7 +265,10 @@ age_sex_pyramid <- function(
                  name = "Female",
                  marker = list(color = params$colours[2]),
                  orientation = 'h',
-                 hoverinfo = "none")
+                 hovertemplate = paste(
+                   "Age group: %{y}<br>",
+                   "Value: %{x}<extra></extra>"
+                 ))
 
   # Add confidence limits if requested
   if (params$conf_limits) {
