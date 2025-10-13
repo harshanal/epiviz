@@ -27,6 +27,7 @@
 #'   \item{x_title}{Title of the x-axis. Default is `"Number of cases"`.}
 #'   \item{text_size}{Size of the text in the plot. Default is `12`.}
 #'   \item{conf_limits}{Logical. If `TRUE`, confidence limits are displayed on the pyramid. Default is `FALSE`.}
+#'   \item{ci_colour}{Colour of the plotted errorbars if `conf_limits = TRUE`. Default is `"red"`.}
 #'   \item{age_breakpoints}{A numeric vector specifying the breakpoints for age groups. Default is `c(0, 5, 19, 65, Inf)`.}
 #'   \item{age_calc_refdate}{Reference date for calculating age from date of birth. Default is `Sys.Date()`.}
 #'   \item{grouped}{Logical. If `TRUE`, assumes the data is pre-grouped by age and sex. If `FALSE`, the function processes the line list data. Default is `FALSE`.}
@@ -114,8 +115,8 @@ age_sex_pyramid <- function(
   if(!exists('y_title',where=params)) params$y_title <- "Age group (years)"
   if(!exists('x_title',where=params)) params$x_title <- "Number of cases"
   if(!exists('text_size',where=params)) params$text_size <- 12
-  if(!exists('ci_colour',where=params)) params$ci_colour <- "red"
   if(!exists('conf_limits',where=params)) params$conf_limits <- FALSE
+  if(!exists('ci_colour',where=params)) params$ci_colour <- "red"
   if(!exists('age_breakpoints',where=params)) params$age_breakpoints <- c(0, 5, 19, 65, Inf)
   if(!exists('age_calc_refdate',where=params)) params$age_calc_refdate <- Sys.Date()
   if(!exists('grouped',where=params)) params$grouped <- FALSE
