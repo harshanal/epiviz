@@ -50,11 +50,39 @@ test_that("age_sex_pyramid works", {
     , "ggplot"))
 
 
+
+  # Test with pre-grouped data
+  grouped_df <- data.frame(
+    age_band = rep(c("0-4", "5-18", "19-64", "65+"), 2),
+    sex_mf = rep(c("Male", "Female"), each = 4),
+    val = c(100, 120, 150, 80, 90, 110, 140, 70),
+    lower_cl = c(90, 110, 140, 70, 80, 100, 130, 60),
+    upper_cl = c(110, 130, 160, 90, 100, 120, 150, 80)
+  )
+
+  p <- age_sex_pyramid(
+    dynamic = FALSE,
+    params = list(
+      df = grouped_df,
+      var_map = list(age_group = 'age_band', sex = 'sex_mf', value = 'val',
+                     lowercl = 'lower_cl', uppercl = 'upper_cl'),
+      grouped = TRUE,
+      conf_limits = TRUE
+    )
+  )
+  expect_true(inherits(p, "ggplot"))
+
+
 })
+
+
+
+
+
 
 test_that("age_sex_pyramid works with dynamic output", {
   library(epiviz)
-  
+
   # Test basic plotly output
   p <- age_sex_pyramid(
     dynamic=TRUE,
@@ -69,7 +97,7 @@ test_that("age_sex_pyramid works with dynamic output", {
     )
   )
   expect_true(inherits(p, "plotly"))
-  
+
   # Test with x_breaks
   p <- age_sex_pyramid(
     dynamic=TRUE,
@@ -85,7 +113,7 @@ test_that("age_sex_pyramid works with dynamic output", {
     )
   )
   expect_true(inherits(p, "plotly"))
-  
+
   # Test with confidence limits
   p <- age_sex_pyramid(
     dynamic=TRUE,
@@ -102,7 +130,7 @@ test_that("age_sex_pyramid works with dynamic output", {
     )
   )
   expect_true(inherits(p, "plotly"))
-  
+
   # Test with pre-grouped data
   grouped_df <- data.frame(
     age_group = rep(c("0-4", "5-18", "19-64", "65+"), 2),
@@ -111,12 +139,13 @@ test_that("age_sex_pyramid works with dynamic output", {
     lowercl = c(90, 110, 140, 70, 80, 100, 130, 60),
     uppercl = c(110, 130, 160, 90, 100, 120, 150, 80)
   )
-  
+
   p <- age_sex_pyramid(
     dynamic=TRUE,
     params = list(
       df = grouped_df,
-      var_map = list(age_group = 'age_group', sex = 'sex', value = 'value'),
+      var_map = list(age_group = 'age_group', sex = 'sex', value = 'value',
+                     lowercl = 'lowercl', uppercl = 'uppercl'),
       grouped = TRUE,
       conf_limits = TRUE
     )

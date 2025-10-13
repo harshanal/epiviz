@@ -92,7 +92,11 @@ process_line_list_for_age_sex_pyramid <- function(df,
       lowercl = -1.96 * sqrt(value),
       uppercl =  1.96 * sqrt(value),
       .groups = "drop"
-    )
+    ) |>
+    ungroup() |>
+    # Change +/- upper and lower limits into true upper and lower values needed for plotting
+    mutate(lowercl = value + lowercl,
+           uppercl = value + uppercl)
 
   # Return the processed data frame
   return(df)

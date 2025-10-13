@@ -33,6 +33,7 @@
 #' }
 agesex_pyramid_grouped <- function(df,
                                    colours,
+                                   ci_colour,
                                    x_breaks,
                                    y_title,
                                    text_size,
@@ -55,9 +56,20 @@ agesex_pyramid_grouped <- function(df,
   # Convert Female confidence limits to negative to flip columns
   if (conf_limits) {
     df <- df |>
-      dplyr::mutate(lowercl = ifelse(sex == "Female",-lowercl, lowercl))  |>
-      dplyr::mutate(uppercl = ifelse(sex == "Female",-uppercl, uppercl))
+      mutate(lowercl = ifelse(sex == "Female",-lowercl, lowercl),
+             uppercl = ifelse(sex == "Female",-uppercl, uppercl))
   }
+
+  # Set value axis limits (will be different when errorbars are added)
+  if (conf_limits) {
+    val_min <- min((df |> filter(sex == 'Female'))$uppercl)
+    val_max <- max((df |> filter(sex == 'Male'))$uppercl)
+  } else {
+    val_min <- min(df$value)
+    val_max <- max(df$value)
+  }
+
+
 
   ##### Plotting the chart
   plot <-
@@ -72,23 +84,24 @@ agesex_pyramid_grouped <- function(df,
       if (conf_limits == TRUE)
         geom_errorbar(
           aes(x = age_group, ymin = lowercl, ymax = uppercl),
-          colour = "black",
+          colour = ci_colour,
           width = 0.5,
           linewidth = 0.75
         )
     } +
     # set axis options
     scale_y_continuous(labels = abs,
-                       limits = c(min(df$value), max(df$value)),
+                       #limits = c(min(df$value), max(df$value)),
+                       limits = c(val_min, val_max),
                        expand = expansion(mult = 0.15),
                        n.breaks = x_breaks) +
-    scale_x_discrete(expand = expansion(add = c(1, 1)), drop = FALSE) +
+    scale_x_discrete(expand = expansion(add = c(1, 1)), drop = FALSE, limits=rev) +
     scale_fill_manual(values = colours, drop = FALSE) +
     theme_minimal() +
     # customisations to minimal theme
     theme(
       panel.grid = element_blank(),
-      axis.title.y = element_text(family="Arial",margin = unit(c(0, 20, 0, 0), "mm"), face="bold"),
+      axis.title.y = element_text(family="Arial", margin = margin(0, 20, 0, 0, "mm"), face="bold"),
       axis.title.x = element_text(face="bold"),
       legend.position = "bottom",
       legend.title = element_blank(),
