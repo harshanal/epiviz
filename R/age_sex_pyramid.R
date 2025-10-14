@@ -12,26 +12,30 @@
 #'   \item{df}{Data frame containing the data to be used.}
 #'   \item{var_map}{A list mapping variable names in the data frame to the expected names used in the function.
 #'     \describe{
-#'       \item{age}{Name of the column containing age values. Default is `'age'`.}
-#'       \item{date_of_birth}{Name of the column containing date of birth values. Default is `'date_of_birth'`.}
-#'       \item{sex}{Name of the column containing sex values. Default is `'sex'`.}
-#'       \item{age_group}{Name of the column containing pre-grouped age groups (if `grouped = TRUE`).}
+#'       \item{age_var}{Name of the variable in `df` containing age values. Default is `'age'`.}
+#'       \item{dob_var}{Name of the variable in `df` containing date of birth values. Default is `'date_of_birth'`.}
+#'       \item{sex_var}{Name of the variable in `df` containing sex values. Default is `'sex'`.}
+#'       \item{age_group_var}{Name of the variable in `df` containing pre-grouped age groups (if `grouped = TRUE`).}
 #'       \item{value}{Name of the column containing the value counts (if `grouped = TRUE`).}
-#'       \item{lowercl}{Name of the column containing lower confidence limits (if `conf_limits = TRUE`).}
-#'       \item{uppercl}{Name of the column containing upper confidence limits (if `conf_limits = TRUE`).}
+#'       \item{ci_lower}{Name of the column containing lower confidence limits (if `ci = TRUE`).}
+#'       \item{ci_upper}{Name of the column containing upper confidence limits (if `ci = TRUE`).}
 #'     }
 #'   }
-#'   \item{colours}{A vector of colours to be used in the plot. Default is `c("#440154", "#fde725")`.}
+#'   \item{mf_colours}{A vector of 2 colours used to fill the male and female bars in the
+#'   plot. The first colour will be used for males, and the second for females. Default
+#'   is `c("#440154", "#fde725")`.}
 #'   \item{x_breaks}{Number of breaks on the x-axis. Default is `10`.}
-#'   \item{y_title}{Title of the y-axis. Default is `"Individual count"`.}
-#'   \item{x_title}{Title of the x-axis. Default is `"Number of cases"`.}
+#'   \item{y_axis_title}{Title of the y-axis. Default is `"Individual count"`.}
+#'   \item{x_axis_title}{Title of the x-axis. Default is `"Number of cases"`.}
 #'   \item{text_size}{Size of the text in the plot. Default is `12`.}
-#'   \item{conf_limits}{Logical. If `TRUE`, confidence limits are displayed on the pyramid. Default is `FALSE`.}
-#'   \item{ci_colour}{Colour of the plotted errorbars if `conf_limits = TRUE`. Default is `"red"`.}
+#'   \item{ci}{Confidence interval. If \code{ci = "errorbar"} then confidence intervals be
+#'   be plotted with each bar as errorbars. If \code{ci} is provided, then \code{ci_upper}
+#'   and \code{ci_lower} must also be provided.}
+#'   \item{ci_colour}{Colour of the plotted errorbars if `ci = TRUE`. Default is `"red"`.}
 #'   \item{age_breakpoints}{A numeric vector specifying the breakpoints for age groups. Default is `c(0, 5, 19, 65, Inf)`.}
 #'   \item{age_calc_refdate}{Reference date for calculating age from date of birth. Default is `Sys.Date()`.}
 #'   \item{grouped}{Logical. If `TRUE`, assumes the data is pre-grouped by age and sex. If `FALSE`, the function processes the line list data. Default is `FALSE`.}
-#'   \item{legend_position}{Position of the legend. Default is `"top"`.}
+#'   \item{legend_pos}{Position of the legend. Default is `"top"`.}
 #'   \item{legend_title}{Title of the legend. Default is `""`.}
 #' }
 #'
@@ -50,7 +54,7 @@
 #'   dynamic = FALSE,
 #'   params = list(
 #'     df = df,
-#'     var_map = list(age = 'age', date_of_birth = 'date_of_birth', sex = 'sex'),
+#'     var_map = list(age_var = 'age', dob_var = 'date_of_birth', sex_var = 'sex'),
 #'     grouped = FALSE
 #'   )
 #' )
@@ -60,14 +64,14 @@
 #'   age_group = c("0-4", "5-18", "19-64", "65+"),
 #'   sex = c("Male", "Female"),
 #'   value = c(100, 120, 150, 80),
-#'   lowercl = c(90, 110, 140, 70),
-#'   uppercl = c(110, 130, 160, 90)
+#'   ci_lower = c(90, 110, 140, 70),
+#'   ci_upper = c(110, 130, 160, 90)
 #' )
 #' age_sex_pyramid(
 #'   dynamic = FALSE,
 #'   params = list(
 #'     df = grouped_df,
-#'     var_map = list(age_group = 'age_group', sex = 'sex', value = 'value'),
+#'     var_map = list(age_group_var = 'age_group', sex_var = 'sex', value = 'value'),
 #'     grouped = TRUE
 #'   )
 #' )
@@ -84,25 +88,25 @@ age_sex_pyramid <- function(
     base = NULL,
     params = list(
       df,
-      var_map = list(age = 'age',
-                     date_of_birth = 'date_of_birth',
-                     sex = 'sex',
-                     age_group = 'age_group',
-                     value = 'value',
-                     lowercl = 'lowercl',
-                     uppercl = 'uppercl'),
-      colours = c("#440154", "#2196F3"),  # Updated colors to match the example
+      var_map = list(age_var = 'age',
+                     dob_var = 'date_of_birth',
+                     sex_var = 'sex',
+                     age_group_var = 'age_group',
+                     value_var = 'value',
+                     ci_lower = 'ci_lower',
+                     ci_upper = 'ci_upper'),
+      mf_colours = c("#440154", "#2196F3"),
       x_breaks = 10,
-      y_title = "Age group (years)",  # Updated y-axis title
-      x_title = "Number of cases",  # Added x-axis title parameter
+      x_axis_title = "Number of cases",
+      y_axis_title = "Age group (years)",
       text_size = 12,
-      conf_limits = FALSE,
+      ci = NULL,
       ci_colour = "red",
       age_breakpoints = c(0, 5, 19, 65, Inf),
       age_calc_refdate = Sys.Date(),
       grouped = FALSE,
-      legend_position = "top",  # Added legend position parameter
-      legend_title = ""  # Added legend title parameter
+      legend_pos = "top",
+      legend_title = ""
     )
 ) {
 
@@ -110,17 +114,17 @@ age_sex_pyramid <- function(
   set_Arial()
 
   # Where relevant, assign defaults to any parameters not specified by the user
-  if(!exists('colours',where=params)) params$colours <- c("#440154", "#2196F3")
+  if(!exists('mf_colours',where=params)) params$mf_colours <- c("#440154", "#2196F3")
   if(!exists('x_breaks',where=params)) params$x_breaks <- 10
-  if(!exists('y_title',where=params)) params$y_title <- "Age group (years)"
-  if(!exists('x_title',where=params)) params$x_title <- "Number of cases"
+  if(!exists('y_axis_title',where=params)) params$y_axis_title <- "Age group (years)"
+  if(!exists('x_axis_title',where=params)) params$x_axis_title <- "Number of cases"
   if(!exists('text_size',where=params)) params$text_size <- 12
-  if(!exists('conf_limits',where=params)) params$conf_limits <- FALSE
+  if(!exists('ci',where=params)) params$ci <- NULL
   if(!exists('ci_colour',where=params)) params$ci_colour <- "red"
   if(!exists('age_breakpoints',where=params)) params$age_breakpoints <- c(0, 5, 19, 65, Inf)
   if(!exists('age_calc_refdate',where=params)) params$age_calc_refdate <- Sys.Date()
   if(!exists('grouped',where=params)) params$grouped <- FALSE
-  if(!exists('legend_position',where=params)) params$legend_position <- "top"
+  if(!exists('legend_pos',where=params)) params$legend_pos <- "top"
   if(!exists('legend_title',where=params)) params$legend_title <- ""
 
 
@@ -136,30 +140,30 @@ age_sex_pyramid <- function(
   # Check df is empty
   if(!assertthat::not_empty(params$df)) stop("df is empty")
 
-  # If conf_limits = TRUE and grouped = TRUE, check if upperci and lowerci have been included and are present in df
-  if(params$conf_limits == TRUE & params$grouped == TRUE) {
+  # If ci = TRUE and grouped = TRUE, check if ci_upper and ci_lower have been included and are present in df
+  if(!is.null(params$ci) & params$grouped == TRUE) {
 
-    # Check whether lowerci has been provided
-    if (is.null(params$var_map$lowercl))
-      stop("Please include a variable from df for lowercl in var_map, e.g. var_map = list(lowercl = \"variable_name\")")
+    # Check whether ci_lower has been provided
+    if (is.null(params$var_map$ci_lower))
+      stop("Please include a variable from df for ci_lower in var_map, e.g. var_map = list(ci_lower = \"variable_name\")")
 
-    # Check whether upperci has been provided
-    if (is.null(params$var_map$uppercl))
-      stop("Please include a variable from df for uppercl in var_map, e.g. var_map = list(uppercl = \"variable_name\")")
+    # Check whether ci_upper has been provided
+    if (is.null(params$var_map$ci_upper))
+      stop("Please include a variable from df for ci_upper in var_map, e.g. var_map = list(ci_upper = \"variable_name\")")
 
-    # Check if lowerci is in df
-    if (!params$var_map$lowercl %in% colnames(params$df))
-      stop("lowerci not found within df. Please include a variable from df for lowerci, e.g. var_map = list(lowerci = \"variable_name\")")
+    # Check if ci_lower is in df
+    if (!params$var_map$ci_lower %in% colnames(params$df))
+      stop("ci_lower not found within df. Please include a variable from df for ci_lower, e.g. var_map = list(ci_lower = \"variable_name\")")
 
-    # Check if upperci is in df
-    if (!params$var_map$uppercl %in% colnames(params$df))
-      stop("upper not found within df. Please include a variable from df for uppercl, e.g. var_map = list(uppercl = \"variable_name\")")
+    # Check if ci_upper is in df
+    if (!params$var_map$ci_upper %in% colnames(params$df))
+      stop("upper not found within df. Please include a variable from df for ci_upper, e.g. var_map = list(ci_upper = \"variable_name\")")
 
   }
 
-  # Warn that if both 'age' and 'date_of_birth' are provided, then only age will be used
-  if (!is.null(params$var_map$age) & !is.null(params$var_map$date_of_birth)) {
-      warning("If both 'age' and 'date_of_birth' are provided then only age will be used.")
+  # Warn that if both 'age' and 'dob_var' are provided, then only age will be used
+  if (!is.null(params$var_map$age_var) & !is.null(params$var_map$dob_var)) {
+      warning("If both 'age_var' and 'dob_var' are provided then only age_var will be used.")
   }
 
 
@@ -173,15 +177,15 @@ age_sex_pyramid <- function(
     var_map <- params$var_map
 
     if(params$grouped == FALSE){
-      # Check if age or date_of_birth is provided and exists in the data frame
-      if (!is.null(var_map$age) && var_map$age %in% names(params$df)) {
+      # Check if age_var or dob_varis provided and exists in the data frame
+      if (!is.null(var_map$age_var) && var_map$age_var %in% names(params$df)) {
         .grp_df <- process_line_list_for_age_sex_pyramid(
           df = params$df,
           var_map = var_map,
           age_breakpoints = params$age_breakpoints,
           age_calc_refdate = params$age_calc_refdate
         )
-      } else if (!is.null(var_map$date_of_birth) && var_map$date_of_birth %in% names(params$df)) {
+      } else if (!is.null(var_map$dob_var) && var_map$dob_var %in% names(params$df)) {
         .grp_df <- process_line_list_for_age_sex_pyramid(
           df = params$df,
           var_map = var_map,
@@ -193,22 +197,22 @@ age_sex_pyramid <- function(
       # have been passed grouped data to function
 
       .grp_df <- params$df |>
-        select(age_group = any_of(var_map$age_group),
-               sex = any_of(var_map$sex),
-               value = any_of(var_map$value),
-               lowercl = any_of(var_map$lowercl),
-               uppercl = any_of(var_map$uppercl))
+        select(age_group = any_of(var_map$age_group_var),
+               sex = any_of(var_map$sex_var),
+               value = any_of(var_map$value_var),
+               ci_lower = any_of(var_map$ci_lower),
+               ci_upper = any_of(var_map$ci_upper))
 
     }
 
 
     result <- agesex_pyramid_grouped(.grp_df,
-                           colours = params$colours,
+                           mf_colours = params$mf_colours,
                            ci_colour = params$ci_colour,
                            x_breaks = params$x_breaks,
-                           y_title = params$y_title,
+                           y_axis_title = params$y_axis_title,
                            text_size = params$text_size,
-                           conf_limits = params$conf_limits)
+                           ci = params$ci)
 
     # Customise the plot to match the example
     result <- result +
@@ -217,7 +221,7 @@ age_sex_pyramid <- function(
         axis.title.x = element_text(size = params$text_size, face = "bold"),
         axis.title.y = element_text(size = params$text_size, face = "bold"),
         axis.text = element_text(size = params$text_size),
-        legend.position = params$legend_position,
+        legend.position = params$legend_pos,
         legend.title = element_blank(),
         legend.text = element_text(size = params$text_size),
         plot.title = element_text(size = params$text_size + 2, face = "bold", hjust = 0.5),
@@ -225,8 +229,8 @@ age_sex_pyramid <- function(
         axis.line = element_line(color = "black")  # Add axis lines in black
       ) +
       labs(
-        y = params$x_title,  # Swap x_title to y-axis
-        x = params$y_title,  # Swap y_title to x-axis
+        y = params$x_axis_title,  # Swap x_axis_title to y-axis
+        x = params$y_axis_title,  # Swap y_axis_title to x-axis
         title = params$legend_title  # Updated plot title
       )
 
@@ -240,9 +244,9 @@ age_sex_pyramid <- function(
   var_map <- params$var_map
 
   # Factorise provided age groups to ensure that they're always in the correct order on y-axis
-  if(!is.null(var_map$age_group)) {
-    params$df[var_map$age_group] <- factor(params$df[[var_map$age_group]],
-                                           levels = unique(params$df[[var_map$age_group]]))
+  if(!is.null(var_map$age_group_var)) {
+    params$df[var_map$age_group_var] <- factor(params$df[[var_map$age_group_var]],
+                                           levels = unique(params$df[[var_map$age_group_var]]))
   }
 
 
@@ -255,11 +259,11 @@ age_sex_pyramid <- function(
     )
   } else {
     .grp_df <- params$df |>
-      select(age_group = any_of(var_map$age_group),
-             sex = any_of(var_map$sex),
-             value = any_of(var_map$value),
-             lowercl = any_of(var_map$lowercl),
-             uppercl = any_of(var_map$uppercl))
+      select(age_group = any_of(var_map$age_group_var),
+             sex = any_of(var_map$sex_var),
+             value = any_of(var_map$value_var),
+             ci_lower = any_of(var_map$ci_lower),
+             ci_upper = any_of(var_map$ci_upper))
   }
 
   # Create the plotly visualization
@@ -269,17 +273,17 @@ age_sex_pyramid <- function(
   # Convert values for males to negative for visualization
   male_data$value_pos <- male_data$value # preserve positive values for hover label
   male_data$value <- -male_data$value
-  if (params$conf_limits) {
-    male_data$lowercl_pos <- male_data$lowercl
-    male_data$lowercl <- -male_data$lowercl
-    male_data$uppercl_pos <- male_data$uppercl
-    male_data$uppercl <- -male_data$uppercl
+  if (params$ci == 'errorbar') {
+    male_data$ci_lower_pos <- male_data$ci_lower
+    male_data$ci_lower <- -male_data$ci_lower
+    male_data$ci_upper_pos <- male_data$ci_upper
+    male_data$ci_upper <- -male_data$ci_upper
   }
 
   # Calculate maximum range for symmetric axis
-  if (params$conf_limits) {
-    all_x <- c(male_data$value, female_data$value, male_data$lowercl, male_data$uppercl,
-               female_data$lowercl, female_data$uppercl)
+  if (params$ci == 'errorbar') {
+    all_x <- c(male_data$value, female_data$value, male_data$ci_lower, male_data$ci_upper,
+               female_data$ci_lower, female_data$ci_upper)
   } else {
     all_x <- c(male_data$value, female_data$value)
   }
@@ -301,7 +305,7 @@ age_sex_pyramid <- function(
                  y = male_data$age_group,
                  type = "bar",
                  name = "Male",
-                 marker = list(color = params$colours[1]),
+                 marker = list(color = params$mf_colours[1]),
                  orientation = 'h',
                  customdata = male_data$value_pos,
                  hovertemplate = paste(
@@ -315,7 +319,7 @@ age_sex_pyramid <- function(
                  y = female_data$age_group,
                  type = "bar",
                  name = "Female",
-                 marker = list(color = params$colours[2]),
+                 marker = list(color = params$mf_colours[2]),
                  orientation = 'h',
                  hovertemplate = paste(
                    "Age group: %{y}<br>",
@@ -323,46 +327,46 @@ age_sex_pyramid <- function(
                  ))
 
   # Add confidence limits if requested
-  if (params$conf_limits) {
+  if (params$ci == 'errorbar') {
     p <- add_trace(p,
-                   x = male_data$lowercl,
+                   x = male_data$ci_lower,
                    y = male_data$age_group,
                    type = "scatter",
                    mode = "markers",
                    name = "Male CI",
                    marker = list(color = params$ci_colour),
                    showlegend = FALSE,
-                   customdata = male_data$lowercl_pos,
+                   customdata = male_data$ci_lower_pos,
                    hovertemplate = "%{y}, Lower: %{customdata}<extra></extra>")
     p <- add_trace(p,
-                   x = male_data$uppercl,
+                   x = male_data$ci_upper,
                    y = male_data$age_group,
                    type = "scatter",
                    mode = "markers",
                    name = "Male CI",
                    marker = list(color = params$ci_colour),
                    showlegend = FALSE,
-                   customdata = male_data$uppercl_pos,
+                   customdata = male_data$ci_upper_pos,
                    hovertemplate = "%{y}, Upper: %{customdata}<extra></extra>")
     p <- add_trace(p,
-                   x = female_data$lowercl,
+                   x = female_data$ci_lower,
                    y = female_data$age_group,
                    type = "scatter",
                    mode = "markers",
                    name = "Female CI",
                    marker = list(color = params$ci_colour),
                    showlegend = FALSE,
-                   customdata = female_data$lowercl,
+                   customdata = female_data$ci_lower,
                    hovertemplate = "%{y}, Lower: %{customdata}<extra></extra>")
     p <- add_trace(p,
-                   x = female_data$uppercl,
+                   x = female_data$ci_upper,
                    y = female_data$age_group,
                    type = "scatter",
                    mode = "markers",
                    name = "Female CI",
                    marker = list(color = params$ci_colour),
                    showlegend = FALSE,
-                   customdata = female_data$uppercl,
+                   customdata = female_data$ci_upper,
                    hovertemplate = "%{y}, Upper: %{customdata}<extra></extra>")
   }
 
@@ -370,7 +374,7 @@ age_sex_pyramid <- function(
   p <- layout(p,
               title = params$legend_title,
               xaxis = list(
-                title = list(text = params$x_title, font = list(size = params$text_size)),
+                title = list(text = params$x_axis_title, font = list(size = params$text_size)),
                 tickfont = list(size = params$text_size),
                 zeroline = TRUE,
                 showgrid = FALSE,
@@ -382,7 +386,7 @@ age_sex_pyramid <- function(
                 range = c(-max_range * 1.05, max_range * 1.05)
               ),
               yaxis = list(
-                title = list(text = params$y_title, font = list(size = params$text_size)),
+                title = list(text = params$y_axis_title, font = list(size = params$text_size)),
                 tickfont = list(size = params$text_size),
                 zeroline = TRUE,
                 showgrid = FALSE,

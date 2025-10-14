@@ -12,11 +12,11 @@ test_that("age_sex_pyramid works", {
                     params = list(
                       df=epiviz::lab_data,
                       var_map = list(
-                        date_of_birth = 'date_of_birth',
-                        sex = 'sex'
+                        dob_var = 'date_of_birth',
+                        sex_var = 'sex'
                       ),
                       grouped = FALSE,
-                      colours = c("pink", "blue"))
+                      mf_colours = c("pink", "blue"))
     )
     , "ggplot"))
 
@@ -25,11 +25,11 @@ test_that("age_sex_pyramid works", {
                     params = list(
                       df=epiviz::lab_data,
                       var_map = list(
-                        date_of_birth = 'date_of_birth',
-                        sex = 'sex'
+                        dob_var = 'date_of_birth',
+                        sex_var = 'sex'
                       ),
                       grouped = FALSE,
-                      colours = c("pink", "blue"),
+                      mf_colours = c("pink", "blue"),
                       x_breaks = 5)
     )
     , "ggplot"))
@@ -39,13 +39,13 @@ test_that("age_sex_pyramid works", {
                     params = list(
                       df=epiviz::lab_data,
                       var_map = list(
-                        date_of_birth = 'date_of_birth',
-                        sex = 'sex'
+                        dob_var = 'date_of_birth',
+                        sex_var = 'sex'
                       ),
                       grouped = FALSE,
-                      colours = c("pink", "blue"),
+                      mf_colours = c("pink", "blue"),
                       x_breaks = 5,
-                      conf_limits = TRUE)
+                      ci = 'errorbar')
     )
     , "ggplot"))
 
@@ -56,18 +56,18 @@ test_that("age_sex_pyramid works", {
     age_band = rep(c("0-4", "5-18", "19-64", "65+"), 2),
     sex_mf = rep(c("Male", "Female"), each = 4),
     val = c(100, 120, 150, 80, 90, 110, 140, 70),
-    lower_cl = c(90, 110, 140, 70, 80, 100, 130, 60),
-    upper_cl = c(110, 130, 160, 90, 100, 120, 150, 80)
+    lower_ci = c(90, 110, 140, 70, 80, 100, 130, 60),
+    upper_ci = c(110, 130, 160, 90, 100, 120, 150, 80)
   )
 
   p <- age_sex_pyramid(
     dynamic = FALSE,
     params = list(
       df = grouped_df,
-      var_map = list(age_group = 'age_band', sex = 'sex_mf', value = 'val',
-                     lowercl = 'lower_cl', uppercl = 'upper_cl'),
+      var_map = list(age_group_var = 'age_band', sex_var = 'sex_mf', value_var = 'val',
+                     ci_lower = 'lower_ci', ci_upper = 'upper_ci'),
       grouped = TRUE,
-      conf_limits = TRUE
+      ci = 'errorbar'
     )
   )
   expect_true(inherits(p, "ggplot"))
@@ -89,11 +89,11 @@ test_that("age_sex_pyramid works with dynamic output", {
     params = list(
       df=epiviz::lab_data,
       var_map = list(
-        date_of_birth = 'date_of_birth',
-        sex = 'sex'
+        dob_var = 'date_of_birth',
+        sex_var = 'sex'
       ),
       grouped = FALSE,
-      colours = c("pink", "blue")
+      mf_colours = c("pink", "blue")
     )
   )
   expect_true(inherits(p, "plotly"))
@@ -104,11 +104,11 @@ test_that("age_sex_pyramid works with dynamic output", {
     params = list(
       df=epiviz::lab_data,
       var_map = list(
-        date_of_birth = 'date_of_birth',
-        sex = 'sex'
+        dob_var = 'date_of_birth',
+        sex_var = 'sex'
       ),
       grouped = FALSE,
-      colours = c("pink", "blue"),
+      mf_colours = c("pink", "blue"),
       x_breaks = 5
     )
   )
@@ -120,13 +120,13 @@ test_that("age_sex_pyramid works with dynamic output", {
     params = list(
       df=epiviz::lab_data,
       var_map = list(
-        date_of_birth = 'date_of_birth',
-        sex = 'sex'
+        dob_var = 'date_of_birth',
+        sex_var = 'sex'
       ),
       grouped = FALSE,
-      colours = c("pink", "blue"),
+      mf_colours = c("pink", "blue"),
       x_breaks = 5,
-      conf_limits = TRUE
+      ci = 'errorbar'
     )
   )
   expect_true(inherits(p, "plotly"))
@@ -136,18 +136,18 @@ test_that("age_sex_pyramid works with dynamic output", {
     age_group = rep(c("0-4", "5-18", "19-64", "65+"), 2),
     sex = rep(c("Male", "Female"), each = 4),
     value = c(100, 120, 150, 80, 90, 110, 140, 70),
-    lowercl = c(90, 110, 140, 70, 80, 100, 130, 60),
-    uppercl = c(110, 130, 160, 90, 100, 120, 150, 80)
+    ci_lower = c(90, 110, 140, 70, 80, 100, 130, 60),
+    ci_upper = c(110, 130, 160, 90, 100, 120, 150, 80)
   )
 
   p <- age_sex_pyramid(
     dynamic=TRUE,
     params = list(
       df = grouped_df,
-      var_map = list(age_group = 'age_group', sex = 'sex', value = 'value',
-                     lowercl = 'lowercl', uppercl = 'uppercl'),
+      var_map = list(age_group_var = 'age_group', sex_var = 'sex', value_var = 'value',
+                     ci_lower = 'ci_lower', ci_upper = 'ci_upper'),
       grouped = TRUE,
-      conf_limits = TRUE
+      ci = 'errorbar'
     )
   )
   expect_true(inherits(p, "plotly"))
