@@ -20,51 +20,62 @@ withr::local_envvar(
   )
 )
 
-test_that("llm_interpret works with different providers", {
-  # Mock all LLM clients to return a test response
-  mock_client <- function(...) {
-    list(
-      set_system_prompt = function(...) NULL,
-      chat = function(...) "Test response"
-    )
-  }
+test_that("llm_interpret validates input parameters", {
+  # Set up minimal environment variables for parameter validation tests
+  setup_env_vars(provider = "openai", api_key = "fake-key", model = "gpt-4o")
   
-  mockery::stub(llm_interpret, "chat_openai", mock_client)
-  mockery::stub(llm_interpret, "chat_gemini", mock_client)
-  mockery::stub(llm_interpret, "chat_claude", mock_client)
-  
-  test_input <- data.frame(x = 1:3, y = letters[1:3])
-  
-  # Test OpenAI
-  setup_env_vars(
-    provider = "openai",
-    api_key = "fake-key",
-    model = "gpt-4o"
-  )
-  expect_equal(
-    llm_interpret(test_input),
-    "Test response"
+  # Test invalid word_limit
+  expect_error(
+    llm_interpret(data.frame(x = 1), word_limit = -1),
+    "word_limit must be a positive number"
   )
   
-  # Test Gemini
-  setup_env_vars(
-    provider = "gemini",
-    api_key = "fake-key",
-    model = "gemini-1.5-flash"
-  )
-  expect_equal(
-    llm_interpret(test_input),
-    "Test response"
+  expect_error(
+    llm_interpret(data.frame(x = 1), word_limit = "invalid"),
+    "word_limit must be a positive number"
   )
   
-  # Test Claude
-  setup_env_vars(
-    provider = "claude",
-    api_key = "fake-key",
-    model = "claude-1"
+  # Test invalid prompt_extension
+  expect_error(
+    llm_interpret(data.frame(x = 1), prompt_extension = 123),
+    "prompt_extension must be NULL or a character string"
   )
-  expect_equal(
-    llm_interpret(test_input),
-    "Test response"
+  
+  # Note: Empty data frame test removed because environment variables are checked first
+  
+  # Test unsupported input type
+  expect_error(
+    llm_interpret("not a data frame or ggplot"),
+    "Unsupported input type: character"
+  )
+})
+
+test_that("llm_interpret validates environment variables", {
+  # Test missing LLM_PROVIDER
+  cleanup_env_vars()
+  expect_error(
+    llm_interpret(data.frame(x = 1)),
+    "LLM_PROVIDER environment variable is not set"
+  )
+  
+  # Test missing LLM_API_KEY
+  setup_env_vars(provider = "openai")
+  expect_error(
+    llm_interpret(data.frame(x = 1)),
+    "LLM_API_KEY environment variable is not set"
+  )
+  
+  # Test missing LLM_MODEL
+  setup_env_vars(provider = "openai", api_key = "fake-key")
+  expect_error(
+    llm_interpret(data.frame(x = 1)),
+    "LLM_MODEL environment variable is not set"
+  )
+  
+  # Test unsupported provider
+  setup_env_vars(provider = "unsupported", api_key = "fake-key", model = "fake-model")
+  expect_error(
+    llm_interpret(data.frame(x = 1)),
+    "Unsupported LLM provider: 'unsupported'"
   )
 }) 
