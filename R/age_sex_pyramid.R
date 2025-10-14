@@ -28,7 +28,7 @@
 #'   \item{y_axis_title}{Title of the y-axis. Default is `"Individual count"`.}
 #'   \item{x_axis_title}{Title of the x-axis. Default is `"Number of cases"`.}
 #'   \item{text_size}{Size of the text in the plot. Default is `12`.}
-#'   \item{ci}{Confidence interval. If `ci = "errorbar"`} then confidence intervals be
+#'   \item{ci}{Confidence interval. If `ci = "errorbar"` then confidence intervals be
 #'   be plotted with each bar as errorbars. If `grouped = FALSE`, default confidence
 #'   intervals are applied using the normal approximation to the Poisson distribution,
 #'   with bounds set at \eqn{\pm 1.96 \times \sqrt{n}}.}
