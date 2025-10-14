@@ -1,8 +1,8 @@
 #' Interpret Epidemiological Data or Visualisations using LLMs
-#' 
+#'
 #' @description
 #' `r lifecycle::badge("experimental")`
-#' 
+#'
 #' This function interprets a given data frame or ggplot visualisation by sending it to a language model API via the elmer package. It supports multiple LLM providers, allowing users to specify the desired provider and model through environment variables.
 #'
 #' @param input An input object, either a data frame or a ggplot object, representing the data or visualization to be interpreted.
@@ -32,20 +32,29 @@
 #' @import ellmer
 #' @importFrom lifecycle badge signal_stage
 #' @export
+#'
+#' @section Tested Models:
+#' As of October 2025, this function has been tested and verified to work with the following models:
+#' - OpenAI: gpt-4.1-nano
+#' - Anthropic: claude-sonnet-4-20250514  
+#' - Google Gemini: gemini-2.5-flash-lite
+#' 
+#' Additional models may be tested in the future. Users can provide custom instructions
+#' through the \code{prompt_extension} parameter for specialised analysis requirements.
 llm_interpret <- function(input,
                           word_limit = 100,
                           prompt_extension = NULL) {
   lifecycle::signal_stage("experimental", "llm_interpret()")
-  
+
   # Validate input parameters
   if (!is.numeric(word_limit) || word_limit <= 0) {
     stop("word_limit must be a positive number")
   }
-  
+
   if (!is.null(prompt_extension) && !is.character(prompt_extension)) {
     stop("prompt_extension must be NULL or a character string")
   }
-  
+
   # Check for required environment variables with informative messages
   tryCatch({
     provider <- Sys.getenv("LLM_PROVIDER")
@@ -53,18 +62,18 @@ llm_interpret <- function(input,
       stop("LLM_PROVIDER environment variable is not set. ",
            "Please set it to one of: 'openai', 'gemini', or 'claude'")
     }
-    
+
     api_key <- Sys.getenv("LLM_API_KEY")
     if (api_key == "") {
       stop("LLM_API_KEY environment variable is not set. ",
-           sprintf("For %s, please set the appropriate API key.", 
+           sprintf("For %s, please set the appropriate API key.",
                    toupper(provider)))
     }
-    
+
     model <- Sys.getenv("LLM_MODEL")
     if (model == "") {
       stop("LLM_MODEL environment variable is not set. ",
-           sprintf("For %s, please set an appropriate model identifier.", 
+           sprintf("For %s, please set an appropriate model identifier.",
                    toupper(provider)))
     }
   }, error = function(e) {
@@ -76,14 +85,14 @@ llm_interpret <- function(input,
     switch(
       provider,
       "openai" = chat_openai(model = model, api_key = api_key),
-      "gemini" = chat_gemini(model = model, api_key = api_key),
-      "claude" = chat_claude(model = model, api_key = api_key),
+      "gemini" = chat_google_gemini(model = model, api_key = api_key),
+      "anthropic" = chat_anthropic(model = model, api_key = api_key),
       stop(sprintf("Unsupported LLM provider: '%s'", provider))
     )
   }, error = function(e) {
     stop("Failed to initialize chat client: ", conditionMessage(e))
   })
-  
+
   # Set the system prompt with error handling
   tryCatch({
     chat$set_system_prompt(
@@ -114,7 +123,7 @@ llm_interpret <- function(input,
     if (nrow(input) == 0) {
       stop("Input data frame is empty")
     }
-    
+
     # Convert data frame to JSON with error handling
     json_data <- tryCatch({
       jsonlite::toJSON(input, pretty = TRUE, auto_unbox = TRUE)
@@ -132,7 +141,7 @@ llm_interpret <- function(input,
   }
   else if (inherits(input, "ggplot")) {
     temp_file <- NULL
-    
+
     # Use withCallingHandlers for cleanup even if error occurs
     withCallingHandlers({
       # Save the ggplot object as a temporary image
