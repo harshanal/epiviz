@@ -3,6 +3,8 @@
 #' This function processes a line list data frame, calculating the age from either the provided age column or date of birth.
 #' It filters the data to include only males and females, groups the data into age groups, and summarizes the counts for each age group and sex.
 #'
+#' @noRd
+#'
 #' @param df A data frame containing the line list data.
 #' @param var_map A list mapping variable names in the data frame to the expected names used in the function.
 #' The list should contain elements:

@@ -1,5 +1,7 @@
 #' Age Sex Pyramid using grouped data
 #'
+#' @noRd
+#'
 #' @param df Data frame which has the following columns with names given below
 #'              age_group: char type>> age group can be given as ranges (e.g. "0-4","5-18", "19-64", "65+")
 #'              sex: char type>> must be coded as "Female" and "Male"
