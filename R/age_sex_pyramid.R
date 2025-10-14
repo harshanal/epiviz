@@ -28,13 +28,15 @@
 #'   \item{y_axis_title}{Title of the y-axis. Default is `"Individual count"`.}
 #'   \item{x_axis_title}{Title of the x-axis. Default is `"Number of cases"`.}
 #'   \item{text_size}{Size of the text in the plot. Default is `12`.}
-#'   \item{ci}{Confidence interval. If \code{ci = "errorbar"} then confidence intervals be
-#'   be plotted with each bar as errorbars. If \code{ci} is provided, then \code{ci_upper}
-#'   and \code{ci_lower} must also be provided.}
+#'   \item{ci}{Confidence interval. If `ci = "errorbar"`} then confidence intervals be
+#'   be plotted with each bar as errorbars. If `grouped = FALSE`, default confidence
+#'   intervals are applied using the normal approximation to the Poisson distribution,
+#'   with bounds set at \eqn{\pm 1.96 \times \sqrt{n}}.}
 #'   \item{ci_colour}{Colour of the plotted errorbars if `ci = TRUE`. Default is `"red"`.}
 #'   \item{age_breakpoints}{A numeric vector specifying the breakpoints for age groups. Default is `c(0, 5, 19, 65, Inf)`.}
 #'   \item{age_calc_refdate}{Reference date for calculating age from date of birth. Default is `Sys.Date()`.}
-#'   \item{grouped}{Logical. If `TRUE`, assumes the data is pre-grouped by age and sex. If `FALSE`, the function processes the line list data. Default is `FALSE`.}
+#'   \item{grouped}{Logical. If `TRUE`, assumes the data is pre-grouped by age and sex. If `FALSE`,
+#'   the function processes the line list data. Default is `FALSE`.}
 #'   \item{legend_pos}{Position of the legend. Default is `"top"`.}
 #'   \item{legend_title}{Title of the legend. Default is `""`.}
 #' }
@@ -329,45 +331,61 @@ age_sex_pyramid <- function(
   # Add confidence limits if requested
   if (params$ci == 'errorbar') {
     p <- add_trace(p,
-                   x = male_data$ci_lower,
+                   x = male_data$value,
                    y = male_data$age_group,
                    type = "scatter",
                    mode = "markers",
                    name = "Male CI",
-                   marker = list(color = params$ci_colour),
+                   marker = list(
+                     color = '#ffffff00',
+                     line = list(colour = '#ffffff00', width = 0),
+                     opacity = 0),
                    showlegend = FALSE,
-                   customdata = male_data$ci_lower_pos,
-                   hovertemplate = "%{y}, Lower: %{customdata}<extra></extra>")
+                   #customdata = male_data$ci_lower_pos,
+                   #hovertemplate = "%{y}, Lower: %{customdata}<extra></extra>",
+                   text = paste0(male_data$age_group,
+                                 '<br><i>Upper: ',male_data$ci_upper_pos,'</i>',   # leverage 'text' parameter in add_trace to pass additional info to hoverlabels
+                                 '<br><i>Lower: ',male_data$ci_lower_pos,'</i>',
+                                 '<extra></extra>'),
+                   textposition = "none", # prevents text from being printed on plot
+                   hovertemplate = '%{text}',
+                   error_x = list(
+                     type = "data",
+                     symmetric = FALSE,
+                     color = params$ci_colour,
+                     thickness = 1,
+                     arrayminus = male_data$value - male_data$ci_lower,
+                     array = male_data$ci_upper - male_data$value
+                   )
+    )
     p <- add_trace(p,
-                   x = male_data$ci_upper,
-                   y = male_data$age_group,
-                   type = "scatter",
-                   mode = "markers",
-                   name = "Male CI",
-                   marker = list(color = params$ci_colour),
-                   showlegend = FALSE,
-                   customdata = male_data$ci_upper_pos,
-                   hovertemplate = "%{y}, Upper: %{customdata}<extra></extra>")
-    p <- add_trace(p,
-                   x = female_data$ci_lower,
+                   x = female_data$value,
                    y = female_data$age_group,
                    type = "scatter",
                    mode = "markers",
                    name = "Female CI",
-                   marker = list(color = params$ci_colour),
+                   marker = list(
+                     color = '#ffffff00',
+                     line = list(colour = '#ffffff00', width = 0),
+                     opacity = 0),
                    showlegend = FALSE,
-                   customdata = female_data$ci_lower,
-                   hovertemplate = "%{y}, Lower: %{customdata}<extra></extra>")
-    p <- add_trace(p,
-                   x = female_data$ci_upper,
-                   y = female_data$age_group,
-                   type = "scatter",
-                   mode = "markers",
-                   name = "Female CI",
-                   marker = list(color = params$ci_colour),
-                   showlegend = FALSE,
-                   customdata = female_data$ci_upper,
-                   hovertemplate = "%{y}, Upper: %{customdata}<extra></extra>")
+                   #customdata = female_data$ci_lower,
+                   #hovertemplate = "%{y}, Lower: %{customdata}<extra></extra>",
+                   text = paste0(female_data$age_group,
+                                 '<br><i>Upper: ',female_data$ci_upper,'</i>',   # leverage 'text' parameter in add_trace to pass additional info to hoverlabels
+                                 '<br><i>Lower: ',female_data$ci_lower,'</i>',
+                                 '<extra></extra>'),
+                   textposition = "none", # prevents text from being printed on plot
+                   hovertemplate = '%{text}',
+                   error_x = list(
+                     type = "data",
+                     symmetric = FALSE,
+                     color = params$ci_colour,
+                     thickness = 1,
+                     arrayminus = female_data$value - female_data$ci_lower,
+                     array = female_data$ci_upper - female_data$value
+                   )
+    )
   }
 
   # Update layout with corrected titles and custom ticks
