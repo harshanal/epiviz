@@ -42,9 +42,13 @@ agesex_pyramid_grouped <- function(df,
   ##### Data wrangling before plotting the chart
 
 
-  # Convert Female value to negative to flip columns
-  df <- df |>
-    dplyr::mutate(value = ifelse(sex == "Female",-value, value)) |>
+  # # Convert Female value to negative to flip columns
+  # df <- df |>
+  #   dplyr::mutate(value = ifelse(sex == "Female",-value, value)) |>
+
+ # Convert Male value to negative to flip columns
+ df <- df |>
+   dplyr::mutate(value = ifelse(sex == "Male",-value, value)) |>
 
     #order age bands
     # Remove "<" and "+" from agebands, then take strings starting with one or more digits and arrange them
@@ -53,17 +57,26 @@ agesex_pyramid_grouped <- function(df,
     na.omit()
 
 
-  # Convert Female confidence limits to negative to flip columns
-  if (ci == 'errorbar') {
-    df <- df |>
-      mutate(ci_lower = ifelse(sex == "Female",-ci_lower, ci_lower),
-             ci_upper = ifelse(sex == "Female",-ci_upper, ci_upper))
-  }
+  # # Convert Female confidence limits to negative to flip columns
+  # if (ci == 'errorbar') {
+  #   df <- df |>
+  #     mutate(ci_lower = ifelse(sex == "Female",-ci_lower, ci_lower),
+  #            ci_upper = ifelse(sex == "Female",-ci_upper, ci_upper))
+  # }
+
+ # Convert Male confidence limits to negative to flip columns
+ if (ci == 'errorbar') {
+   df <- df |>
+     mutate(ci_lower = ifelse(sex == "Male",-ci_lower, ci_lower),
+            ci_upper = ifelse(sex == "Male",-ci_upper, ci_upper))
+ }
 
   # Set value axis limits (will be different when errorbars are added)
   if (ci == 'errorbar') {
-    val_min <- min((df |> filter(sex == 'Female'))$ci_upper)
-    val_max <- max((df |> filter(sex == 'Male'))$ci_upper)
+    # val_min <- min((df |> filter(sex == 'Female'))$ci_upper)
+    # val_max <- max((df |> filter(sex == 'Male'))$ci_upper)
+    val_min <- min((df |> filter(sex == 'Male'))$ci_upper)
+    val_max <- max((df |> filter(sex == 'Female'))$ci_upper)
   } else {
     val_min <- min(df$value)
     val_max <- max(df$value)
