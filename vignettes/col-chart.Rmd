@@ -1,0 +1,77 @@
+---
+title: "Column charts"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 2
+vignette: >
+  %\VignetteIndexEntry{Column charts}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Overview
+
+Two quick ways to use `col_chart()`: a basic single-series static chart and a grouped dynamic chart with labels.
+
+```r
+library(epiviz)
+library(dplyr)
+```
+
+## 1) Basic single-series static
+
+```r
+small <- epiviz::lab_data %>%
+  filter(specimen_date >= as.Date("2023-02-01"),
+         specimen_date <= as.Date("2023-02-15")) %>%
+  count(region, name = "detections") %>%
+  arrange(desc(detections)) %>%
+  slice(1:6) %>%
+  mutate(region = ifelse(region == "Yorkshire and Humber", "Yorkshire and\nHumber", region))
+
+col_chart(
+  dynamic = FALSE,
+  params = list(
+    df = small,
+    x = "region",
+    y = "detections",
+    fill_colours = "#007C91",
+    chart_title = "Detections by Region",
+    x_axis_title = "Region",
+    y_axis_title = "Detections",
+    x_axis_label_angle = -45,
+    show_gridlines = FALSE
+  )
+)
+```
+
+## 2) Grouped stacked dynamic with labels
+
+```r
+small_g <- epiviz::lab_data %>%
+  filter(specimen_date >= as.Date("2023-01-01"),
+         specimen_date <= as.Date("2023-01-31"),
+         region %in% c("London","North West","South East")) %>%
+  count(region, organism_species_name, name = "detections")
+
+col_chart(
+  dynamic = TRUE,
+  params = list(
+    df = small_g,
+    x = "region",
+    y = "detections",
+    group_var = "organism_species_name",
+    group_var_barmode = "stack",
+    fill_colours = c("#007C91", "#8A1B61", "#FF7F32"),
+    bar_labels = "detections",
+    bar_labels_pos = "bar_centre",
+    chart_title = "Detections by Region and Species",
+    x_axis_title = "Region",
+    y_axis_title = "Detections",
+    legend_title = "Species"
+  )
+)
+```
+
+

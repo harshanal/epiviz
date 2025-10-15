@@ -1,0 +1,65 @@
+---
+title: "Getting started with epiviz"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 2
+vignette: >
+  %\VignetteIndexEntry{Getting started with epiviz}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Overview
+
+This short guide shows how to load epiviz, explore the built-in `lab_data`, and produce a first simple chart. All examples are designed to be copy-pasteable for epidemiologists with basic R skills.
+
+## Prerequisites
+
+```r
+library(epiviz)
+library(dplyr)
+library(lubridate)
+```
+
+## The lab_data dataset
+
+`lab_data` is a small synthetic dataset included with epiviz for demos. Have a quick look:
+
+```r
+glimpse(epiviz::lab_data)
+```
+
+## Example: A tiny column chart (single series)
+
+Aggregate a small date window and draw a simple static column chart.
+
+```r
+# keep a small range so plots are easy to read
+small <- epiviz::lab_data %>%
+  filter(specimen_date >= as.Date("2023-01-01"),
+         specimen_date <= as.Date("2023-01-31")) %>%
+  count(region, name = "detections") %>%
+  arrange(desc(detections)) %>%
+  slice(1:6) %>%
+  mutate(region = ifelse(region == "Yorkshire and Humber", "Yorkshire and\nHumber", region))
+
+col_chart(
+  dynamic = FALSE,
+  params = list(
+    df = small,
+    x = "region",
+    y = "detections",
+    fill_colours = "#007C91",
+    chart_title = "Detections by Region (Jan 2023)",
+    x_axis_title = "Region",
+    y_axis_title = "Detections",
+    x_axis_label_angle = -45,
+    show_gridlines = FALSE
+  )
+)
+```
+
+Tip: For interactive output, set `dynamic = TRUE` in functions that support it.
+
+

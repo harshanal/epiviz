@@ -1,0 +1,54 @@
+---
+title: "LLM-assisted interpretation"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 2
+vignette: >
+  %\VignetteIndexEntry{LLM-assisted interpretation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Overview
+
+`llm_interpret()` can generate a short narrative from a small data frame or a ggplot image using an external large language model (LLM). This example shows the basic workflow.
+
+```r
+library(epiviz)
+library(dplyr)
+```
+
+## Configure provider
+
+Before calling the function, set environment variables for your chosen provider (OpenAI, Gemini, or Claude). For example:
+
+```r
+Sys.setenv(LLM_PROVIDER = "gemini")
+Sys.setenv(LLM_API_KEY = "<your_api_key>")
+Sys.setenv(LLM_MODEL   = "gemini-1.5-flash")
+```
+
+## Minimal example (data frame)
+
+Use a tiny summary so the prompt and response stay concise.
+
+```r
+small <- epiviz::lab_data %>%
+  filter(specimen_date >= as.Date("2023-01-01"),
+         specimen_date <= as.Date("2023-01-15")) %>%
+  count(region, name = "detections") %>%
+  arrange(desc(detections)) %>%
+  slice(1:5)
+
+try(
+  llm_interpret(small, word_limit = 80),
+  silent = TRUE
+)
+```
+
+Notes:
+- Your environment must permit outbound API calls, and billing may apply.
+- If you prefer not to set env vars in code, define them in your R session or OS environment instead.
+
+

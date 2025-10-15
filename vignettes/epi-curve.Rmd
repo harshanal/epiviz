@@ -1,0 +1,72 @@
+---
+title: "Epidemic curves"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 2
+vignette: >
+  %\VignetteIndexEntry{Epidemic curves}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Overview
+
+Two small `epi_curve()` examples: a static monthly curve with a rolling average, and a grouped dynamic curve.
+
+```r
+library(epiviz)
+library(dplyr)
+library(lubridate)
+```
+
+## 1) Static curve with monthly bins and rolling average
+
+```r
+df <- epiviz::lab_data
+
+epi_curve(
+  dynamic = FALSE,
+  params = list(
+    df = df,
+    date_var = "specimen_date",
+    date_start = "2021-01-01",
+    date_end = "2021-12-31",
+    time_period = "year_month",
+    fill_colours = "#007C91",
+    rolling_average_line = TRUE,
+    rolling_average_line_lookback = 3,
+    rolling_average_line_legend_label = "3-month average",
+    chart_title = "Detections per Month (2021)",
+    x_axis_title = "Year–Month",
+    y_axis_title = "Detections",
+    x_axis_label_angle = -90
+  )
+)
+```
+
+## 2) Grouped dynamic curve by species (ISO week)
+
+```r
+df_small <- epiviz::lab_data %>%
+  filter(specimen_date >= as.Date("2021-01-01"),
+         specimen_date <= as.Date("2021-03-31"))
+
+epi_curve(
+  dynamic = TRUE,
+  params = list(
+    df = df_small,
+    date_var = "specimen_date",
+    time_period = "iso_year_week",
+    group_var = "organism_species_name",
+    group_var_barmode = "stack",
+    fill_colours = c("#007C91", "#8A1B61", "#FF7F32"),
+    chart_title = "Weekly detections by species (Q1 2021)",
+    x_axis_title = "ISO Week",
+    y_axis_title = "Detections",
+    x_axis_label_angle = -90
+  )
+)
+```
+
+

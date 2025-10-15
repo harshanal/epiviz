@@ -1,0 +1,61 @@
+---
+title: "Point charts"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 2
+vignette: >
+  %\VignetteIndexEntry{Point charts}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Overview
+
+One example showing `point_chart()` as a simple bubble-style chart with a threshold line.
+
+```r
+library(epiviz)
+library(dplyr)
+library(lubridate)
+library(scales)
+```
+
+## Bubble-style static chart with threshold
+
+```r
+df <- epiviz::lab_data %>%
+  mutate(month = floor_date(specimen_date, "month")) %>%
+  count(month, name = "detections") %>%
+  mutate(
+    detections_london = round(detections * runif(n(), 0.2, 0.5)),
+    prop_london = detections_london / detections,
+    hover = paste0("<b>", month, "</b>",
+                   "<br>Detections: ", detections,
+                   "<br>London: ", detections_london,
+                   "<br><i>% in London: ", percent(prop_london, accuracy = 1), "</i>")
+  )
+
+point_chart(
+  dynamic = FALSE,
+  params = list(
+    df = df,
+    x = "month",
+    y = "detections",
+    point_size = "detections_london",
+    point_size_legend = TRUE,
+    point_size_legend_title = "Detections in\nLondon",
+    point_shape = "circle",
+    point_colours = "#8A1B61",
+    chart_title = "Monthly detections (bubble size: London)",
+    x_axis_title = "Month",
+    y_axis_title = "Detections",
+    y_axis_break_labels = seq(0, max(df$detections, na.rm = TRUE), by = 200),
+    hline = median(df$detections, na.rm = TRUE),
+    hline_colour = "orange",
+    hline_label = "Median"
+  )
+)
+```
+
+

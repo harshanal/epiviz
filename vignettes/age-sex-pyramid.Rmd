@@ -1,0 +1,80 @@
+---
+title: "Age–sex pyramid"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 2
+vignette: >
+  %\VignetteIndexEntry{Age–sex pyramid}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Overview
+
+This article demonstrates `age_sex_pyramid()` using the built-in `lab_data` for both ungrouped (line list) and grouped inputs. We keep data small so charts are readable.
+
+```r
+library(epiviz)
+library(dplyr)
+```
+
+## 1) Ungrouped line list → static ggplot
+
+Provide date of birth and sex; the helper will compute age and bin groups.
+
+```r
+small <- epiviz::lab_data %>%
+  filter(specimen_date >= as.Date("2023-01-01"),
+         specimen_date <= as.Date("2023-03-31"))
+
+age_sex_pyramid(
+  dynamic = FALSE,
+  params = list(
+    df = small,
+    var_map = list(dob_var = "date_of_birth", sex_var = "sex"),
+    grouped = FALSE,
+    mf_colours = c("#440154", "#2196F3"),
+    x_breaks = 6,
+    x_axis_title = "Number of cases",
+    y_axis_title = "Age group (years)",
+    legend_pos = "top",
+    legend_title = "Age–sex pyramid"
+  )
+)
+```
+
+## 2) Grouped with confidence intervals → dynamic plotly
+
+Create a small grouped dataset with simple Poisson-style CIs to showcase error bars.
+
+```r
+set.seed(1)
+grouped_df <- tibble::tibble(
+  age_group = factor(c("0-4","5-18","19-64","65+"), levels = c("0-4","5-18","19-64","65+")),
+  sex = rep(c("Male","Female"), each = 4),
+  value = c(90,110,150,80, 100,120,140,70)
+) %>%
+  mutate(
+    ci_lower = pmax(value - round(1.96 * sqrt(value)), 0),
+    ci_upper = value + round(1.96 * sqrt(value))
+  )
+
+age_sex_pyramid(
+  dynamic = TRUE,
+  params = list(
+    df = grouped_df,
+    var_map = list(age_group_var = "age_group", sex_var = "sex", value_var = "value",
+                   ci_lower = "ci_lower", ci_upper = "ci_upper"),
+    grouped = TRUE,
+    ci = "errorbar",
+    mf_colours = c("#440154", "#2196F3"),
+    x_breaks = 6,
+    x_axis_title = "Number of cases",
+    y_axis_title = "Age group (years)",
+    legend_title = "Age–sex pyramid"
+  )
+)
+```
+
+

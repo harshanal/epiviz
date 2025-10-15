@@ -1,0 +1,53 @@
+---
+title: "Choropleth maps"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 2
+vignette: >
+  %\VignetteIndexEntry{Choropleth maps}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Overview
+
+Create a small static choropleth map with `epi_map()`. We’ll use included shapefiles and a short, aggregated dataset to keep the map clear.
+
+```r
+library(epiviz)
+library(dplyr)
+```
+
+## Static map example (Public Health regions)
+
+Aggregate detections by region and join to the provided `PHEC_boundaries_2016` shapefile.
+
+```r
+region_counts <- epiviz::lab_data %>%
+  filter(specimen_date >= as.Date("2023-01-01"),
+         specimen_date <= as.Date("2023-03-31")) %>%
+  count(region, name = "detections") %>%
+  ungroup() %>%
+  mutate(map_labels = paste0(region, ":\n", detections))
+
+epi_map(
+  dynamic = FALSE,
+  params = list(
+    df = left_join(PHEC_boundaries_2016, region_counts, by = c("phec16nm" = "region")),
+    value_col = "detections",
+    data_areacode = "phec16nm",
+    inc_shp = TRUE,
+    fill_palette = "YlOrRd",
+    fill_opacity = 0.8,
+    labels = "map_labels",
+    legend_title = "Detections",
+    map_title = "Detections by Public Health Region (Q1 2023)",
+    legend_pos = "right"
+  )
+)
+```
+
+Tip: For interactive maps, set `dynamic = TRUE` and use leaflet-supported legend positions (e.g., `"topright"`).
+
+
