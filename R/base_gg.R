@@ -3,6 +3,7 @@
 #' function call needs to be proceeded by environment(base_gg) <- environment()
 #'
 #' @return ggplot object
+#' @noRd
 #'
 #' @examples
 #' \dontrun{

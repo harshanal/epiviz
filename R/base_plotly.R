@@ -4,6 +4,7 @@
 #' function call needs to be proceeded by environment(base_plotly) <- environment()
 #'
 #' @return plotly object
+#' @noRd
 #'
 #' @examples
 #' \dontrun{
