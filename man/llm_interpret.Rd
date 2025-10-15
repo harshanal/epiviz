@@ -49,3 +49,16 @@ This function interprets a given data frame or ggplot visualisation by sending i
 
 \strong{Note:} Ensure that the appropriate environment variables are set before invoking this function. The function will throw an error if the specified provider is unsupported or if required environment variables are missing.
 }
+\section{Tested Models}{
+
+As of October 2025, this function has been tested and verified to work with the following models:
+\itemize{
+\item OpenAI: gpt-4.1-nano
+\item Anthropic: claude-sonnet-4-20250514
+\item Google Gemini: gemini-2.5-flash-lite
+}
+
+Additional models may be tested in the future. Users can provide custom instructions
+through the \code{prompt_extension} parameter for specialised analysis requirements.
+}
+
