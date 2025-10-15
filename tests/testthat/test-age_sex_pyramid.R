@@ -126,7 +126,8 @@ test_that("age_sex_pyramid works with dynamic output", {
       grouped = FALSE,
       mf_colours = c("pink", "blue"),
       x_breaks = 5,
-      ci = 'errorbar'
+      ci = 'errorbar',
+      chart_title = 'test'
     )
   )
   expect_true(inherits(p, "plotly"))
@@ -144,8 +145,11 @@ test_that("age_sex_pyramid works with dynamic output", {
     dynamic=TRUE,
     params = list(
       df = grouped_df,
-      var_map = list(age_group_var = 'age_group', sex_var = 'sex', value_var = 'value',
-                     ci_lower = 'ci_lower', ci_upper = 'ci_upper'),
+      var_map = list(age_group_var = 'age_group',
+                     sex_var = 'sex',
+                     value_var = 'value',
+                     ci_lower = 'ci_lower',
+                     ci_upper = 'ci_upper'),
       grouped = TRUE,
       ci = 'errorbar'
     )
