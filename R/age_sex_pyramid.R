@@ -38,7 +38,7 @@
 #'   \item{grouped}{Logical. If `TRUE`, assumes the data is pre-grouped by age and sex. If `FALSE`,
 #'   the function processes the line list data. Default is `FALSE`.}
 #'   \item{legend_pos}{Position of the legend. Default is `"top"`.}
-#'   \item{chart_title}{Title of the legend. Default is `""`.}
+#'   \item{chart_title}{Text to use as the chart title.}
 #' }
 #'
 #' @return A ggplot or plotly object representing the age-sex pyramid, depending on the value of `dynamic`.
