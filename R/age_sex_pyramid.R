@@ -16,29 +16,29 @@
 #'       \item{dob_var}{Name of the variable in `df` containing date of birth values. Default is `'date_of_birth'`.}
 #'       \item{sex_var}{Name of the variable in `df` containing sex values. Default is `'sex'`.}
 #'       \item{age_group_var}{Name of the variable in `df` containing pre-grouped age groups (if `grouped = TRUE`).}
-#'       \item{value}{Name of the column containing the value counts (if `grouped = TRUE`).}
+#'       \item{value_var}{Name of the column containing the value counts (if `grouped = TRUE`).}
 #'       \item{ci_lower}{Name of the column containing lower confidence limits (if `ci = TRUE`).}
 #'       \item{ci_upper}{Name of the column containing upper confidence limits (if `ci = TRUE`).}
 #'     }
 #'   }
 #'   \item{mf_colours}{A vector of 2 colours used to fill the male and female bars in the
 #'   plot. The first colour will be used for males, and the second for females. Default
-#'   is `c("#440154", "#fde725")`.}
+#'   is `c("#440154", "#2196F3")`.}
 #'   \item{x_breaks}{Number of breaks on the x-axis. Default is `10`.}
 #'   \item{y_axis_title}{Title of the y-axis. Default is `"Individual count"`.}
 #'   \item{x_axis_title}{Title of the x-axis. Default is `"Number of cases"`.}
 #'   \item{text_size}{Size of the text in the plot. Default is `12`.}
-#'   \item{ci}{Confidence interval. If `ci = "errorbar"` then confidence intervals be
-#'   be plotted with each bar as errorbars. If `grouped = FALSE`, default confidence
-#'   intervals are applied using the normal approximation to the Poisson distribution,
-#'   with bounds set at \eqn{\pm 1.96 \times \sqrt{n}}.}
+#'   \item{ci}{Confidence interval. If `ci = "errorbar"` then confidence intervals will be
+#'   be plotted with each bar as errorbars. If `ci = "errorbar"` and `grouped = FALSE`, then
+#'   default confidence intervals are applied using the normal approximation to the Poisson
+#'   distribution, with bounds set at \eqn{\pm 1.96 \times \sqrt{n}}.}
 #'   \item{ci_colour}{Colour of the plotted errorbars if `ci = TRUE`. Default is `"red"`.}
 #'   \item{age_breakpoints}{A numeric vector specifying the breakpoints for age groups. Default is `c(0, 5, 19, 65, Inf)`.}
 #'   \item{age_calc_refdate}{Reference date for calculating age from date of birth. Default is `Sys.Date()`.}
 #'   \item{grouped}{Logical. If `TRUE`, assumes the data is pre-grouped by age and sex. If `FALSE`,
 #'   the function processes the line list data. Default is `FALSE`.}
 #'   \item{legend_pos}{Position of the legend. Default is `"top"`.}
-#'   \item{legend_title}{Title of the legend. Default is `""`.}
+#'   \item{chart_title}{Text to use as the chart title.}
 #' }
 #'
 #' @return A ggplot or plotly object representing the age-sex pyramid, depending on the value of `dynamic`.
@@ -108,7 +108,7 @@ age_sex_pyramid <- function(
       age_calc_refdate = Sys.Date(),
       grouped = FALSE,
       legend_pos = "top",
-      legend_title = ""
+      chart_title = ""
     )
 ) {
 
@@ -127,7 +127,7 @@ age_sex_pyramid <- function(
   if(!exists('age_calc_refdate',where=params)) params$age_calc_refdate <- Sys.Date()
   if(!exists('grouped',where=params)) params$grouped <- FALSE
   if(!exists('legend_pos',where=params)) params$legend_pos <- "top"
-  if(!exists('legend_title',where=params)) params$legend_title <- ""
+  if(!exists('chart_title',where=params)) params$chart_title <- ""
 
 
 
@@ -161,6 +161,16 @@ age_sex_pyramid <- function(
     if (!params$var_map$ci_upper %in% colnames(params$df))
       stop("upper not found within df. Please include a variable from df for ci_upper, e.g. var_map = list(ci_upper = \"variable_name\")")
 
+  }
+
+  # Check that 'age_group_var' has been provided for pre-grouped data
+  if (params$grouped == TRUE & is.null(params$var_map$age_group_var)) {
+    stop("Please provide 'age_group_var' when grouped = TRUE.")
+  }
+
+  # Check that at least either 'age' and 'dob_var' are provided for ungrouped data
+  if (params$grouped == FALSE & is.null(params$var_map$age_var) & is.null(params$var_map$dob_var)) {
+    stop("Please provide either 'age_var' or 'dob_var' when grouped = FALSE.")
   }
 
   # Warn that if both 'age' and 'dob_var' are provided, then only age will be used
@@ -233,7 +243,7 @@ age_sex_pyramid <- function(
       labs(
         y = params$x_axis_title,  # Swap x_axis_title to y-axis
         x = params$y_axis_title,  # Swap y_axis_title to x-axis
-        title = params$legend_title  # Updated plot title
+        title = params$chart_title  # Updated plot title
       )
 
     return(result)
@@ -390,7 +400,7 @@ age_sex_pyramid <- function(
 
   # Update layout with corrected titles and custom ticks
   p <- layout(p,
-              title = params$legend_title,
+              title = params$chart_title,
               xaxis = list(
                 title = list(text = params$x_axis_title, font = list(size = params$text_size)),
                 tickfont = list(size = params$text_size),
