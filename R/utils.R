@@ -5,6 +5,7 @@
 #' @param shift the value to shift the axis by
 #'
 #' @return scaled/shifted y axis values
+#' @noRd
 #'
 #' @examples
 #' \dontrun{
@@ -24,6 +25,7 @@ scale_function <- function(x, scale, shift){
 #' @param shift the value to shift the data by
 #'
 #' @return scaled/shifted data to plot on secondary y axis
+#' @noRd
 #'
 #' @examples
 #' \dontrun{
@@ -39,6 +41,7 @@ inv_scale_function <- function(x, scale, shift){
 #' credit: https://www.r-bloggers.com/2015/06/identifying-the-os-from-r/
 #'
 #' @return Name of user's operating system
+#' @noRd
 #'
 #' @examples
 #' \dontrun{
@@ -66,6 +69,7 @@ get_os <- function(){
 #' Function to set chart_font variable to Arial in order to resolve warnings
 #'
 #' @return chart_font string
+#' @noRd
 #'
 #' @examples
 #' \dontrun{
@@ -96,6 +100,7 @@ set_Arial <- function() {
 #' @param reference Character vector of expected parameters.
 #'
 #' @return Assigns parameter values in the parent environment
+#' @noRd
 #'
 #' @examples
 #' \dontrun{
@@ -130,6 +135,7 @@ param_assign <- function(params, reference) {
 #' @param x A text string
 #'
 #' @return A text string wrapped in <b> </b> for html bold font
+#' @noRd
 #'
 #' @examples
 #' \dontrun{
@@ -148,6 +154,7 @@ html_bold <- function(x) {
 #' "longdash", "dotdash")
 #'
 #' @return A text string plotly line type
+#' @noRd
 #'
 #' @examples
 #' \dontrun{
@@ -197,6 +204,7 @@ plotly_line_style <- function(x) {
 #' See https://ggplot2.tidyverse.org/reference/scale_date.html
 #'
 #' @return A string in a format appropriate for plotly dtick date break formatting.
+#' @noRd
 #'
 #'
 #' @examples
@@ -259,6 +267,7 @@ datebreak_to_d3 <- function(x) {
 #' @param x A ggplot legend position ("top","bootom","right","left")
 #'
 #' @return A list of parameters for plotly layout.legend
+#' @noRd
 #'
 #' @examples
 #' \dontrun{
@@ -331,6 +340,7 @@ plotly_legend_pos <- function(x) {
 #' @param n_pal numeric The number of desired colours in the returned palette.
 #'
 #' @return A character vector of hex codes for use in a colour palette.
+#' @noRd
 #'
 #' @examples
 #' \dontrun{
@@ -386,6 +396,7 @@ palette_gen <- function(x, n_pal) {
 #' @param new_name The new name of the list item
 #'
 #' @return A list with the item renamed
+#' @noRd
 #'
 #' @examples
 #' \dontrun{
@@ -411,6 +422,7 @@ param_rename <- function(params_list, current_name, new_name) {
 #' @param date_var character, the name of a date column within df
 #'
 #' @return A dataframe
+#' @noRd
 #'
 #' @examples
 #' \dontrun{
@@ -448,6 +460,7 @@ adorn_dates <- function(df, date_var) {
 #' @param name2 Character, name of the second object
 #'
 #' @return Swaps names of both objects
+#' @noRd
 #'
 #' @examples
 #' \dontrun{
@@ -458,6 +471,46 @@ swap_object_names <- function(name1, name2) {
   temp <- get(name1, envir = parent.frame())
   assign(name1, get(name2, envir = parent.frame()), envir = parent.frame())
   assign(name2, temp, envir = parent.frame())
+
+}
+
+
+
+
+#' A function to manage 'Ignoring unknown labels:' messages output to
+#' console by ggplot. These happen when items in your_ggplot_object$labels
+#' are NULL or "". The most efficient way of suppressing these is by
+#' dropping these blank labels from the ggplot object before printing it.
+#'
+#' @param p A ggplot object
+#'
+#' @return A cleaned ggplot object
+#' @noRd
+#'
+#' @examples
+#' \dontrun{
+#' final_ggplot_object <- clean_gg_labels(your_ggplot_object)
+#' }
+clean_gg_labels <- function(p) {
+
+  # Make sure labels element exists
+  if (length(p$labels) > 0) {
+
+    labs <- p$labels
+
+    # Identify valid elements of <ggplot2::labels> (i.e. where the element isn't NULL or "")
+    valid_names <- names(labs)[vapply(labs, function(x) {
+      !(is.null(x) || (is.character(x) && identical(x, "")))
+    }, logical(1))]
+
+    # Rebuild a valid labels object
+    new_labs <- labs[valid_names]
+    attr(new_labs, "class") <- attr(labs, "class")  # preserve "<ggplot2::labels>" class
+    p$labels <- new_labs
+
+  }
+
+  return(p)
 
 }
 

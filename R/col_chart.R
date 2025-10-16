@@ -1044,7 +1044,7 @@ col_chart <- function(
         #    is one of the stacking elements 1-unit high.Uncount df to get 1 row per
         #    case, add box = 1 column for y-vals to create 1 box per case.
         df_box <- df |>
-                 mutate(across(y, .fns = ~replace_na(.,0))) |>
+                 mutate(across(all_of(y), .fns = ~replace_na(.,0))) |>
                  uncount(get(y)) |>
                  mutate(box = 1)
 
@@ -1396,7 +1396,7 @@ col_chart <- function(
 
 
       ##### Return final output
-      return(base)
+      return(clean_gg_labels(base))  # use utils/clean_gg_labels() to prevent 'Ignoring unknown labels:' messages
 
     }) # suppressMessage() end
 

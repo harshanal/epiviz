@@ -521,9 +521,11 @@ epi_curve <- function(
     warning("Multiple fill_colours have been provided but group_var is absent")
 
 
-
-
-
+  # Warn that legend_title will not be used unless group_var is set
+  if (params$legend_title != "" & !exists('group_var', where=params)) {
+    if (length(params$fill_colours) != length(unique(params$df[[params$group_var]])))
+      warning("legend_title will not be used unless group_var is set")
+  }
 
 
 
@@ -605,6 +607,10 @@ epi_curve <- function(
   if(!is.null(group_var) & length(fill_colours) == 1) {
     fill_colours <- hue_pal()(length(unique(df[[group_var]])))
   }
+
+  # Neutralise legend_title parameter if group_var is not set, else it leads to
+  #   spurious console messaging.
+  if(legend_title != "" & is.null(group_var)) {legend_title <- ""}
 
 
 
@@ -788,6 +794,7 @@ epi_curve <- function(
   environment(base_gg) <- environment()
   base_return <- base_gg()
 
+
   # base_gg() returns a list containing base and df; extract here
   base <- base_return$base
   df <- base_return$df
@@ -795,7 +802,7 @@ epi_curve <- function(
 
 
 
-  # Supress spurious 'Scale for X is already present' messages
+  # Suppress spurious 'Scale for X is already present' messages
   #   -Will suppress other messages
   suppressMessages({
 
@@ -849,10 +856,12 @@ epi_curve <- function(
     ##### Apply legend parameters
 
     # Legend title
-    if (!is.null(legend_title)) {
-      base <-  base + labs(name = legend_title,
-                           fill = legend_title,
-                           colour = legend_title)
+    if (legend_title != "" & !is.null(group_var)) {
+      base <-  base + labs(#name = legend_title,
+                           #colour = legend_title,
+                           fill = legend_title)
+    } else if (legend_title == "" | is.null(group_var)) {
+      base <-  base + theme(legend.title=element_blank())
     }
 
     # Legend position
@@ -1028,7 +1037,7 @@ epi_curve <- function(
 
 
   ##### Return final output
-  return(base)
+    return(clean_gg_labels(base))  # use utils/clean_gg_labels() to prevent 'Ignoring unknown labels:' messages
 
   }) # suppressMessage() end
 
@@ -1115,7 +1124,8 @@ epi_curve <- function(
 
       # Define colour map for multiple colours if not already defined by user
       if (is.null(names(fill_colours))) {
-        colormap <- setNames(fill_colours, unique(df[[group_var]]))
+        colour_names <- if (is.factor(df[[group_var]])) {unique(df[[group_var]])} else {as.factor(sort(unique(df[[group_var]])))}
+        colormap <- setNames(fill_colours, colour_names)
       } else {
         colormap <- fill_colours
       }
@@ -1245,7 +1255,7 @@ epi_curve <- function(
           x = ~ df_rolling_average[[x]],
           y = ~ df_rolling_average$rolling_average,
           type = 'scatter',
-          mode = 'line',
+          mode = 'lines',
           #mode = 'lines+markers',
           line = list(color = rolling_average_line_colour,
                       width = rolling_average_line_width*2), # *2 to match ggplot formatting),
@@ -1291,7 +1301,7 @@ epi_curve <- function(
             y = ~ df_cumulative_sum$cumulative_sum,
             yaxis = "y2",
             type = 'scatter',
-            mode = 'line',
+            mode = 'lines',
             line = list(color = cumulative_sum_line_colour,
                         width = cumulative_sum_line_width*2), # *2 to match ggplot formatting
             name = cumulative_sum_line_legend_label,

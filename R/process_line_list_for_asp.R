@@ -3,13 +3,15 @@
 #' This function processes a line list data frame, calculating the age from either the provided age column or date of birth.
 #' It filters the data to include only males and females, groups the data into age groups, and summarizes the counts for each age group and sex.
 #'
+#' @noRd
+#'
 #' @param df A data frame containing the line list data.
 #' @param var_map A list mapping variable names in the data frame to the expected names used in the function.
 #' The list should contain elements:
 #' \describe{
-#'   \item{age}{Name of the column containing age values (default is `'age'`).}
-#'   \item{date_of_birth}{Name of the column containing date of birth values (default is `'date_of_birth'`).}
-#'   \item{sex}{Name of the column containing sex values (default is `'sex'`).
+#'   \item{age_var}{Name of the variable in df containing age values (default is `'age'`).}
+#'   \item{dob_var}{Name of the variable in df containing date of birth values (default is `'date_of_birth'`).}
+#'   \item{sex_var}{Name of the variable in df containing sex values (default is `'sex'`).
 #'   Permitted values for sex include M, F, Male, Female (not case sensitive)}
 #' }
 #' @param age_breakpoints A numeric vector specifying the breakpoints for age groups. The default is `c(0, 5, 19, 65, Inf)`.
@@ -25,9 +27,9 @@
 #'   processed_df <- process_line_list_for_age_sex_pyramid(df)
 #' }
 process_line_list_for_age_sex_pyramid <- function(df,
-                                                  var_map = list(age = 'age',
-                                                                 date_of_birth = 'date_of_birth',
-                                                                 sex = 'sex'),
+                                                  var_map = list(age_var = 'age',
+                                                                 dob_var = 'date_of_birth',
+                                                                 sex_var = 'sex'),
                                                   age_breakpoints = c(0, 5, 19, 65, Inf),
                                                   age_calc_refdate = Sys.Date()) {
   # Ensure df is a data frame
@@ -35,36 +37,36 @@ process_line_list_for_age_sex_pyramid <- function(df,
     stop("The input df must be a data frame.")
   }
 
-  # Ensure that either 'age' or 'date_of_birth' is provided
-  if (is.null(var_map$age) & is.null(var_map$date_of_birth)) {
-    stop("Either 'age' or 'date_of_birth' must be provided in the var_map list.")
+  # Ensure that either 'age_var' or 'dob_var' is provided
+  if (is.null(var_map$age_var) & is.null(var_map$dob_var)) {
+    stop("Either 'age_var' or 'dob_var' must be provided in the var_map list.")
   }
 
-  if (is.null(var_map$sex)) {
-    stop("'sex' must be provided in the var_map list.")
+  if (is.null(var_map$sex_var)) {
+    stop("'sex_var' must be provided in the var_map list.")
   }
 
 
   # Handle age calculation if 'age' is not provided
-  if (!is.null(var_map$age) && var_map$age %in% names(df)) {
-    df$age <- df[[var_map$age]]
-  } else if (!is.null(var_map$date_of_birth) &&
-             var_map$date_of_birth %in% names(df)) {
-    df$age <- round(as.numeric(difftime(age_calc_refdate, df[[var_map$date_of_birth]], units = "days")) / 365.25)
+  if (!is.null(var_map$age_var) && var_map$age_var %in% names(df)) {
+    df$age_var <- df[[var_map$age_var]]
+  } else if (!is.null(var_map$dob_var) &&
+             var_map$dob_var %in% names(df)) {
+    df$age_var <- round(as.numeric(difftime(age_calc_refdate, df[[var_map$dob_var]], units = "days")) / 365.25)
   } else {
-    stop("The specified 'age' or 'date_of_birth' variable was not found in the data frame.")
+    stop("The specified 'age_var' or 'dob_var' variable was not found in the data frame.")
   }
 
-  # Standardise the 'sex' variable
+  # Standardise the 'sex_var' variable
   df <- df |>
-    mutate(sex = case_when(
-      str_detect(sex, regex("^(M|Male)$", ignore_case = TRUE)) ~ "Male",
-      str_detect(sex, regex("^(F|Female)$", ignore_case = TRUE)) ~ "Female",
+    mutate(!!var_map$sex_var := case_when(
+      str_detect(get(var_map$sex_var), regex("^(M|Male)$", ignore_case = TRUE)) ~ "Male",
+      str_detect(get(var_map$sex_var), regex("^(F|Female)$", ignore_case = TRUE)) ~ "Female",
       TRUE ~ NA_character_
     ))
 
-  # Filter out rows where 'sex' column is not "Male" or "Female"
-  df <- df[df[[var_map$sex]] %in% c("Male", "Female"), ]
+  # Filter out rows where 'sex_var' column is not "Male" or "Female"
+  df <- df[df[[var_map$sex_var]] %in% c("Male", "Female"), ]
 
   # Convert numeric age breakpoints to corresponding age group labels
   age_labels <- c()
@@ -75,7 +77,7 @@ process_line_list_for_age_sex_pyramid <- function(df,
   age_labels[length(age_labels) + 1] <- paste0(age_breakpoints[length(age_breakpoints) - 1], "+")
 
   # Create age groups
-  df$age_group <- cut(df$age,
+  df$age_group <- cut(df$age_var,
                       breaks = age_breakpoints,
                       labels = age_labels,
                       right = FALSE) # right = FALSE ensures that age_group includes the lower bound and excludes the upper bound
@@ -86,13 +88,17 @@ process_line_list_for_age_sex_pyramid <- function(df,
 
   # Aggregate data by age group and sex
   df <- df |>
-    dplyr::group_by(age_group, sex = df[[var_map$sex]]) |>
+    dplyr::group_by(age_group, sex = df[[var_map$sex_var]]) |>
     dplyr::summarise(
       value = n(),
-      lowercl = -1.96 * sqrt(value),
-      uppercl =  1.96 * sqrt(value),
+      ci_lower = -1.96 * sqrt(value),
+      ci_upper =  1.96 * sqrt(value),
       .groups = "drop"
-    )
+    ) |>
+    ungroup() |>
+    # Change +/- upper and lower limits into true upper and lower values needed for plotting
+    mutate(ci_lower = value + ci_lower,
+           ci_upper = value + ci_upper)
 
   # Return the processed data frame
   return(df)

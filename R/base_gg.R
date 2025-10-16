@@ -3,6 +3,7 @@
 #' function call needs to be proceeded by environment(base_gg) <- environment()
 #'
 #' @return ggplot object
+#' @noRd
 #'
 #' @examples
 #' \dontrun{
@@ -15,6 +16,12 @@ base_gg <- function() {
   # Ensure that unused variables exist
   if(!exists("x_time_series")) {x_time_series <- FALSE}
   if(!exists("axis_flip")) {axis_flip <- FALSE}
+
+
+  # Suppress spurious 'Scale for X is already present' messages
+  #   -Will suppress other messages
+  suppressMessages({
+
 
   ##### Create base ggplot object
 
@@ -616,14 +623,14 @@ base_gg <- function() {
     }
   }
 
-
+  }) # SUPPRESS MESSAGES END
 
 
   ##### Return df, base, and hline_xpos as list
   #       (df$y may have been modified through sec axis scaling)
   #       (hline_xpos required in case hline needs to be reapplied over other plots)
 
-  return_list <- list("base" = base,
+  return_list <- list("base" = clean_gg_labels(base), # use utils/clean_gg_labels() to prevent 'Ignoring unknown labels:' messages
                       "df" = df,
                       "hline_xpos" = hline_xpos,
                       "xlim" = xlim,
