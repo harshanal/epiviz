@@ -16,7 +16,18 @@ Epidemiological maps are powerful tools for visualizing the geographic distribut
 
 ## Prerequisites
 
-```r
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  eval = TRUE,
+  fig.width = 8,
+  fig.height = 6,
+  warning = FALSE,
+  message = FALSE
+)
+```
+
+```{r load-libraries, eval=TRUE, echo=TRUE}
 library(epiviz)
 library(dplyr)
 library(sf)
@@ -28,7 +39,7 @@ Local authority maps provide detailed spatial resolution for outbreak investigat
 
 ### Prepare the data
 
-```r
+```{r prepare-london-data, eval=TRUE, echo=TRUE}
 # Aggregate detections by local authority for London (as used in tests)
 london_detections <- epiviz::lab_data %>%
   filter(
@@ -36,12 +47,12 @@ london_detections <- epiviz::lab_data %>%
     organism_species_name == "STAPHYLOCOCCUS AUREUS"
   ) %>%
   group_by(local_authority_name) %>%
-  summarise(detections = n())
+  summarise(detections = n(), .groups = "drop")
 ```
 
 ### Create the static map with un-merged shapefile
 
-```r
+```{r static-london-map, fig.cap="Static choropleth of Staphylococcus aureus detections across London local authorities.", fig.alt="Choropleth map shading London local authority districts by the number of Staphylococcus aureus detections."}
 epi_map(
   dynamic = FALSE,  # Create static map
   params = list(
@@ -84,13 +95,12 @@ When you have already merged your data with spatial boundaries, you can use the 
 
 ### Prepare the pre-merged data
 
-```r
+```{r prepare-merged-map-data, eval=TRUE, echo=TRUE}
 # Aggregate detections by region
 regional_detections <- epiviz::lab_data %>%
   filter(organism_species_name == "KLEBSIELLA PNEUMONIAE") %>%
   group_by(region) %>%
-  summarise(detections = n()) %>%
-  ungroup() %>%
+  summarise(detections = n(), .groups = "drop") %>%
   mutate(map_labels = paste0(region, ": \n", detections))  # Create custom labels
 
 # Get the shapefile
@@ -103,7 +113,7 @@ merged_data <- left_join(x = shape, y = regional_detections,
 
 ### Create the static map with pre-merged data
 
-```r
+```{r static-merged-map, fig.cap="Static choropleth of Klebsiella pneumoniae detections across UK public health regions.", fig.alt="Choropleth map of UK public health regions coloured by Klebsiella pneumoniae detections with categorical legend."}
 epi_map(
   dynamic = FALSE,  # Create static map
   params = list(
@@ -146,13 +156,12 @@ Border shapefiles allow you to add additional geographic context, such as countr
 
 ### Create the map with border shapefile
 
-```r
+```{r static-border-map, fig.cap="Static choropleth with UK country border overlays.", fig.alt="Choropleth map of UK public health regions coloured by detections with outlines for Wales, Northern Ireland, and Scotland."}
 # Use the same regional data
 regional_detections <- epiviz::lab_data %>%
   filter(organism_species_name == "KLEBSIELLA PNEUMONIAE") %>%
   group_by(region) %>%
-  summarise(detections = n()) %>%
-  ungroup() %>%
+  summarise(detections = n(), .groups = "drop") %>%
   mutate(map_labels = paste0(region, ": \n", detections))
 
 # Get shapefiles
@@ -202,7 +211,7 @@ Interactive maps are ideal for surveillance dashboards, allowing users to zoom, 
 
 ### Create the interactive map
 
-```r
+```{r interactive-london-map, fig.cap="Interactive choropleth of Staphylococcus aureus detections across London.", fig.alt="Interactive map of London local authorities coloured by detection counts."}
 epi_map(
   dynamic = TRUE,   # Create interactive leaflet map
   params = list(
@@ -245,7 +254,7 @@ Interactive maps can include border shapefiles and custom area labeling for comp
 
 ### Create the interactive map with borders and labels
 
-```r
+```{r interactive-border-map, fig.cap="Interactive choropleth of Klebsiella pneumoniae detections with country borders and labels.", fig.alt="Interactive map of UK public health regions coloured by detections with highlighted country borders and top area labels."}
 epi_map(
   dynamic = TRUE,   # Create interactive leaflet map
   params = list(
