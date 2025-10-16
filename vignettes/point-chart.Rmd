@@ -16,7 +16,18 @@ Point charts (scatter plots) are versatile tools for exploring relationships bet
 
 ## Prerequisites
 
-```r
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  eval = TRUE,
+  fig.width = 8,
+  fig.height = 6,
+  warning = FALSE,
+  message = FALSE
+)
+```
+
+```{r load-libraries, eval=TRUE, echo=TRUE}
 library(epiviz)
 library(dplyr)
 library(lubridate)
@@ -28,7 +39,7 @@ Basic point charts are ideal for exploring relationships between two continuous 
 
 ### Prepare the data
 
-```r
+```{r prepare-monthly-data, eval=TRUE, echo=TRUE}
 # Create monthly data (as used in tests)
 monthly_data <- epiviz::lab_data %>%
   group_by(specimen_month = lubridate::floor_date(specimen_date, 'month')) %>%
@@ -38,7 +49,7 @@ monthly_data <- epiviz::lab_data %>%
 
 ### Create the basic point chart
 
-```r
+```{r basic-point-chart, fig.cap="Monthly detections with point markers across 2022-2023.", fig.alt="Scatter plot showing the number of detections per month between January 2022 and December 2023."}
 point_chart(
   dynamic = FALSE,  # Create static ggplot chart
   params = list(
@@ -65,7 +76,7 @@ Interactive point charts allow users to explore data dynamically, with hover inf
 
 ### Create the interactive point chart
 
-```r
+```{r interactive-point-chart, fig.cap="Interactive monthly detections with hover detail.", fig.alt="Interactive scatter plot of monthly detections allowing hover to view values."}
 point_chart(
   dynamic = TRUE,   # Create interactive plotly chart
   params = list(
@@ -92,24 +103,25 @@ Grouped point charts with confidence ribbons are excellent for comparing multipl
 
 ### Prepare grouped data with confidence intervals
 
-```r
+```{r prepare-grouped-point-data, eval=TRUE, echo=TRUE}
 # Create grouped data with confidence intervals (as used in tests)
+set.seed(123)
 grouped_data <- epiviz::lab_data %>%
   group_by(specimen_month = lubridate::floor_date(specimen_date, 'month'),
            organism_species_name) %>%
   summarise(detections = n()) %>%
   ungroup() %>%
-  rowwise() %>%
   mutate(
-    lower_limit = detections - sample(10:50, 1),  # Random lower limit
-    upper_limit = detections + sample(10:50, 1)   # Random upper limit
+    offset = sample(10:50, n(), replace = TRUE),
+    lower_limit = pmax(detections - offset, 0),
+    upper_limit = detections + offset
   ) %>%
-  ungroup()
+  select(-offset)
 ```
 
 ### Create the grouped point chart with confidence ribbons
 
-```r
+```{r grouped-point-chart, fig.cap="Grouped monthly detections with confidence ribbons.", fig.alt="Scatter plot with different colours for organism species and translucent ribbons showing confidence intervals across monthly detections."}
 point_chart(
   dynamic = FALSE,  # Create static ggplot chart
   params = list(
@@ -144,7 +156,7 @@ Threshold lines help identify data points that exceed or fall below important cu
 
 ### Create the point chart with threshold lines
 
-```r
+```{r threshold-point-chart, fig.cap="Grouped monthly detections with threshold lines.", fig.alt="Scatter plot with grouped monthly detections, confidence ribbons, and horizontal threshold lines highlighting key levels."}
 point_chart(
   dynamic = FALSE,  # Create static ggplot chart
   params = list(
@@ -183,7 +195,7 @@ Interactive point charts with all features provide the most comprehensive view f
 
 ### Create the comprehensive interactive point chart
 
-```r
+```{r interactive-grouped-point-chart, fig.cap="Interactive grouped point chart with confidence ribbons and thresholds.", fig.alt="Interactive scatter plot showing grouped monthly detections with ribbons and threshold lines."}
 point_chart(
   dynamic = TRUE,   # Create interactive plotly chart
   params = list(

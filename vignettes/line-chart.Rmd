@@ -16,7 +16,18 @@ Line charts are essential for visualizing temporal trends in epidemiological dat
 
 ## Prerequisites
 
-```r
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  eval = TRUE,
+  fig.width = 8,
+  fig.height = 6,
+  warning = FALSE,
+  message = FALSE
+)
+```
+
+```{r load-libraries, eval=TRUE, echo=TRUE}
 library(epiviz)
 library(dplyr)
 library(lubridate)
@@ -28,7 +39,7 @@ Single time series line charts are ideal for tracking overall trends in disease 
 
 ### Prepare the data
 
-```r
+```{r prepare-single-series, eval=TRUE, echo=TRUE}
 # Filter and aggregate data for a single organism (as used in tests)
 single_series_data <- epiviz::lab_data %>%
   filter(
@@ -43,7 +54,7 @@ single_series_data <- epiviz::lab_data %>%
 
 ### Create the single time series line chart
 
-```r
+```{r single-series-line-chart, fig.cap="Daily detections of Klebsiella pneumoniae in January 2023.", fig.alt="Line chart showing daily counts of Klebsiella pneumoniae detections across January 2023."}
 line_chart(
   dynamic = FALSE,  # Create static ggplot chart
   params = list(
@@ -64,7 +75,7 @@ Multiple time series allow comparison of trends across different categories, suc
 
 ### Prepare the grouped data
 
-```r
+```{r prepare-multi-series, eval=TRUE, echo=TRUE}
 # Aggregate data for multiple organisms (as used in tests)
 multi_series_data <- epiviz::lab_data %>%
   group_by(organism_species_name, specimen_date) %>%
@@ -79,7 +90,7 @@ multi_series_data <- epiviz::lab_data %>%
 
 ### Create the multiple time series line chart
 
-```r
+```{r multi-series-line-chart, fig.cap="Daily detections by organism species across 2023.", fig.alt="Line chart with multiple coloured lines representing daily laboratory detections for several organism species during 2023."}
 line_chart(
   dynamic = FALSE,  # Create static ggplot chart
   params = list(
@@ -101,7 +112,7 @@ Interactive line charts are ideal for surveillance dashboards, allowing users to
 
 ### Create the interactive line chart
 
-```r
+```{r interactive-multi-series-line-chart, fig.cap="Interactive comparison of organism-specific detections across 2023.", fig.alt="Interactive line chart with multiple series showing laboratory detections by organism across 2023."}
 line_chart(
   dynamic = TRUE,   # Create interactive plotly chart
   params = list(
@@ -123,7 +134,7 @@ Enhanced line charts with custom styling are useful for creating publication-rea
 
 ### Prepare data for enhanced styling
 
-```r
+```{r prepare-enhanced-series, eval=TRUE, echo=TRUE}
 # Create a focused dataset for enhanced styling
 enhanced_data <- epiviz::lab_data %>%
   filter(
@@ -139,7 +150,7 @@ enhanced_data <- epiviz::lab_data %>%
 
 ### Create the enhanced line chart
 
-```r
+```{r enhanced-line-chart, fig.cap="Weekly Staphylococcus aureus detections during summer 2023.", fig.alt="Line chart showing weekly detections of Staphylococcus aureus from June to August 2023 with custom styling."}
 line_chart(
   dynamic = FALSE,  # Create static ggplot chart
   params = list(
