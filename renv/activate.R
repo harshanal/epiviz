@@ -2,11 +2,7 @@
 local({
 
   # the requested version of renv
-<<<<<<< HEAD
   version <- "1.1.5"
-=======
-  version <- "1.1.4"
->>>>>>> 912efbd (update ellmer to newer version)
   attr(version, "sha") <- NULL
 
   # the project directory
