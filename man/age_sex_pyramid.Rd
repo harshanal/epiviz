@@ -12,8 +12,7 @@ age_sex_pyramid(
     ci_upper = "ci_upper"), mf_colours = c("#440154", "#2196F3"), x_breaks = 10,
     x_axis_title = "Number of cases", y_axis_title = "Age group (years)", text_size = 12,
     ci = NULL, ci_colour = "red", age_breakpoints = c(0, 5, 19, 65, Inf),
-    age_calc_refdate = Sys.Date(), grouped = FALSE, legend_pos = "top", legend_title =
-    "")
+    age_calc_refdate = Sys.Date(), grouped = FALSE, legend_pos = "top", chart_title = "")
 )
 }
 \arguments{
@@ -30,29 +29,29 @@ age_sex_pyramid(
 \item{dob_var}{Name of the variable in \code{df} containing date of birth values. Default is \code{'date_of_birth'}.}
 \item{sex_var}{Name of the variable in \code{df} containing sex values. Default is \code{'sex'}.}
 \item{age_group_var}{Name of the variable in \code{df} containing pre-grouped age groups (if \code{grouped = TRUE}).}
-\item{value}{Name of the column containing the value counts (if \code{grouped = TRUE}).}
+\item{value_var}{Name of the column containing the value counts (if \code{grouped = TRUE}).}
 \item{ci_lower}{Name of the column containing lower confidence limits (if \code{ci = TRUE}).}
 \item{ci_upper}{Name of the column containing upper confidence limits (if \code{ci = TRUE}).}
 }
 }
 \item{mf_colours}{A vector of 2 colours used to fill the male and female bars in the
 plot. The first colour will be used for males, and the second for females. Default
-is \code{c("#440154", "#fde725")}.}
+is \code{c("#440154", "#2196F3")}.}
 \item{x_breaks}{Number of breaks on the x-axis. Default is \code{10}.}
 \item{y_axis_title}{Title of the y-axis. Default is \code{"Individual count"}.}
 \item{x_axis_title}{Title of the x-axis. Default is \code{"Number of cases"}.}
 \item{text_size}{Size of the text in the plot. Default is \code{12}.}
-\item{ci}{Confidence interval. If \code{ci = "errorbar"} then confidence intervals be
-be plotted with each bar as errorbars. If \code{grouped = FALSE}, default confidence
-intervals are applied using the normal approximation to the Poisson distribution,
-with bounds set at \eqn{\pm 1.96 \times \sqrt{n}}.}
+\item{ci}{Confidence interval. If \code{ci = "errorbar"} then confidence intervals will be
+be plotted with each bar as errorbars. If \code{ci = "errorbar"} and \code{grouped = FALSE}, then
+default confidence intervals are applied using the normal approximation to the Poisson
+distribution, with bounds set at \eqn{\pm 1.96 \times \sqrt{n}}.}
 \item{ci_colour}{Colour of the plotted errorbars if \code{ci = TRUE}. Default is \code{"red"}.}
 \item{age_breakpoints}{A numeric vector specifying the breakpoints for age groups. Default is \code{c(0, 5, 19, 65, Inf)}.}
 \item{age_calc_refdate}{Reference date for calculating age from date of birth. Default is \code{Sys.Date()}.}
 \item{grouped}{Logical. If \code{TRUE}, assumes the data is pre-grouped by age and sex. If \code{FALSE},
 the function processes the line list data. Default is \code{FALSE}.}
 \item{legend_pos}{Position of the legend. Default is \code{"top"}.}
-\item{legend_title}{Title of the legend. Default is \code{""}.}
+\item{chart_title}{Text to use as the chart title.}
 }}
 }
 \value{

@@ -38,4 +38,4 @@ in London, United Kingdom, as at May 2023. The boundaries are generalised (20m) 
 the coastline (Mean High Water mark). Contains both Ordnance Survey and ONS Intellectual
 Property Rights.
 }
-\keyword{datasets}
+\keyword{internal}

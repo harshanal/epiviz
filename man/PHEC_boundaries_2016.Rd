@@ -34,4 +34,4 @@ in England as at December 2016. The boundaries are generalised (20m) - clipped t
 the coastline (Mean High Water mark). Contains both Ordnance Survey and ONS Intellectual
 Property Rights.
 }
-\keyword{datasets}
+\keyword{internal}

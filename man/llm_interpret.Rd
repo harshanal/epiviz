@@ -19,7 +19,7 @@ A character string containing the narrative or interpretation of the input objec
 \description{
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
 
-This function interprets a given data frame or ggplot visualisation by sending it to a language model API via the elmer package. It supports multiple LLM providers, allowing users to specify the desired provider and model through environment variables.
+This function interprets a given data frame or ggplot visualisation by sending it to a language model API via the ellmer package. It supports multiple LLM providers, allowing users to specify the desired provider and model through environment variables.
 }
 \details{
 \strong{Supported LLM Providers and Models:}

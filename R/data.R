@@ -25,6 +25,7 @@
 #'   \item{SHAPE_Area}{}
 #'   \item{geometry}{}
 #' }
+#' @keywords internal
 "PHEC_boundaries_2016"
 
 #' Local Authority Districts (May 2023) Boundaries for London BGC
@@ -58,6 +59,7 @@
 #'   \item{SHAPE_Area}{}
 #'   \item{geometry}{}
 #' }
+#' @keywords internal
 "London_LA_boundaries_2023"
 
 #' Countries (December 2023) Boundaries UK BUC
@@ -88,4 +90,5 @@
 #'   \item{SHAPE_Area}{}
 #'   \item{geometry}{}
 #' }
+#' @keywords internal
 "UK_boundaries_2023"

@@ -3,7 +3,7 @@
 #' @description
 #' `r lifecycle::badge("experimental")`
 #' 
-#' This function interprets a given data frame or ggplot visualisation by sending it to a language model API via the elmer package. It supports multiple LLM providers, allowing users to specify the desired provider and model through environment variables.
+#' This function interprets a given data frame or ggplot visualisation by sending it to a language model API via the ellmer package. It supports multiple LLM providers, allowing users to specify the desired provider and model through environment variables.
 #'
 #' @param input An input object, either a data frame or a ggplot object, representing the data or visualization to be interpreted.
 #' @param word_limit Integer. The desired word length for the response. Defaults to 100.

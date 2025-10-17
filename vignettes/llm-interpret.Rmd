@@ -24,34 +24,32 @@ library(lubridate)
 
 ## Environment Setup
 
-Before using `llm_interpret()`, you need to configure your LLM API credentials. The function supports multiple LLM providers through environment variables.
+Before using `llm_interpret()`, set provider-agnostic environment variables. These are what the function reads.
 
 ### Required Environment Variables
 
 Set these in your `.Renviron` file or R session:
 
 ```r
-# For OpenAI (GPT models)
-Sys.setenv(OPENAI_API_KEY = "your-openai-api-key")
-Sys.setenv(OPENAI_MODEL = "gpt-4")  # or "gpt-3.5-turbo"
+# Provider: one of "openai", "gemini", or "claude"
+Sys.setenv(LLM_PROVIDER = "openai")
 
-# For Anthropic (Claude models)  
-Sys.setenv(ANTHROPIC_API_KEY = "your-anthropic-api-key")
-Sys.setenv(ANTHROPIC_MODEL = "claude-3-sonnet-20240229")
+# API key for the chosen provider
+Sys.setenv(LLM_API_KEY = "your-api-key")
 
-# For Google (Gemini models)
-Sys.setenv(GOOGLE_API_KEY = "your-google-api-key")
-Sys.setenv(GOOGLE_MODEL = "gemini-1.5-flash")
+# Model for the chosen provider (examples)
+Sys.setenv(LLM_MODEL = "gpt-4o")        # OpenAI
+# Sys.setenv(LLM_MODEL = "gemini-1.5-flash")  # Google
+# Sys.setenv(LLM_MODEL = "claude-1")          # Anthropic
 ```
 
 ### Verify Setup
 
 ```r
-# Check if your API key is properly set
-if (Sys.getenv("OPENAI_API_KEY") != "") {
-  cat("OpenAI API key is configured\n")
+if (Sys.getenv("LLM_PROVIDER") != "" && Sys.getenv("LLM_API_KEY") != "" && Sys.getenv("LLM_MODEL") != "") {
+  cat("LLM environment is configured\n")
 } else {
-  cat("Please set your OpenAI API key\n")
+  cat("Please set LLM_PROVIDER, LLM_API_KEY and LLM_MODEL\n")
 }
 ```
 
@@ -92,12 +90,12 @@ print(epi_curve_plot)
 
 ### Interpret the visualization
 
-```r
+```{r, eval=FALSE}
 # Use LLM to interpret the epidemic curve
 interpretation <- llm_interpret(
-  plot = epi_curve_plot,  # The ggplot object to interpret
-  data = epi_data,        # The underlying data
-  prompt = "Analyze this epidemic curve and identify any notable patterns, trends, or anomalies. Focus on seasonal patterns and potential outbreak periods."
+  input = epi_curve_plot,
+  word_limit = 120,
+  prompt_extension = "Analyze this epidemic curve and identify notable patterns, trends, or anomalies. Focus on seasonal patterns and potential outbreak periods."
 )
 
 # Display the interpretation
@@ -142,12 +140,12 @@ print(pyramid_plot)
 
 ### Interpret with custom epidemiological focus
 
-```r
+```{r, eval=FALSE}
 # Use LLM with a custom prompt focused on public health implications
 custom_interpretation <- llm_interpret(
-  plot = pyramid_plot,
-  data = pyramid_data,
-  prompt = "As a public health epidemiologist, analyze this age-sex pyramid for Klebsiella pneumoniae cases. Identify which demographic groups are most at risk, discuss potential risk factors, and suggest targeted prevention strategies. Consider healthcare-associated infections and community transmission patterns."
+  input = pyramid_plot,
+  word_limit = 150,
+  prompt_extension = "As a public health epidemiologist, analyze this age-sex pyramid for Klebsiella pneumoniae cases. Identify which demographic groups are most at risk, discuss potential risk factors, and suggest targeted prevention strategies. Consider healthcare-associated infections and community transmission patterns."
 )
 
 # Display the custom interpretation

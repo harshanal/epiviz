@@ -22,7 +22,9 @@ Suggests:
     testthat (>= 3.0.0),
     mockery,
     withr,
-    yarrr
+    yarrr,
+    knitr,
+    rmarkdown
 Config/testthat/edition: 3
 Imports: 
     assertthat,
@@ -46,6 +48,7 @@ Imports:
     jsonlite,
     lifecycle
 Depends: 
-    R (>= 3.5.0)
+    R (>= 4.1.0)
 Remotes:
-    tidyverse/elmer
+    tidyverse/ellmer
+VignetteBuilder: knitr

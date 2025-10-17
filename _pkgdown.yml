@@ -4,3 +4,19 @@ home:
   links:
   - text: Source code
     href: https://github.com/harshanal/epiviz
+
+reference:
+  - title: "Visualisation functions"
+    contents:
+      - age_sex_pyramid
+      - col_chart
+      - epi_curve
+      - epi_map
+      - line_chart
+      - point_chart
+  - title: "LLM interpretability"
+    contents:
+      - llm_interpret
+  - title: "Data"
+    contents:
+      - lab_data
