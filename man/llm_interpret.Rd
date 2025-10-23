@@ -24,25 +24,23 @@ This function interprets a given data frame or ggplot visualisation by sending i
 \details{
 \strong{Supported LLM Providers and Models:}
 \itemize{
-\item \strong{OpenAI}: Utilizes OpenAI's models via \code{chat_openai()}. Requires setting the \code{OPENAI_API_KEY} environment variable. Applicable models include:
+\item \strong{OpenAI}: Utilises OpenAI's models via \code{chat_openai()}. Requires setting the \code{OPENAI_API_KEY} environment variable. Applicable models include:
 \itemize{
-\item \code{"gpt-4o"}
-\item \code{"gpt-4o-mini"}
-\item \code{"o1-mini"}
+\item \code{"gpt-4.1-nano"}
 }
-\item \strong{Google Gemini}: Utilizes Google's Gemini models via \code{chat_gemini()}. Requires setting the \code{GOOGLE_API_KEY} environment variable. Applicable models include:
+\item \strong{Google Gemini}: Utilises Google's Gemini models via \code{chat_gemini()}. Requires setting the \code{GOOGLE_API_KEY} environment variable. Applicable models include:
 \itemize{
-\item \code{"gemini-1.5-flash"}
+\item \code{"claude-sonnet-4-20250514"}
 }
-\item \strong{Anthropic Claude}: Utilizes Anthropic's Claude models via \code{chat_claude()}. Requires setting the \code{CLAUDE_API_KEY} environment variable. Applicable models include:
+\item \strong{Anthropic Claude}: Utilises Anthropic's Claude models via \code{chat_anthropic()}. Requires setting the \code{CLAUDE_API_KEY} environment variable. Applicable models include:
 \itemize{
-\item \code{"claude-1"}
+\item \code{"claude-sonnet-4-20250514"}
 }
 }
 
 \strong{Environment Variables:}
 \itemize{
-\item \code{LLM_PROVIDER}: Specifies the LLM provider ("openai", "gemini", "claude").
+\item \code{LLM_PROVIDER}: Specifies the LLM provider ("openai", "gemini", "anthropic").
 \item \code{LLM_API_KEY}: The API key corresponding to the chosen provider.
 \item \code{LLM_MODEL}: The model identifier to use.
 }
