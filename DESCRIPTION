@@ -1,5 +1,5 @@
 Package: epiviz
-Title: data visualisation functions for epidemiological data science products
+Title: Data Visualisation Functions for Epidemiological Data Science Products
 Version: 0.1.1
 Authors@R: 
     c(person(given="Harshana", family="Liyanage", email="harshana.liyanage@ukhsa.gov.uk", role = c("aut","cre"),
@@ -49,8 +49,6 @@ Imports:
     lifecycle
 Depends: 
     R (>= 4.1.0)
-Remotes:
-    tidyverse/ellmer
 VignetteBuilder: knitr
 URL: https://github.com/ukhsa-collaboration/epiviz
-BugReports: https://github.com/harshanal/epiviz/issues
+BugReports: https://github.com/ukhsa-collaboration/epiviz/issues

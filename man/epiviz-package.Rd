@@ -4,11 +4,19 @@
 \name{epiviz-package}
 \alias{epiviz}
 \alias{epiviz-package}
-\title{epiviz: data visualisation functions for epidemiological data science products}
+\title{epiviz: Data Visualisation Functions for Epidemiological Data Science Products}
 \description{
 \if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
 
 The epiviz package provides a set of functions to produce frequently used static and interactive graphs in epidemiological data science products.
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/ukhsa-collaboration/epiviz}
+  \item Report bugs at \url{https://github.com/ukhsa-collaboration/epiviz/issues}
+}
+
 }
 \author{
 \strong{Maintainer}: Harshana Liyanage \email{harshana.liyanage@ukhsa.gov.uk} (\href{https://orcid.org/0000-0001-9738-6349}{ORCID})
@@ -16,11 +24,11 @@ The epiviz package provides a set of functions to produce frequently used static
 Authors:
 \itemize{
   \item Alex Bhattacharya \email{alex.bhattacharya@ukhsa.gov.uk} (\href{https://orcid.org/0000-0003-3000-2771}{ORCID})
+  \item James Duke \email{james.duke@ukhsa.gov.uk}
   \item Liam Fitzpatrick \email{liam.fitzpatrick@ukhsa.gov.uk}
   \item James Leatherland \email{james.leatherland@ukhsa.gov.uk}
   \item Sudha Aurumugam \email{sudha.arumugam@ukhsa.gov.uk}
   \item Jordan Worth \email{jordan.worth@ukhsa.gov.uk}
-  \item James Duke \email{james.duke@ukhsa.gov.uk}
   \item Emma Parker \email{emma.k.parker@ukhsa.gov.uk}
 }
 
