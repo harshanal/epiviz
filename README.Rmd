@@ -1,5 +1,5 @@
 ---
-title: "epiviz: Easy Data Visualization for R"
+title: "epiviz: Easy Epidemiological Data Visualisation for R"
 output:
   html_document:
     theme: cosmo
@@ -16,22 +16,25 @@ output:
 
 ## Installation
 
-epivis can be installed from GitHub used the following code.
+epiviz can be installed from GitHub using the following code.
 ```r
-remotes::install_github('harshanal/epiviz')
+remotes::install_github('ukhsa-collaboration/epiviz')
 
 # To install the development version
-remotes::install_github("harshanal/epiviz@dev")
+remotes::install_github("ukhsa-collaboration/epiviz@dev")
 ``` 
 
 ## Features
 
 Following functions are available in the current release of epiviz:
 
-- `line_chart()`: Line chart with options to add dual axes, threshold lines, confidence limits as ribbons/error bars.
-- `col_chart()`: Column chart with options to add dual axes, threshold lines, confidence limits as ribbons/error bars.
+- `line_chart()`: Line chart with options to add dual axes, threshold lines, and confidence limits as ribbons/error bars.
+- `col_chart()`: Column chart with options to add dual axes, threshold lines, and confidence limits as ribbons/error bars.
+- `point_chart()`: Point chart with support for groups, labels, and optional confidence intervals.
+- `epi_curve()`: Epidemic curve with flexible time aggregation, grouped bars, optional rolling averages, and a cumulative line.
 - `epi_map()`: Epidemiological map with customisable maps adaptable for multiple administrative levels.
-- `agesex_pyramid()`: Age-sex pyramid with customisable age bands with the option to add error bars.
+- `age_sex_pyramid()`: Age-sex pyramid with customisable age bands with the option to add error bars.
+- `llm_interpret()` (experimental): Generate brief narrative interpretations of data frames or ggplot outputs using configured LLMs.
 
 ## Package data
 
