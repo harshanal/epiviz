@@ -1,10 +1,17 @@
 .onLoad <- function(...){
+  # Store original options
   quietly <- getOption('quietly')
-  options(quietly = T)
-
-  options(showWarnCalls=F)
-  options(quietly = quietly)
-
+  showWarnCalls <- getOption('showWarnCalls')
+  
+  # Restore options when function exits
+  on.exit({
+    options(quietly = quietly)
+    options(showWarnCalls = showWarnCalls)
+  })
+  
+  # Temporarily change options
+  options(quietly = TRUE)
+  options(showWarnCalls = FALSE)
 }
 
 
@@ -25,5 +32,3 @@ utils::globalVariables(c(
   "date_sum",
   "x_time_series_bar_labels"
 ))
-
-
