@@ -149,7 +149,7 @@ epidemic curve.
 }
 \examples{
 
-\dontrun{
+\donttest{
 
 # Example 1: Basic epi curve
 

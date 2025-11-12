@@ -8,7 +8,7 @@
 #' @noRd
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' scale_function(2,4,5)
 #' }
 scale_function <- function(x, scale, shift){
@@ -28,7 +28,7 @@ scale_function <- function(x, scale, shift){
 #' @noRd
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' inv_scale_function(2,4,5)
 #' }
 inv_scale_function <- function(x, scale, shift){
@@ -44,7 +44,7 @@ inv_scale_function <- function(x, scale, shift){
 #' @noRd
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' get_os()
 #' }
 get_os <- function(){
@@ -72,7 +72,7 @@ get_os <- function(){
 #' @noRd
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' set_Arial()
 #' }
 set_Arial <- function() {
@@ -103,7 +103,7 @@ set_Arial <- function() {
 #' @noRd
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' param_assign(params, c("df","x","y","legend","title"))
 #' }
 param_assign <- function(params, reference) {
@@ -138,7 +138,7 @@ param_assign <- function(params, reference) {
 #' @noRd
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' html_bold("Chart Title")
 #' }
 html_bold <- function(x) {
@@ -157,7 +157,7 @@ html_bold <- function(x) {
 #' @noRd
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' plotly_line_style("dotdash")
 #' }
 plotly_line_style <- function(x) {
@@ -208,7 +208,7 @@ plotly_line_style <- function(x) {
 #'
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' datebreak_to_d3("2 months")
 #'
 #' datebreak_to_d3("1 week")
@@ -270,7 +270,7 @@ datebreak_to_d3 <- function(x) {
 #' @noRd
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' plotly_legend_pos("right")
 #' }
 plotly_legend_pos <- function(x) {
@@ -342,7 +342,7 @@ plotly_legend_pos <- function(x) {
 #' @noRd
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' palette_gen(c("#007C91","purple"),7)
 #'
 #' palette_gen("#007C91",5)
@@ -398,7 +398,7 @@ palette_gen <- function(x, n_pal) {
 #' @noRd
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' params <- param_rename(params,"chart_footer_colour","new_name")
 #' }
 #'
@@ -424,7 +424,7 @@ param_rename <- function(params_list, current_name, new_name) {
 #' @noRd
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' dataframe_out <- adorn_date(df = dataframe, date_var = "date_column")
 #' }
 adorn_dates <- function(df, date_var) {
@@ -462,7 +462,7 @@ adorn_dates <- function(df, date_var) {
 #' @noRd
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' dataframe_out <- swap_object_names('x', 'y')
 #' }
 swap_object_names <- function(name1, name2) {
@@ -487,7 +487,7 @@ swap_object_names <- function(name1, name2) {
 #' @noRd
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' final_ggplot_object <- clean_gg_labels(your_ggplot_object)
 #' }
 clean_gg_labels <- function(p) {

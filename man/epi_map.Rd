@@ -100,7 +100,7 @@ choropleth maps.
 }
 \examples{
 
-\dontrun{
+\donttest{
 
 # Example 1: Create a static map of Staphylococcus Aureus detections in London
 # Local Authority Districts.

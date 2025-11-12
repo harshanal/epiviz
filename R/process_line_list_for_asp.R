@@ -24,7 +24,7 @@
 #' @keywords internal
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #'   df <- epiviz::lab_data
 #'   processed_df <- process_line_list_for_age_sex_pyramid(df)
 #' }
