@@ -1,9 +1,13 @@
 .onLoad <- function(...){
-  quietly <- getOption('quietly')
-  options(quietly = T)
+  # Save current option values
+  old_quietly <- getOption('quietly')
+  old_showWarnCalls <- getOption('showWarnCalls')
 
-  options(showWarnCalls=F)
-  options(quietly = quietly)
+  # Restore options on exit (CRAN requirement)
+  on.exit(options(quietly = old_quietly, showWarnCalls = old_showWarnCalls), add = TRUE)
+
+  # Set temporary options
+  options(quietly = TRUE, showWarnCalls = FALSE)
 
 }
 
