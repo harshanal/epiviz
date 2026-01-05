@@ -49,7 +49,7 @@
 #' When `grouped = TRUE`, it assumes the data is already grouped and uses the provided values directly to generate the pyramid.
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' # Example using a line list
 #' df <- epiviz::lab_data
 #' age_sex_pyramid(
