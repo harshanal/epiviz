@@ -25,7 +25,7 @@
 #' @import dplyr
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' data <- data.frame(
 #'  age_group = rep(c("0-4", "5-18", "19-64", "65+"), each = 2),
 #'  sex = rep(c("Female", "Male"), times = 4),

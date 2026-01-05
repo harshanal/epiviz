@@ -6,7 +6,7 @@
 #' @noRd
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' environment(base_plotly) <- environment()
 #' base <- base_plotly()
 #' }

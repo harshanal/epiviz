@@ -153,7 +153,7 @@
 #'
 #' @examples
 #'
-#' \dontrun{
+#' \donttest{
 #'
 #' # Example 1: Basic column chart
 #'

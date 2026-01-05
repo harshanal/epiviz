@@ -6,7 +6,7 @@
 #' @noRd
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' environment(base_gg) <- environment()
 #' base <- base_gg()
 #' }
